@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Member Login - Blitz Tesla Club</title>
+    <title>Register - Blitz Tesla Club</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,12 +28,16 @@
     </nav>
 
     <main class="login-container">
-        <div class="login-box">
+        <div class="login-box register-box">
             <div class="login-header">
                 <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" class="login-logo">
-                <h2>Member Login</h2>
+                <h2>Create Account</h2>
             </div>
-            <form class="login-form" id="loginForm">
+            <form class="login-form" id="registerForm">
+                <div class="form-group">
+                    <label for="fullName">Full Name</label>
+                    <input type="text" id="fullName" name="fullName" required>
+                </div>
                 <div class="form-group">
                     <label for="email">Email</label>
                     <input type="email" id="email" name="email" required>
@@ -42,12 +46,14 @@
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" required>
                 </div>
-                <div class="form-group remember-me">
-                    <input type="checkbox" id="remember" name="remember">
-                    <label for="remember">Remember me</label>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required>
                 </div>
+                <button type="submit" class="btn login-btn">Create Account</button>
+                
                 <div class="social-login">
-                    <p class="divider"><span>Or continue with</span></p>
+                    <p class="divider"><span>Or register with</span></p>
                     <div class="social-buttons">
                         <button type="button" class="social-btn google">
                             <i class="fab fa-google"></i>
@@ -63,10 +69,9 @@
                         </button>
                     </div>
                 </div>
-                <button type="submit" class="btn login-btn">Sign In</button>
+                
                 <div class="form-footer">
-                    <a href="#forgot-password">Forgot Password?</a>
-                    <a href="register.html">Not a member? Join now</a>
+                    <a href="login.html">Already have an account? Sign in</a>
                 </div>
             </form>
         </div>

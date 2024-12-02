@@ -117,4 +117,35 @@ if (loginForm) {
         // For demo purposes, show success message
         alert('Login functionality coming soon!');
     });
-} 
+}
+
+// Registration form handling
+const registerForm = document.getElementById('registerForm');
+if (registerForm) {
+    registerForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const fullName = document.getElementById('fullName').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (password !== confirmPassword) {
+            alert('Passwords do not match!');
+            return;
+        }
+
+        // Here you would typically send this data to your server
+        console.log('Registration attempt:', { fullName, email, password });
+        alert('Registration functionality coming soon!');
+    });
+}
+
+// Social login handling
+document.querySelectorAll('.social-btn').forEach(button => {
+    button.addEventListener('click', function(e) {
+        e.preventDefault();
+        const provider = this.classList[1]; // google, facebook, or twitter
+        console.log(`${provider} login attempted`);
+        alert(`${provider} login coming soon!`);
+    });
+}); 

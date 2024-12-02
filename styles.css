@@ -848,4 +848,94 @@ footer {
     position: relative;
     width: 100%;
     margin-top: auto;
+}
+
+/* Social Login Styles */
+.social-login {
+    margin-top: 2rem;
+}
+
+.divider {
+    text-align: center;
+    position: relative;
+    margin: 1.5rem 0;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: calc(50% - 50px);
+    height: 1px;
+    background-color: #ddd;
+}
+
+.divider::before {
+    left: 0;
+}
+
+.divider::after {
+    right: 0;
+}
+
+.divider span {
+    background-color: white;
+    padding: 0 1rem;
+    color: #666;
+    font-size: 14px;
+}
+
+.social-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.social-btn {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.social-btn i {
+    font-size: 18px;
+}
+
+.social-btn.google {
+    color: #DB4437;
+    border-color: #DB4437;
+}
+
+.social-btn.facebook {
+    color: #4267B2;
+    border-color: #4267B2;
+}
+
+.social-btn.twitter {
+    color: #000000;
+    border-color: #000000;
+}
+
+.social-btn:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+
+/* Register form specific styles */
+.register-box {
+    max-width: 450px;
+}
+
+.register-box .form-group {
+    margin-bottom: 1.2rem;
 } 

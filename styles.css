@@ -964,4 +964,20 @@ footer {
     outline: none;
     box-shadow: 0 0 0 1px #171a20;
 }
+
+/* Update logo styles */
+.logo a {
+    text-decoration: none;
+    color: inherit;
+    transition: opacity 0.3s ease;
+}
+
+.logo a:hover {
+    opacity: 0.8;
+}
+
+/* Ensure the span inherits the color */
+.logo a span {
+    color: inherit;
+}
   

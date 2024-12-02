@@ -148,4 +148,84 @@ document.querySelectorAll('.social-btn').forEach(button => {
         console.log(`${provider} login attempted`);
         alert(`${provider} login coming soon!`);
     });
+});
+
+// Gallery functionality
+const galleryFilters = document.querySelector('.gallery-filters');
+const galleryItems = document.querySelectorAll('.gallery-item');
+const lightbox = document.getElementById('lightbox');
+
+if (galleryFilters) {
+    galleryFilters.addEventListener('click', (e) => {
+        if (e.target.classList.contains('filter-btn')) {
+            // Update active button
+            document.querySelector('.filter-btn.active').classList.remove('active');
+            e.target.classList.add('active');
+
+            // Filter items
+            const filter = e.target.dataset.filter;
+            galleryItems.forEach(item => {
+                if (filter === 'all' || item.dataset.category === filter) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+    });
+}
+
+// Update video handling in lightbox
+function openVideoInLightbox(iframe) {
+    const videoUrl = iframe.src;
+    const newIframe = document.createElement('iframe');
+    // Add YouTube parameters for better quality and control
+    newIframe.src = videoUrl + '?autoplay=1&rel=0&showinfo=0&vq=hd1080';
+    newIframe.width = '1280';
+    newIframe.height = '720';
+    newIframe.allowFullscreen = true;
+    newIframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    
+    lightbox.querySelector('.lightbox-content').appendChild(newIframe);
+}
+
+// Update click handler
+galleryItems.forEach(item => {
+    item.addEventListener('click', () => {
+        const iframe = item.querySelector('iframe');
+        const img = item.querySelector('img');
+        const caption = item.querySelector('h3').textContent;
+        
+        lightbox.querySelector('.lightbox-content').innerHTML = '';
+        lightbox.querySelector('.lightbox-caption').textContent = caption;
+        
+        if (iframe) {
+            openVideoInLightbox(iframe);
+        } else if (img) {
+            const newImg = img.cloneNode(true);
+            lightbox.querySelector('.lightbox-content').appendChild(newImg);
+        }
+        
+        lightbox.classList.add('active');
+    });
+});
+
+// Update close lightbox to handle videos
+function closeLightbox() {
+    const iframe = lightbox.querySelector('iframe');
+    if (iframe) {
+        // Stop video playback by removing the iframe
+        iframe.src = '';
+    }
+    lightbox.classList.remove('active');
+}
+
+// Update close button handler
+document.querySelector('.close-btn').addEventListener('click', closeLightbox);
+
+// Update outside click handler
+lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) {
+        closeLightbox();
+    }
 }); 

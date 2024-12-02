@@ -1001,4 +1001,251 @@ main {
 .logo a span {
     color: inherit;
 }
+
+/* Gallery Page Styles */
+.gallery-page {
+    background: #f5f5f5;
+}
+
+.gallery-container {
+    padding: 80px 20px 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.gallery-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.gallery-header h1 {
+    color: #171a20;
+    font-size: 40px;
+    margin-bottom: 1rem;
+    text-shadow: none;
+}
+
+.gallery-header p {
+    color: #666;
+    font-size: 1.2rem;
+}
+
+/* Gallery Filters */
+.gallery-filters {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    background: white;
+    border-radius: 30px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.filter-btn.active {
+    background: #171a20;
+    color: white;
+}
+
+/* Gallery Grid */
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem 0;
+}
+
+.gallery-item {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    aspect-ratio: 16/9;
+    background: #000;
+}
+
+.gallery-item img,
+.gallery-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.gallery-item-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    padding: 1rem;
+    color: white;
+    text-align: center;
+}
+
+.gallery-item:hover .gallery-item-overlay {
+    opacity: 1;
+}
+
+.gallery-item:hover img,
+.gallery-item:hover video {
+    transform: scale(1.05);
+}
+
+/* Lightbox */
+.lightbox {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.9);
+    z-index: 1000;
+    padding: 2rem;
+}
+
+.lightbox.active {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.lightbox-content {
+    max-width: 90%;
+    max-height: 90vh;
+}
+
+.lightbox-content img,
+.lightbox-content video {
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+}
+
+.close-btn,
+.prev-btn,
+.next-btn {
+    position: absolute;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 1rem;
+    z-index: 1001;
+}
+
+.close-btn {
+    top: 1rem;
+    right: 1rem;
+}
+
+.prev-btn {
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.next-btn {
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .gallery-container {
+        padding: 60px 15px 30px;
+    }
+
+    .gallery-header h1 {
+        font-size: 32px;
+    }
+
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+
+    .filter-btn {
+        padding: 0.6rem 1.2rem;
+        font-size: 13px;
+    }
+}
+
+/* Add YouTube video styling */
+.gallery-item iframe {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* Ensure proper aspect ratio for video items */
+.gallery-item[data-category="shows"] {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+    height: 0;
+    overflow: hidden;
+    background: #000; /* Dark background for loading */
+}
+
+.gallery-item iframe {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border: none;
+}
+
+/* Lightbox video optimization */
+.lightbox-content iframe {
+    width: 90vw;
+    max-width: 1280px; /* Increased for better HD viewing */
+    height: calc(90vw * 9/16);
+    max-height: 720px; /* Optimal 720p viewing */
+    border: none;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+}
+
+/* Video hover effect */
+.gallery-item[data-category="shows"] .play-btn {
+    font-size: 4rem;
+    opacity: 0.9;
+    text-shadow: 0 0 20px rgba(0,0,0,0.5);
+    transition: all 0.3s ease;
+}
+
+.gallery-item[data-category="shows"]:hover .play-btn {
+    transform: scale(1.1);
+    opacity: 1;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    .lightbox-content iframe {
+        width: 95vw;
+        height: calc(95vw * 9/16);
+        max-height: 540px; /* Better for mobile */
+    }
+}
   

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery - Blitz Tesla Club</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
+</head>
+<body class="gallery-page">
+    <nav>
+        <div class="logo">
+            <a href="index.html">
+                <span>BLITZ TESLA CLUB</span>
+            </a>
+        </div>
+        <div class="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html#events">Events</a></li>
+            <li><a href="gallery.html">Gallery</a></li>
+            <li><a href="index.html#news">News</a></li>
+            <li><a href="index.html#join">Join Us</a></li>
+            <li><a href="login.html">Login</a></li>
+        </ul>
+    </nav>
+
+    <main class="gallery-container">
+        <header class="gallery-header">
+            <h1>Club Gallery</h1>
+            <p>Memories from Our Past Events</p>
+        </header>
+
+        <div class="gallery-filters">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="meetups">Meetups</button>
+            <button class="filter-btn" data-filter="track-days">Track Days</button>
+            <button class="filter-btn" data-filter="shows">Car Shows</button>
+        </div>
+
+        <div class="gallery-grid">
+            <!-- Meetups -->
+            <div class="gallery-item" data-category="meetups">
+                <img src="https://images.unsplash.com/photo-1617788138017-80ad40651399" alt="Monthly Meetup">
+                <div class="gallery-item-overlay">
+                    <h3>Monthly Meetup</h3>
+                    <p>February 2024</p>
+                    <button class="view-btn"><i class="fas fa-expand"></i></button>
+                </div>
+            </div>
+
+            <!-- Track Days -->
+            <div class="gallery-item" data-category="track-days">
+                <img src="https://images.unsplash.com/photo-1553260168-69b041b3eec4" alt="Track Day">
+                <div class="gallery-item-overlay">
+                    <h3>Track Day</h3>
+                    <p>January 2024</p>
+                    <button class="view-btn"><i class="fas fa-expand"></i></button>
+                </div>
+            </div>
+
+            <!-- Car Shows -->
+            <div class="gallery-item" data-category="shows">
+                <iframe 
+                    src="https://www.youtube.com/embed/z53Q5buS3Bs"
+                    title="Tesla Club Meet"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowfullscreen>
+                </iframe>
+                <div class="gallery-item-overlay">
+                    <h3>Tesla Club Meet</h3>
+                    <p>March 2024</p>
+                    <button class="play-btn" aria-label="Play video">
+                        <i class="fas fa-play-circle"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Add more gallery items as needed -->
+        </div>
+
+        <!-- Lightbox -->
+        <div class="lightbox" id="lightbox">
+            <button class="close-btn"><i class="fas fa-times"></i></button>
+            <button class="prev-btn"><i class="fas fa-chevron-left"></i></button>
+            <button class="next-btn"><i class="fas fa-chevron-right"></i></button>
+            <div class="lightbox-content">
+                <!-- Content will be dynamically inserted here -->
+            </div>
+            <div class="lightbox-caption"></div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="#privacy">Privacy Policy</a>
+                <a href="#contact">Contact</a>
+                <a href="#about">About Us</a>
+            </div>
+            <p>© 2024 Blitz Tesla Club</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html> 

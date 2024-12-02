@@ -938,4 +938,30 @@ footer {
 
 .register-box .form-group {
     margin-bottom: 1.2rem;
-} 
+}
+
+.register-box input {
+    width: 100% !important;
+    box-sizing: border-box;
+}
+
+/* Form input styles */
+.login-form input[type="text"],
+.login-form input[type="email"],
+.login-form input[type="password"] {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* Form focus states */
+.login-form input:focus {
+    border-color: #171a20;
+    outline: none;
+    box-shadow: 0 0 0 1px #171a20;
+}
+  

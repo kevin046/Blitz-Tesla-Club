@@ -213,16 +213,28 @@ h2 {
     }
 }
 
-/* Footer */
+/* Footer Styles Update */
 footer {
-    position: absolute;
-    bottom: 0;
-    left: 0;
+    position: relative;
     width: 100%;
     background-color: rgba(0, 0, 0, 0.95);
     color: white;
     padding: 1.5rem;
     z-index: 90;
+    margin-top: auto;
+}
+
+/* Main content wrapper */
+main {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Last section spacing */
+#join {
+    margin-bottom: 0;
+    padding-bottom: 2rem;
 }
 
 .footer-content {
@@ -238,6 +250,7 @@ footer {
     display: flex;
     justify-content: center;
     gap: 2rem;
+    flex-wrap: wrap;
 }
 
 .footer-links a {
@@ -269,6 +282,14 @@ footer {
     
     h2 {
         font-size: 32px;
+    }
+
+    footer {
+        padding: 1rem;
+    }
+
+    .footer-links {
+        gap: 1rem;
     }
 }
 

@@ -102,9 +102,10 @@ nav {
 .hero {
     background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)),
                 url('https://www.carscoops.com/wp-content/uploads/2019/03/db536c08-tesla-s3xy-2.jpg');
-    background-size: contain;
+    background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    background-attachment: fixed;
     background-color: #ffffff;
     color: white;
 }
@@ -595,5 +596,99 @@ footer {
 
     .section-content p {
         font-size: 0.9rem;
+    }
+}
+
+/* Update background image handling */
+.hero {
+    background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)),
+                url('https://www.carscoops.com/wp-content/uploads/2019/03/db536c08-tesla-s3xy-2.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+}
+
+/* Optimize section backgrounds for mobile */
+.section-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    transition: opacity 0.3s ease;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    /* Adjust hero logo size for mobile */
+    .hero-logo {
+        max-width: 250px;
+        width: 85%;
+        padding: 10px;
+    }
+
+    .hero-logo img {
+        max-height: 20vh;
+        width: auto;
+        object-fit: contain;
+    }
+
+    /* Optimize background images for mobile */
+    .hero, 
+    .section-background {
+        background-attachment: scroll;
+        background-position: center;
+    }
+
+    /* Adjust section content spacing */
+    .section-content {
+        padding: 0 15px;
+        margin: 60px 0;
+    }
+
+    /* Optimize fullscreen sections for mobile */
+    .fullscreen-section {
+        min-height: 100vh;
+        height: auto;
+        padding: 80px 15px;
+    }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+    .hero-logo {
+        max-width: 200px;
+        width: 80%;
+    }
+
+    .hero-logo img {
+        max-height: 18vh;
+    }
+
+    /* Further optimize background images */
+    .hero, 
+    .section-background {
+        background-position: center center;
+    }
+
+    /* Adjust section spacing */
+    .fullscreen-section {
+        padding: 60px 10px;
+    }
+
+    .section-content {
+        margin: 40px 0;
+    }
+}
+
+/* High-DPI screens */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    /* Optimize images for retina displays */
+    .hero,
+    .section-background {
+        background-size: cover;
     }
 } 

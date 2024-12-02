@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Login - Blitz Tesla Club</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
+</head>
+<body class="login-page">
+    <nav>
+        <div class="logo">
+            <span>BLITZ TESLA CLUB</span>
+        </div>
+        <div class="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html#events">Events</a></li>
+            <li><a href="index.html#gallery">Gallery</a></li>
+            <li><a href="index.html#news">News</a></li>
+            <li><a href="index.html#join">Join Us</a></li>
+        </ul>
+    </nav>
+
+    <main class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" class="login-logo">
+                <h2>Member Login</h2>
+            </div>
+            <form class="login-form" id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <div class="form-group remember-me">
+                    <input type="checkbox" id="remember" name="remember">
+                    <label for="remember">Remember me</label>
+                </div>
+                <button type="submit" class="btn login-btn">Sign In</button>
+                <div class="form-footer">
+                    <a href="#forgot-password">Forgot Password?</a>
+                    <a href="index.html#join">Not a member? Join now</a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="#privacy">Privacy Policy</a>
+                <a href="#contact">Contact</a>
+                <a href="#about">About Us</a>
+            </div>
+            <p>© 2024 Blitz Tesla Club</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html> 

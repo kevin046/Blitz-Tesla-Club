@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events - Blitz Tesla Club</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
+</head>
+<body class="events-page">
+    <nav>
+        <div class="logo">
+            <a href="index.html">
+                <span>BLITZ TESLA CLUB</span>
+            </a>
+        </div>
+        <div class="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="events.html">Events</a></li>
+            <li><a href="gallery.html">Gallery</a></li>
+            <li><a href="#news">News</a></li>
+            <li><a href="#join">Join Us</a></li>
+            <li><a href="login.html">Login</a></li>
+        </ul>
+    </nav>
+
+    <main class="events-container">
+        <header class="events-header">
+            <h1>Upcoming Events</h1>
+            <p>Join Us at Our Next Gathering</p>
+        </header>
+
+        <div class="events-filters">
+            <button class="filter-btn active" data-filter="all">All Events</button>
+            <button class="filter-btn" data-filter="meetups">Meetups</button>
+            <button class="filter-btn" data-filter="track-days">Track Days</button>
+            <button class="filter-btn" data-filter="shows">Car Shows</button>
+        </div>
+
+        <div class="events-grid">
+            <!-- Monthly Meetup -->
+            <div class="event-card" data-category="meetups">
+                <div class="event-image">
+                    <img src="https://images.unsplash.com/photo-1617788138017-80ad40651399" alt="Monthly Meetup">
+                </div>
+                <div class="event-content">
+                    <div class="event-date">
+                        <span class="day">25</span>
+                        <span class="month">MAR</span>
+                    </div>
+                    <h3>Monthly Meetup</h3>
+                    <p class="event-location"><i class="fas fa-map-marker-alt"></i> Supercharger Station</p>
+                    <p class="event-time"><i class="far fa-clock"></i> 6:00 PM - 9:00 PM</p>
+                    <p class="event-description">Join us for our monthly gathering at the local Supercharger station. Share stories, showcase mods, and connect with fellow Tesla enthusiasts.</p>
+                    <button class="btn rsvp-btn">RSVP Now</button>
+                </div>
+            </div>
+
+            <!-- Track Day -->
+            <div class="event-card" data-category="track-days">
+                <div class="event-image">
+                    <img src="https://images.unsplash.com/photo-1553260168-69b041b3eec4" alt="Track Day">
+                </div>
+                <div class="event-content">
+                    <div class="event-date">
+                        <span class="day">15</span>
+                        <span class="month">APR</span>
+                    </div>
+                    <h3>Track Day Experience</h3>
+                    <p class="event-location"><i class="fas fa-map-marker-alt"></i> Local Race Track</p>
+                    <p class="event-time"><i class="far fa-clock"></i> 9:00 AM - 4:00 PM</p>
+                    <p class="event-description">Experience your Tesla's full potential on the race track. Professional instructors available for guidance.</p>
+                    <button class="btn rsvp-btn">RSVP Now</button>
+                </div>
+            </div>
+
+            <!-- Car Show -->
+            <div class="event-card" data-category="shows">
+                <div class="event-image">
+                    <img src="https://images.unsplash.com/photo-1536700503339-1e4b06520771" alt="Car Show">
+                </div>
+                <div class="event-content">
+                    <div class="event-date">
+                        <span class="day">01</span>
+                        <span class="month">MAY</span>
+                    </div>
+                    <h3>Tesla Showcase</h3>
+                    <p class="event-location"><i class="fas fa-map-marker-alt"></i> City Convention Center</p>
+                    <p class="event-time"><i class="far fa-clock"></i> 10:00 AM - 5:00 PM</p>
+                    <p class="event-description">Annual Tesla showcase featuring the latest models, modifications, and technology updates.</p>
+                    <button class="btn rsvp-btn">RSVP Now</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="#privacy">Privacy Policy</a>
+                <a href="#contact">Contact</a>
+                <a href="#about">About Us</a>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2024 Blitz Tesla Club</p>
+                <p class="powered-by">
+                    Website powered by <a href="http://www.summitpixels.com" target="_blank">SummitPixels</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html> 

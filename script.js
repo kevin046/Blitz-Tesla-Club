@@ -8,16 +8,6 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
-// Change nav background on scroll
-window.addEventListener('scroll', function() {
-    const nav = document.querySelector('nav');
-    if (window.scrollY > 50) {
-        nav.style.background = 'rgba(255, 255, 255, 0.95)';
-    } else {
-        nav.style.background = 'transparent';
-    }
-});
-
 // Intersection Observer for fade-in animations
 const observerOptions = {
     threshold: 0.25
@@ -228,4 +218,25 @@ lightbox.addEventListener('click', (e) => {
     if (e.target === lightbox) {
         closeLightbox();
     }
+});
+
+// Keep only this part for default sorting
+function sortGalleryItems(ascending = true) {
+    const galleryGrid = document.querySelector('.gallery-grid');
+    if (!galleryGrid) return;
+
+    const items = Array.from(galleryGrid.children);
+    
+    items.sort((a, b) => {
+        const dateA = new Date(a.dataset.date || '1970-01-01');
+        const dateB = new Date(b.dataset.date || '1970-01-01');
+        return ascending ? dateA - dateB : dateB - dateA;
+    });
+    
+    items.forEach(item => galleryGrid.appendChild(item));
+}
+
+// Sort items when page loads (ascending = true for oldest to latest)
+document.addEventListener('DOMContentLoaded', () => {
+    sortGalleryItems(true);
 }); 

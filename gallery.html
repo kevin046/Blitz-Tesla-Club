@@ -22,10 +22,11 @@
             <i class="fas fa-bars"></i>
         </div>
         <ul class="nav-links">
-            <li><a href="index.html#events">Events</a></li>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="events.html">Events</a></li>
             <li><a href="gallery.html">Gallery</a></li>
-            <li><a href="index.html#news">News</a></li>
-            <li><a href="index.html#join">Join Us</a></li>
+            <li><a href="#news">News</a></li>
+            <li><a href="#join">Join Us</a></li>
             <li><a href="login.html">Login</a></li>
         </ul>
     </nav>
@@ -39,43 +40,84 @@
         <div class="gallery-filters">
             <button class="filter-btn active" data-filter="all">All</button>
             <button class="filter-btn" data-filter="meetups">Meetups</button>
-            <button class="filter-btn" data-filter="track-days">Track Days</button>
             <button class="filter-btn" data-filter="shows">Car Shows</button>
         </div>
 
         <div class="gallery-grid">
-            <!-- Meetups -->
-            <div class="gallery-item" data-category="meetups">
-                <img src="https://images.unsplash.com/photo-1617788138017-80ad40651399" alt="Monthly Meetup">
-                <div class="gallery-item-overlay">
-                    <h3>Monthly Meetup</h3>
-                    <p>February 2024</p>
-                    <button class="view-btn"><i class="fas fa-expand"></i></button>
-                </div>
-            </div>
-
-            <!-- Track Days -->
-            <div class="gallery-item" data-category="track-days">
-                <img src="https://images.unsplash.com/photo-1553260168-69b041b3eec4" alt="Track Day">
-                <div class="gallery-item-overlay">
-                    <h3>Track Day</h3>
-                    <p>January 2024</p>
-                    <button class="view-btn"><i class="fas fa-expand"></i></button>
-                </div>
-            </div>
-
             <!-- Car Shows -->
-            <div class="gallery-item" data-category="shows">
+            <div class="gallery-item" data-category="shows" data-date="2024-10-04">
                 <iframe 
-                    src="https://www.youtube.com/embed/z53Q5buS3Bs"
+                    src="https://www.youtube.com/embed/z53Q5buS3Bs?rel=0&showinfo=0&modestbranding=1&playsinline=1"
                     title="Tesla Club Meet"
                     frameborder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowfullscreen>
+                    allowfullscreen
+                    loading="lazy">
                 </iframe>
                 <div class="gallery-item-overlay">
                     <h3>Tesla Club Meet</h3>
-                    <p>March 2024</p>
+                    <p class="event-location">Cardinal Golf Club</p>
+                    <p class="event-date">October 4, 2024</p>
+                    <button class="play-btn" aria-label="Play video">
+                        <i class="fas fa-play-circle"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Update the video item with date and location -->
+            <div class="gallery-item" data-category="shows" data-date="2024-12-07">
+                <iframe 
+                    src="https://www.youtube.com/embed/cFuH-K8muxE?rel=0&showinfo=0&modestbranding=1&playsinline=1"
+                    title="Tesla Club Lightshow"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowfullscreen
+                    loading="lazy">
+                </iframe>
+                <div class="gallery-item-overlay">
+                    <h3>Tesla Lightshow</h3>
+                    <p class="event-location">Downsview Airport</p>
+                    <p class="event-date">December 07, 2024</p>
+                    <button class="play-btn" aria-label="Play video">
+                        <i class="fas fa-play-circle"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Update the meetup video with date and location -->
+            <div class="gallery-item" data-category="meetups" data-date="2024-10-19">
+                <iframe 
+                    src="https://www.youtube.com/embed/1qXbnV3pRZ8?rel=0&showinfo=0&modestbranding=1&playsinline=1"
+                    title="Tesla Club Event"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowfullscreen
+                    loading="lazy">
+                </iframe>
+                <div class="gallery-item-overlay">
+                    <h3>Tesla Club Event</h3>
+                    <p class="event-location">Lake Ontario</p>
+                    <p class="event-date">October 19, 2024</p>
+                    <button class="play-btn" aria-label="Play video">
+                        <i class="fas fa-play-circle"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Add this new video item to the gallery-grid section -->
+            <div class="gallery-item" data-category="shows" data-date="2024-07-05">
+                <iframe 
+                    src="https://www.youtube.com/embed/rxRua0bACcU?rel=0&showinfo=0&modestbranding=1&playsinline=1"
+                    title="Tesla Club Event"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowfullscreen
+                    loading="lazy">
+                </iframe>
+                <div class="gallery-item-overlay">
+                    <h3>Tesla Club Event</h3>
+                    <p class="event-location">Canadian Tire</p>
+                    <p class="event-date">July 5, 2024</p>
                     <button class="play-btn" aria-label="Play video">
                         <i class="fas fa-play-circle"></i>
                     </button>
@@ -104,7 +146,12 @@
                 <a href="#contact">Contact</a>
                 <a href="#about">About Us</a>
             </div>
-            <p>© 2024 Blitz Tesla Club</p>
+            <div class="footer-bottom">
+                <p>© 2024 Blitz Tesla Club</p>
+                <p class="powered-by">
+                    Website powered by <a href="http://www.summitpixels.com" target="_blank">SummitPixels</a>
+                </p>
+            </div>
         </div>
     </footer>
 

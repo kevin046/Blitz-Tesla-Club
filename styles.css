@@ -21,10 +21,10 @@ nav {
     justify-content: space-between;
     align-items: center;
     z-index: 100;
-    background: rgba(0, 0, 0, 0.9);
+    background: #171a20;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    box-shadow: 0 2px 10px rgba(23, 26, 32, 0.3);
     top: 0;
 }
 
@@ -100,6 +100,22 @@ nav {
 .hero-logo img {
     width: 100%;
     height: auto;
+}
+
+.hero-tagline {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: #ffffff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    margin-bottom: 2rem;
+    position: relative;
+    z-index: 2;
+    letter-spacing: 0.05em;
+}
+
+.hero .section-content {
+    position: relative;
+    z-index: 2;
 }
 
 /* Section Styles */
@@ -274,10 +290,15 @@ footer {
         left: 0;
         width: 100%;
         height: 100vh;
-        background: rgba(0,0,0,0.95);
+        height: -webkit-fill-available;
+        background: #171a20;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         flex-direction: column;
         justify-content: center;
         align-items: center;
+        z-index: 100;
+        padding: env(safe-area-inset-top) 1rem env(safe-area-inset-bottom);
     }
 
     .nav-links.active {
@@ -312,6 +333,11 @@ footer {
     .logo span {
         font-size: 1rem;
         letter-spacing: 0.3rem;
+    }
+
+    .hero-tagline {
+        font-size: 1.8rem;
+        padding: 0 1rem;
     }
 }
 
@@ -1015,7 +1041,7 @@ footer {
         width: 100%;
         height: 100vh;
         height: -webkit-fill-available; /* iOS height fix */
-        background: rgba(0, 0, 0, 0.95);
+        background: #171a20;
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
         flex-direction: column;
@@ -1612,6 +1638,353 @@ footer {
     .become-sponsor {
         margin: 2rem 0;
         padding: 3rem 1.5rem;
+    }
+}
+
+/* Terms Page Styles */
+.terms-page {
+    min-height: 100vh;
+    background: #f5f5f5;
+    display: flex;
+    flex-direction: column;
+    padding-top: 60px;
+}
+
+.terms-container {
+    flex: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+    width: 100%;
+}
+
+.terms-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.terms-header h1 {
+    font-size: 2.5rem;
+    color: #171a20;
+    margin-bottom: 1rem;
+}
+
+.terms-header p {
+    color: #666;
+    font-size: 1rem;
+}
+
+.terms-content {
+    background: white;
+    padding: 3rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.terms-section {
+    margin-bottom: 2.5rem;
+}
+
+.terms-section:last-child {
+    margin-bottom: 0;
+}
+
+.terms-section h2 {
+    font-size: 1.5rem;
+    color: #171a20;
+    margin-bottom: 1rem;
+}
+
+.terms-section p {
+    color: #393c41;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.terms-section ul {
+    list-style-type: disc;
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.terms-section li {
+    color: #393c41;
+    line-height: 1.6;
+    margin-bottom: 0.5rem;
+}
+
+.contact-info {
+    font-weight: 500;
+    color: #171a20;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .terms-container {
+        padding: 1rem;
+    }
+
+    .terms-content {
+        padding: 1.5rem;
+    }
+
+    .terms-header h1 {
+        font-size: 2rem;
+    }
+
+    .terms-section h2 {
+        font-size: 1.3rem;
+    }
+}
+
+/* News Page Styles */
+.news-page {
+    min-height: 100vh;
+    background: #f5f5f5;
+    display: flex;
+    flex-direction: column;
+    padding-top: 60px;
+}
+
+.news-container {
+    flex: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    width: 100%;
+}
+
+.news-header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.news-header h1 {
+    font-size: 2.5rem;
+    color: #171a20;
+    margin-bottom: 1rem;
+}
+
+.news-header p {
+    font-size: 1.2rem;
+    color: #393c41;
+}
+
+.newsletter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 4rem;
+}
+
+.newsletter-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.newsletter-card:hover {
+    transform: translateY(-5px);
+}
+
+.newsletter-image {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+}
+
+.newsletter-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.newsletter-date {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: #171a20;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.newsletter-content {
+    padding: 2rem;
+}
+
+.newsletter-content h3 {
+    font-size: 1.3rem;
+    color: #171a20;
+    margin-bottom: 1rem;
+}
+
+.newsletter-content p {
+    color: #393c41;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.newsletter-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.newsletter-btn {
+    width: 100%;
+    text-align: center;
+}
+
+.members-note {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.newsletter-cta {
+    text-align: center;
+    background: #171a20;
+    color: white;
+    padding: 4rem 2rem;
+    border-radius: 15px;
+    margin-top: 2rem;
+}
+
+.newsletter-cta h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.newsletter-cta p {
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.cta-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.cta-buttons .btn {
+    min-width: 200px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .news-container {
+        padding: 1rem;
+    }
+
+    .news-header h1 {
+        font-size: 2rem;
+    }
+
+    .newsletter-grid {
+        gap: 1.5rem;
+    }
+
+    .newsletter-cta {
+        padding: 3rem 1.5rem;
+    }
+}
+
+/* Privacy Page Styles */
+.privacy-page {
+    min-height: 100vh;
+    background: #f5f5f5;
+    display: flex;
+    flex-direction: column;
+    padding-top: 60px;
+}
+
+.privacy-container {
+    flex: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+    width: 100%;
+}
+
+.privacy-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.privacy-header h1 {
+    font-size: 2.5rem;
+    color: #171a20;
+    margin-bottom: 1rem;
+}
+
+.privacy-header p {
+    color: #666;
+    font-size: 1rem;
+}
+
+.privacy-content {
+    background: white;
+    padding: 3rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.privacy-section {
+    margin-bottom: 2.5rem;
+}
+
+.privacy-section:last-child {
+    margin-bottom: 0;
+}
+
+.privacy-section h2 {
+    font-size: 1.5rem;
+    color: #171a20;
+    margin-bottom: 1rem;
+}
+
+.privacy-section p {
+    color: #393c41;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.privacy-section ul {
+    list-style-type: disc;
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.privacy-section li {
+    color: #393c41;
+    line-height: 1.6;
+    margin-bottom: 0.5rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .privacy-container {
+        padding: 1rem;
+    }
+
+    .privacy-content {
+        padding: 1.5rem;
+    }
+
+    .privacy-header h1 {
+        font-size: 2rem;
+    }
+
+    .privacy-section h2 {
+        font-size: 1.3rem;
     }
 }
   

@@ -242,4 +242,48 @@ function sortGalleryItems(ascending = true) {
 // Sort items when page loads (ascending = true for oldest to latest)
 document.addEventListener('DOMContentLoaded', () => {
     sortGalleryItems(true);
-}); 
+});
+
+// Video handling for gallery
+document.addEventListener('DOMContentLoaded', function() {
+    const galleryItems = document.querySelectorAll('.gallery-item');
+    
+    // Handle video loading optimization
+    galleryItems.forEach(item => {
+        const iframe = item.querySelector('iframe');
+        if (iframe) {
+            // Store original source
+            const originalSrc = iframe.src;
+            iframe.dataset.src = originalSrc;
+            
+            // Set preview image or low-res version initially
+            iframe.src = '';
+            
+            // Load video only when in viewport
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        iframe.src = iframe.dataset.src;
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            observer.observe(item);
+        }
+    });
+
+    // Improve mobile playback experience
+    if (window.matchMedia("(max-width: 768px)").matches) {
+        galleryItems.forEach(item => {
+            const iframe = item.querySelector('iframe');
+            if (iframe) {
+                iframe.addEventListener('load', function() {
+                    // Force hardware acceleration
+                    this.style.transform = 'translateZ(0)';
+                    this.style.webkitTransform = 'translateZ(0)';
+                });
+            }
+        });
+    }
+});

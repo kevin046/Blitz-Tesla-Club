@@ -105,8 +105,8 @@ nav {
 .hero-tagline {
     font-size: 2.5rem;
     font-weight: 600;
-    color: #ffffff;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    color: #171a20;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.9);
     margin-bottom: 2rem;
     position: relative;
     z-index: 2;
@@ -569,16 +569,20 @@ footer {
 
 .gallery-item {
     position: relative;
-    border-radius: 12px;
+    width: 100%;
+    padding-top: 56.25%; /* 16:9 Aspect Ratio */
     overflow: hidden;
-    background: #000;
-    aspect-ratio: 16/9;
 }
 
 .gallery-item iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     border: none;
+    border-radius: 8px;
+    background: #000;
 }
 
 .gallery-item-overlay {
@@ -640,6 +644,48 @@ footer {
 
     .gallery-item-overlay h3 {
         font-size: 1.1rem;
+    }
+
+    .gallery-item {
+        margin-bottom: 20px;
+    }
+
+    .gallery-item-overlay {
+        padding: 10px;
+        background: linear-gradient(transparent, rgba(0,0,0,0.8));
+    }
+
+    .gallery-item-overlay h3 {
+        font-size: 1rem;
+        margin-bottom: 4px;
+    }
+
+    .gallery-item-overlay p {
+        font-size: 0.9rem;
+        margin: 2px 0;
+    }
+
+    .play-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+    }
+
+    /* Video lightbox improvements */
+    .video-container {
+        position: relative;
+        padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+        height: 0;
+        width: 100%;
+    }
+
+    .video-container iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
     }
 }
 

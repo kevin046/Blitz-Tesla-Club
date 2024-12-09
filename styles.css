@@ -889,4 +889,130 @@ footer {
     color: rgba(255,255,255,0.8);
     margin-bottom: 0.5rem;
 }
+
+/* Mobile Optimization Updates */
+@media (max-width: 768px) {
+    /* Navigation adjustments */
+    nav {
+        padding: 0.8rem 1rem;
+        -webkit-backdrop-filter: blur(10px); /* iOS blur support */
+    }
+
+    .nav-links {
+        padding: 2rem;
+        gap: 1.5rem;
+        background: rgba(0, 0, 0, 0.95);
+        -webkit-backdrop-filter: blur(10px);
+    }
+
+    .nav-links a {
+        font-size: 1.1rem;
+        padding: 0.8rem 1.5rem;
+        width: 100%;
+        text-align: center;
+    }
+
+    /* Hero section adjustments */
+    .hero {
+        padding: 80px 20px 40px;
+        min-height: 100svh; /* Use safe viewport height */
+    }
+
+    .hero-logo {
+        width: 80%;
+        max-width: 300px;
+    }
+
+    /* Button adjustments */
+    .cta-buttons {
+        flex-direction: column;
+        width: 100%;
+        padding: 0 1rem;
+    }
+
+    .btn {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1rem;
+        min-width: unset;
+    }
+
+    /* Gallery adjustments */
+    .gallery-container {
+        padding: 1rem;
+    }
+
+    .gallery-grid {
+        gap: 1rem;
+    }
+
+    .gallery-item {
+        aspect-ratio: 16/9;
+        border-radius: 8px;
+    }
+
+    .gallery-item-overlay {
+        padding: 1rem;
+    }
+
+    .gallery-item-overlay h3 {
+        font-size: 1.1rem;
+    }
+
+    /* Footer adjustments */
+    footer {
+        padding: 1.5rem 1rem;
+    }
+
+    .footer-links {
+        gap: 1.5rem;
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+}
+
+/* Small mobile devices */
+@media (max-width: 380px) {
+    .hero-logo {
+        width: 90%;
+    }
+
+    .nav-links a {
+        font-size: 1rem;
+        padding: 0.7rem 1.2rem;
+    }
+
+    .gallery-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .gallery-header p {
+        font-size: 1rem;
+    }
+}
+
+/* iOS-specific fixes */
+@supports (-webkit-touch-callout: none) {
+    .hero {
+        min-height: -webkit-fill-available;
+    }
+
+    .nav-links {
+        height: -webkit-fill-available;
+    }
+}
+
+/* Ensure touch targets are large enough */
+@media (hover: none) and (pointer: coarse) {
+    .btn,
+    .nav-links a,
+    .filter-btn,
+    .gallery-item-overlay button {
+        min-height: 44px; /* iOS minimum touch target size */
+    }
+}
   

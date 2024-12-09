@@ -19,6 +19,10 @@
             background-repeat: no-repeat;
             background-attachment: scroll;
             min-height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .hero .hero-tagline {
@@ -40,17 +44,28 @@
         /* Mobile optimization for hero background */
         @media (max-width: 768px) {
             .hero {
-                background-position: 65% center;
+                background-position: center center;
                 height: 100vh;
                 width: 100%;
-                position: relative;
                 overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
             }
             
             .hero .section-content {
                 padding: 20px;
                 position: relative;
                 z-index: 2;
+                text-align: center;
+                width: 100%;
+                max-width: 100%;
+            }
+            
+            .hero-logo img {
+                max-width: 80%;
+                height: auto;
+                margin: 0 auto;
             }
         }
         

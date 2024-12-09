@@ -251,6 +251,18 @@ document.addEventListener('DOMContentLoaded', function() {
     galleryItems.forEach(item => {
         const iframe = item.querySelector('iframe');
         if (iframe) {
+            // Extract video ID from YouTube URL
+            const videoId = iframe.src.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i)?.[1];
+            
+            // Create and add thumbnail
+            if (videoId) {
+                const thumbnail = document.createElement('img');
+                thumbnail.className = 'video-thumbnail';
+                thumbnail.src = `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
+                thumbnail.loading = 'lazy';
+                item.appendChild(thumbnail);
+            }
+
             // Create placeholder with play button
             const placeholder = document.createElement('div');
             placeholder.className = 'video-placeholder';
@@ -267,43 +279,46 @@ document.addEventListener('DOMContentLoaded', function() {
             iframe.src = '';
 
             // Handle click on placeholder
-            placeholder.addEventListener('click', function() {
-                iframe.src = iframe.dataset.src;
-                iframe.classList.add('loaded');
-                placeholder.style.display = 'none';
+            placeholder.addEventListener('click', function(e) {
+                e.preventDefault();
+                const videoContainer = document.createElement('div');
+                videoContainer.className = 'video-lightbox';
                 
-                // iOS specific handling
-                if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-                    item.classList.add('playing');
-                    iframe.setAttribute('playsinline', '');
-                    iframe.setAttribute('webkit-playsinline', '');
-                    iframe.setAttribute('allow', 'autoplay; fullscreen');
-                }
+                const innerContainer = document.createElement('div');
+                innerContainer.className = 'video-container';
                 
-                // Add autoplay parameter
-                if (!iframe.src.includes('autoplay')) {
-                    iframe.src = iframe.src + 
-                        (iframe.src.includes('?') ? '&' : '?') + 
-                        'autoplay=1&playsinline=1&controls=1&enablejsapi=1';
-                }
+                const videoIframe = document.createElement('iframe');
+                videoIframe.src = `${originalSrc}?autoplay=1&playsinline=1&rel=0&controls=1`;
+                videoIframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+                videoIframe.allowFullscreen = true;
+                
+                innerContainer.appendChild(videoIframe);
+                videoContainer.appendChild(innerContainer);
+                document.body.appendChild(videoContainer);
+                
+                // Prevent body scrolling
+                document.body.style.overflow = 'hidden';
+                
+                // Handle closing
+                videoContainer.addEventListener('click', function(event) {
+                    if (event.target === videoContainer) {
+                        videoContainer.remove();
+                        document.body.style.overflow = '';
+                    }
+                });
             });
+
+            // Preload iframe when thumbnail is visible
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        iframe.src = iframe.dataset.src;
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            observer.observe(item);
         }
     });
-
-    // Improve mobile playback experience
-    if (window.matchMedia("(max-width: 768px)").matches) {
-        galleryItems.forEach(item => {
-            const iframe = item.querySelector('iframe');
-            if (iframe) {
-                iframe.addEventListener('load', function() {
-                    // Force hardware acceleration
-                    this.style.transform = 'translateZ(0)';
-                    this.style.webkitTransform = 'translateZ(0)';
-                    // Add playsinline attribute for iOS
-                    this.setAttribute('playsinline', '');
-                    this.setAttribute('webkit-playsinline', '');
-                });
-            }
-        });
-    }
 });

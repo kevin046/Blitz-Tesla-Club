@@ -574,6 +574,7 @@ footer {
     overflow: hidden;
     background: #000;
     border-radius: 8px;
+    -webkit-transform: translateZ(0); /* iOS hardware acceleration */
 }
 
 .gallery-item iframe {
@@ -585,6 +586,9 @@ footer {
     border: none;
     opacity: 0;
     transition: opacity 0.3s ease;
+    max-width: 100vw;
+    max-height: 100vh;
+    object-fit: contain;
 }
 
 .gallery-item iframe.loaded {
@@ -2072,6 +2076,54 @@ footer {
 
     .privacy-section h2 {
         font-size: 1.3rem;
+    }
+}
+
+/* Gallery video optimization */
+.gallery-item {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%; /* 16:9 Aspect Ratio */
+    overflow: hidden;
+    background: #000;
+    border-radius: 8px;
+    -webkit-transform: translateZ(0); /* iOS hardware acceleration */
+}
+
+.gallery-item iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    max-width: 100vw;
+    max-height: 100vh;
+    object-fit: contain;
+}
+
+/* iOS specific fixes */
+@supports (-webkit-touch-callout: none) {
+    .gallery-item {
+        height: 0;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .gallery-item iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover;
+    }
+
+    .gallery-item.playing {
+        height: auto;
+        padding-top: 0;
     }
 }
   

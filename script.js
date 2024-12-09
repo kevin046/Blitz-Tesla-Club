@@ -272,11 +272,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 iframe.classList.add('loaded');
                 placeholder.style.display = 'none';
                 
+                // iOS specific handling
+                if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                    item.classList.add('playing');
+                    iframe.setAttribute('playsinline', '');
+                    iframe.setAttribute('webkit-playsinline', '');
+                    iframe.setAttribute('allow', 'autoplay; fullscreen');
+                }
+                
                 // Add autoplay parameter
                 if (!iframe.src.includes('autoplay')) {
                     iframe.src = iframe.src + 
                         (iframe.src.includes('?') ? '&' : '?') + 
-                        'autoplay=1&playsinline=1';
+                        'autoplay=1&playsinline=1&controls=1&enablejsapi=1';
                 }
             });
         }

@@ -248,28 +248,37 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('DOMContentLoaded', function() {
     const galleryItems = document.querySelectorAll('.gallery-item');
     
-    // Handle video loading optimization
     galleryItems.forEach(item => {
         const iframe = item.querySelector('iframe');
         if (iframe) {
+            // Create placeholder with play button
+            const placeholder = document.createElement('div');
+            placeholder.className = 'video-placeholder';
+            placeholder.innerHTML = `
+                <div class="play-button">
+                    <i class="fas fa-play"></i>
+                </div>
+            `;
+            item.appendChild(placeholder);
+
             // Store original source
             const originalSrc = iframe.src;
             iframe.dataset.src = originalSrc;
-            
-            // Set preview image or low-res version initially
             iframe.src = '';
-            
-            // Load video only when in viewport
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        iframe.src = iframe.dataset.src;
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, { threshold: 0.1 });
-            
-            observer.observe(item);
+
+            // Handle click on placeholder
+            placeholder.addEventListener('click', function() {
+                iframe.src = iframe.dataset.src;
+                iframe.classList.add('loaded');
+                placeholder.style.display = 'none';
+                
+                // Add autoplay parameter
+                if (!iframe.src.includes('autoplay')) {
+                    iframe.src = iframe.src + 
+                        (iframe.src.includes('?') ? '&' : '?') + 
+                        'autoplay=1&playsinline=1';
+                }
+            });
         }
     });
 
@@ -282,6 +291,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Force hardware acceleration
                     this.style.transform = 'translateZ(0)';
                     this.style.webkitTransform = 'translateZ(0)';
+                    // Add playsinline attribute for iOS
+                    this.setAttribute('playsinline', '');
+                    this.setAttribute('webkit-playsinline', '');
                 });
             }
         });

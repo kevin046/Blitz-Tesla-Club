@@ -572,6 +572,8 @@ footer {
     width: 100%;
     padding-top: 56.25%; /* 16:9 Aspect Ratio */
     overflow: hidden;
+    background: #000;
+    border-radius: 8px;
 }
 
 .gallery-item iframe {
@@ -581,8 +583,47 @@ footer {
     width: 100%;
     height: 100%;
     border: none;
-    border-radius: 8px;
-    background: #000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.gallery-item iframe.loaded {
+    opacity: 1;
+}
+
+.gallery-item .video-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+}
+
+.gallery-item .play-button {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.gallery-item .play-button i {
+    color: white;
+    font-size: 24px;
+    margin-left: 4px;
+}
+
+.gallery-item .video-placeholder:hover .play-button {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
 }
 
 .gallery-item-overlay {

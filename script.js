@@ -288,40 +288,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 innerContainer.className = 'video-container';
                 
                 const videoIframe = document.createElement('iframe');
-                videoIframe.src = `${originalSrc}?autoplay=1&playsinline=1&rel=0&controls=1&enablejsapi=1&origin=${window.location.origin}`;
+                videoIframe.src = `${originalSrc}?autoplay=1&playsinline=1&rel=0&controls=1`;
                 videoIframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
                 videoIframe.allowFullscreen = true;
-                videoIframe.setAttribute('playsinline', '');
-                videoIframe.setAttribute('webkit-playsinline', '');
                 
                 innerContainer.appendChild(videoIframe);
-                
-                // Add close button
-                const closeBtn = document.createElement('button');
-                closeBtn.className = 'video-close-btn';
-                closeBtn.innerHTML = '×';
-                videoContainer.appendChild(closeBtn);
-                
                 videoContainer.appendChild(innerContainer);
                 document.body.appendChild(videoContainer);
                 
                 // Prevent body scrolling
                 document.body.style.overflow = 'hidden';
-                document.body.style.position = 'fixed';
-                document.body.style.width = '100%';
                 
                 // Handle closing
-                const closeVideo = () => {
-                    videoContainer.remove();
-                    document.body.style.overflow = '';
-                    document.body.style.position = '';
-                    document.body.style.width = '';
-                };
-                
-                closeBtn.addEventListener('click', closeVideo);
-                videoContainer.addEventListener('click', (event) => {
+                videoContainer.addEventListener('click', function(event) {
                     if (event.target === videoContainer) {
-                        closeVideo();
+                        videoContainer.remove();
+                        document.body.style.overflow = '';
                     }
                 });
             });

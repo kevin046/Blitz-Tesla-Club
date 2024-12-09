@@ -40,6 +40,7 @@ const navLinksItems = document.querySelectorAll('.nav-links a');
 menuToggle.addEventListener('click', () => {
     navLinks.classList.toggle('active');
     menuToggle.classList.toggle('active');
+    document.body.classList.toggle('nav-active');
 });
 
 // Close menu when clicking a link
@@ -47,6 +48,7 @@ navLinksItems.forEach(item => {
     item.addEventListener('click', () => {
         navLinks.classList.remove('active');
         menuToggle.classList.remove('active');
+        document.body.classList.remove('nav-active');
     });
 });
 
@@ -55,6 +57,7 @@ document.addEventListener('click', (e) => {
     if (!navLinks.contains(e.target) && !menuToggle.contains(e.target)) {
         navLinks.classList.remove('active');
         menuToggle.classList.remove('active');
+        document.body.classList.remove('nav-active');
     }
 });
 

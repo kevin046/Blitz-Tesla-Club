@@ -997,22 +997,67 @@ footer {
 
 /* iOS-specific fixes */
 @supports (-webkit-touch-callout: none) {
-    .hero {
+    /* Fix for 100vh on iOS */
+    .hero,
+    .gallery-page,
+    .login-page,
+    .events-page {
         min-height: -webkit-fill-available;
+        height: -webkit-fill-available;
     }
 
-    .nav-links {
+    /* Fix for mobile nav height */
+    .nav-links.active {
         height: -webkit-fill-available;
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    /* Fix for notch area */
+    nav {
+        padding-top: env(safe-area-inset-top);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+    }
+
+    /* Fix for bottom spacing */
+    footer {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    /* Fix for content scrolling */
+    body {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Fix for input zoom */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+        font-size: 16px; /* Prevents zoom on iOS */
     }
 }
 
-/* Ensure touch targets are large enough */
-@media (hover: none) and (pointer: coarse) {
-    .btn,
+/* Additional mobile optimizations */
+@media (max-width: 768px) {
+    /* Prevent content shift when nav opens */
+    body.nav-active {
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+    }
+
+    /* Better touch targets */
     .nav-links a,
-    .filter-btn,
-    .gallery-item-overlay button {
-        min-height: 44px; /* iOS minimum touch target size */
+    .btn,
+    .filter-btn {
+        padding: 12px 20px;
+        min-height: 44px;
+    }
+
+    /* Improved scrolling */
+    .gallery-container,
+    .events-container {
+        -webkit-overflow-scrolling: touch;
     }
 }
   

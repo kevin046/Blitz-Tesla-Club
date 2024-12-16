@@ -94,22 +94,97 @@ function handleTouchMove(evt) {
     xDown = null;
     yDown = null;
 }
-
 // Login form handling
 const loginForm = document.getElementById('loginForm');
 if (loginForm) {
-    loginForm.addEventListener('submit', function(e) {
+    // Password visibility toggle
+    const togglePassword = document.querySelector('.toggle-password');
+    const passwordInput = document.getElementById('password');
+
+    togglePassword.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        
+        // Toggle eye icon
+        const eyeIcon = this.querySelector('i');
+        eyeIcon.classList.toggle('fa-eye');
+        eyeIcon.classList.toggle('fa-eye-slash');
+    });
+
+    // Form submission
+    loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
-        const email = document.getElementById('email').value;
+        
+        const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
         const remember = document.getElementById('remember').checked;
         
-        // Here you would typically send this data to your server
-        console.log('Login attempt:', { email, password, remember });
+        // Basic validation
+        if (!isValidEmail(email)) {
+            showError('Please enter a valid email address');
+            return;
+        }
         
-        // For demo purposes, show success message
-        alert('Login functionality coming soon!');
+        if (password.length < 6) {
+            showError('Password must be at least 6 characters long');
+            return;
+        }
+
+        try {
+            // Here you would typically send this data to your server
+            console.log('Login attempt:', { email, remember });
+            
+            // For demo purposes, show success message
+            showSuccess('Login successful! Redirecting...');
+            
+            // Simulate redirect delay
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 1500);
+            
+        } catch (error) {
+            showError('Login failed. Please try again.');
+            console.error('Login error:', error);
+        }
     });
+}
+
+// Helper functions
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+function showError(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'alert alert-error';
+    errorDiv.textContent = message;
+    
+    insertAlert(errorDiv);
+}
+
+function showSuccess(message) {
+    const successDiv = document.createElement('div');
+    successDiv.className = 'alert alert-success';
+    successDiv.textContent = message;
+    
+    insertAlert(successDiv);
+}
+
+function insertAlert(alertDiv) {
+    const form = document.querySelector('.login-form');
+    const existingAlert = form.querySelector('.alert');
+    
+    if (existingAlert) {
+        existingAlert.remove();
+    }
+    
+    form.insertBefore(alertDiv, form.firstChild);
+    
+    // Auto-remove alert after 5 seconds
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
 }
 
 // Registration form handling

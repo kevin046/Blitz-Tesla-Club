@@ -2130,4 +2130,289 @@ footer {
         font-size: 1.3rem;
     }
 }
+
+/* Registration form specific styles */
+.register-box {
+    max-width: 500px;
+}
+
+.form-group {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    color: #171a20;
+    font-weight: 500;
+}
+
+.form-group label i {
+    color: #666;
+}
+
+.form-hint {
+    display: block;
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 0.25rem;
+}
+
+.password-input-wrapper {
+    width: 100%;
+}
+
+.password-input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 0.5rem;
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.password-strength-meter {
+    height: 4px;
+    background: #f5f5f5;
+    margin-top: 0.5rem;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.strength-bar {
+    height: 100%;
+    width: 0;
+    transition: all 0.3s ease;
+}
+
+.strength-weak { width: 33%; background: #dc2626; }
+.strength-medium { width: 66%; background: #f59e0b; }
+.strength-strong { width: 100%; background: #16a34a; }
+
+.terms-checkbox {
+    margin: 1.5rem 0;
+}
+
+.terms-checkbox label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-weight: normal;
+}
+
+.terms-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.terms-checkbox a {
+    color: #171a20;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.terms-checkbox a:hover {
+    text-decoration: underline;
+}
+
+/* Alert styles */
+.alert {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.alert-error {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.alert-success {
+    background: #dcfce7;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+}
+
+/* Button states */
+.login-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.login-btn i {
+    margin-right: 0.5rem;
+}
+
+/* Registration Progress Steps */
+.registration-progress {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 2rem 0 3rem;
+    padding: 0 1rem;
+    position: relative;
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    flex: 1;
+}
+
+.step-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin-bottom: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.step-icon i {
+    font-size: 1.2rem;
+    color: #666;
+    transition: all 0.3s ease;
+}
+
+.step-number {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    background: #171a20;
+    color: white;
+    border-radius: 50%;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+}
+
+.step-text {
+    font-weight: 600;
+    color: #171a20;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.step-description {
+    font-size: 0.8rem;
+    color: #666;
+    max-width: 120px;
+}
+
+.progress-line {
+    flex: 1;
+    height: 3px;
+    background: #eee;
+    margin: 0 -20px;
+    margin-bottom: 37px;
+    position: relative;
+    z-index: 0;
+}
+
+/* Active step styles */
+.progress-step.active .step-icon {
+    background: #171a20;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(23, 26, 32, 0.15);
+}
+
+.progress-step.active .step-icon i {
+    color: white;
+}
+
+.progress-step.active .step-text {
+    color: #171a20;
+}
+
+/* Completed step styles */
+.progress-step.completed .step-icon {
+    background: #16a34a;
+}
+
+.progress-step.completed .step-icon i {
+    color: white;
+}
+
+.progress-step.completed + .progress-line {
+    background: #16a34a;
+}
+
+/* Current step highlight */
+.progress-step.current .step-icon {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(23, 26, 32, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(23, 26, 32, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(23, 26, 32, 0);
+    }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .registration-progress {
+        margin: 1.5rem 0 2rem;
+        padding: 0;
+    }
+
+    .step-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .step-number {
+        width: 20px;
+        height: 20px;
+        font-size: 0.7rem;
+    }
+
+    .step-text {
+        font-size: 0.8rem;
+    }
+
+    .step-description {
+        font-size: 0.7rem;
+        max-width: 80px;
+    }
+
+    .progress-line {
+        margin: 0 -10px;
+        margin-bottom: 32px;
+    }
+}
   

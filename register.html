@@ -42,19 +42,31 @@
             </div>
 
             <div class="registration-progress">
-                <div class="progress-step active">
-                    <span class="step-number">1</span>
+                <div class="progress-step active current">
+                    <div class="step-icon">
+                        <i class="fas fa-user-plus"></i>
+                        <span class="step-number">1</span>
+                    </div>
                     <span class="step-text">Account</span>
+                    <span class="step-description">Create your account</span>
                 </div>
                 <div class="progress-line"></div>
                 <div class="progress-step">
-                    <span class="step-number">2</span>
+                    <div class="step-icon">
+                        <i class="fas fa-envelope"></i>
+                        <span class="step-number">2</span>
+                    </div>
                     <span class="step-text">Verify</span>
+                    <span class="step-description">Verify your email</span>
                 </div>
                 <div class="progress-line"></div>
                 <div class="progress-step">
-                    <span class="step-number">3</span>
+                    <div class="step-icon">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="step-number">3</span>
+                    </div>
                     <span class="step-text">Complete</span>
+                    <span class="step-description">Start exploring</span>
                 </div>
             </div>
 
@@ -95,8 +107,7 @@
                             <input type="password" id="password" name="password" required
                                    placeholder="Create a password"
                                    autocomplete="new-password"
-                                   minlength="8"
-                                   pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}">
+                                   minlength="8">
                             <button type="button" class="toggle-password" aria-label="Toggle password visibility">
                                 <i class="far fa-eye"></i>
                             </button>
@@ -122,7 +133,20 @@
                         </button>
                     </div>
                 </div>
-                
+
+                <div class="form-group terms-checkbox">
+                    <label for="terms">
+                        <input type="checkbox" id="terms" name="terms" required>
+                        I agree to the <a href="terms.html" target="_blank">Terms of Service</a> and 
+                        <a href="privacy.html" target="_blank">Privacy Policy</a>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn login-btn" id="registerButton">
+                    <i class="fas fa-user-plus"></i>
+                    Create Account
+                </button>
+
                 <div class="form-footer">
                     <p>Already have an account? <a href="login.html">Sign in</a></p>
                 </div>

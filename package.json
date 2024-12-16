@@ -1,0 +1,21 @@
+{
+  "name": "tesla-blitz-club-website",
+  "version": "1.0.0",
+  "description": "Modern, responsive website for the Blitz Tesla Club featuring:\r - Responsive design for all devices\r - Mobile-optimized navigation\r - Smooth scrolling\r - Interactive elements\r - Tesla-inspired design",
+  "main": "register.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.47.7",
+    "bcrypt": "^5.1.1",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^6.9.16",
+    "path": "^0.12.7"
+  }
+}

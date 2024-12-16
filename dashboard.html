@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Dashboard - Blitz Tesla Club</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
+</head>
+<body class="dashboard-page">
+    <nav>
+        <div class="logo">
+            <a href="index.html">
+                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo">
+                <span>BLITZ TESLA CLUB</span>
+            </a>
+        </div>
+        <div class="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="events.html">Events</a></li>
+            <li><a href="gallery.html">Gallery</a></li>
+            <li><a href="executive.html">Executives</a></li>
+            <li><a href="news.html">News</a></li>
+            <li><a href="#" id="logoutBtn">Logout</a></li>
+        </ul>
+    </nav>
+
+    <main class="dashboard-container">
+        <div class="dashboard-header">
+            <div class="user-welcome">
+                <h1>Welcome, <span id="userFullName"></span></h1>
+                <p>Membership Status: <span id="membershipStatus"></span></p>
+            </div>
+            <div class="quick-actions">
+                <button class="btn action-btn" id="editProfileBtn">
+                    <i class="fas fa-user-edit"></i>
+                    Edit Profile
+                </button>
+                <button class="btn action-btn" id="membershipCardBtn">
+                    <i class="fas fa-id-card"></i>
+                    View Membership Card
+                </button>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="dashboard-card upcoming-events">
+                <div class="card-header">
+                    <h2><i class="fas fa-calendar"></i> Upcoming Events</h2>
+                    <a href="events.html" class="view-all">View All</a>
+                </div>
+                <div class="card-content" id="upcomingEventsList">
+                    <!-- Events will be loaded dynamically -->
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-card membership-info">
+                <div class="card-header">
+                    <h2><i class="fas fa-star"></i> Membership Benefits</h2>
+                </div>
+                <div class="card-content">
+                    <ul class="benefits-list">
+                        <li><i class="fas fa-check"></i> Exclusive access to club events</li>
+                        <li><i class="fas fa-check"></i> Member-only discounts</li>
+                        <li><i class="fas fa-check"></i> Priority registration for drives</li>
+                        <li><i class="fas fa-check"></i> Access to member forums</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="dashboard-card recent-activity">
+                <div class="card-header">
+                    <h2><i class="fas fa-history"></i> Recent Activity</h2>
+                </div>
+                <div class="card-content" id="recentActivityList">
+                    <!-- Activity will be loaded dynamically -->
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-card quick-links">
+                <div class="card-header">
+                    <h2><i class="fas fa-link"></i> Quick Links</h2>
+                </div>
+                <div class="card-content">
+                    <div class="quick-links-grid">
+                        <a href="gallery.html" class="quick-link-item">
+                            <i class="fas fa-images"></i>
+                            <span>Gallery</span>
+                        </a>
+                        <a href="events.html" class="quick-link-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Events</span>
+                        </a>
+                        <a href="news.html" class="quick-link-item">
+                            <i class="fas fa-newspaper"></i>
+                            <span>News</span>
+                        </a>
+                        <a href="contact.html" class="quick-link-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>Contact</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <div class="footer-links">
+                    <a href="index.html">Home</a>
+                    <a href="events.html">Events</a>
+                    <a href="gallery.html">Gallery</a>
+                    <a href="contact.html">Contact</a>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Member Area</h3>
+                <div class="footer-links">
+                    <a href="sponsors.html">Our Sponsors</a>
+                    <a href="#member-benefits">Member Benefits</a>
+                    <a href="#" id="footerLogoutBtn">Logout</a>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Legal</h3>
+                <div class="footer-links">
+                    <a href="privacy.html">Privacy Policy</a>
+                    <a href="terms.html">Terms of Service</a>
+                    <a href="about.html">About Us</a>
+                </div>
+            </div>
+
+            <div class="footer-section">
+                <h3>Connect With Us</h3>
+                <div class="footer-social">
+                    <a href="https://x.com/BlitzTClub" target="_blank" aria-label="Follow us on X">
+                        <i class="fa-brands fa-square-x-twitter"></i>
+                    </a>
+                    <a href="https://www.instagram.com/blitztclub/" target="_blank" aria-label="Follow us on Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>© 2024 Blitz Tesla Club. All rights reserved.</p>
+            <p class="powered-by">
+                Website powered by <a href="http://www.summitpixels.com" target="_blank">SummitPixels</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="/js/script.js"></script>
+    <script src="/js/dashboard.js"></script>
+</body>
+</html> 

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Verify Email - Blitz Tesla Club</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
+</head>
+<body class="login-page">
+    <nav>
+        <!-- Same navigation as register.html -->
+    </nav>
+
+    <main class="login-container">
+        <div class="login-box verify-box">
+            <div class="login-header">
+                <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" class="login-logo">
+                <h2>Verify Your Email</h2>
+                <p>We've sent a verification link to your email</p>
+            </div>
+
+            <div class="registration-progress">
+                <div class="progress-step completed">
+                    <span class="step-number">1</span>
+                    <span class="step-text">Account</span>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step active">
+                    <span class="step-number">2</span>
+                    <span class="step-text">Verify</span>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step">
+                    <span class="step-number">3</span>
+                    <span class="step-text">Complete</span>
+                </div>
+            </div>
+
+            <div class="verify-content">
+                <div class="verify-icon">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <p class="verify-message">
+                    Please check your email inbox and click the verification link to complete your registration.
+                </p>
+                <p class="verify-email" id="userEmail"></p>
+                <div class="verify-actions">
+                    <button class="btn resend-btn" id="resendButton">
+                        <i class="fas fa-redo"></i>
+                        Resend Email
+                    </button>
+                    <p class="timer" id="resendTimer"></p>
+                </div>
+                <div class="verify-help">
+                    <p>Didn't receive the email? Check your spam folder or <a href="contact.html">contact support</a></p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <!-- Same footer as register.html -->
+    </footer>
+
+    <script src="verify-email.js"></script>
+</body>
+</html> 

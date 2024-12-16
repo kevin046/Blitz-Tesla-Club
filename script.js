@@ -119,72 +119,12 @@ if (loginForm) {
         const password = document.getElementById('password').value;
         const remember = document.getElementById('remember').checked;
         
-        // Basic validation
-        if (!isValidEmail(email)) {
-            showError('Please enter a valid email address');
-            return;
-        }
+        // Here you would typically send this data to your server
+        console.log('Login attempt:', { email, password, remember });
         
-        if (password.length < 6) {
-            showError('Password must be at least 6 characters long');
-            return;
-        }
-
-        try {
-            // Here you would typically send this data to your server
-            console.log('Login attempt:', { email, remember });
-            
-            // For demo purposes, show success message
-            showSuccess('Login successful! Redirecting...');
-            
-            // Simulate redirect delay
-            setTimeout(() => {
-                window.location.href = 'dashboard.html';
-            }, 1500);
-            
-        } catch (error) {
-            showError('Login failed. Please try again.');
-            console.error('Login error:', error);
-        }
+        // For demo purposes, show success message
+        alert('Login functionality coming soon!');
     });
-}
-
-// Helper functions
-function isValidEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-}
-
-function showError(message) {
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'alert alert-error';
-    errorDiv.textContent = message;
-    
-    insertAlert(errorDiv);
-}
-
-function showSuccess(message) {
-    const successDiv = document.createElement('div');
-    successDiv.className = 'alert alert-success';
-    successDiv.textContent = message;
-    
-    insertAlert(successDiv);
-}
-
-function insertAlert(alertDiv) {
-    const form = document.querySelector('.login-form');
-    const existingAlert = form.querySelector('.alert');
-    
-    if (existingAlert) {
-        existingAlert.remove();
-    }
-    
-    form.insertBefore(alertDiv, form.firstChild);
-    
-    // Auto-remove alert after 5 seconds
-    setTimeout(() => {
-        alertDiv.remove();
-    }, 5000);
 }
 
 // Registration form handling

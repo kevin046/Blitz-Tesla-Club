@@ -105,8 +105,8 @@ nav {
 .hero-tagline {
     font-size: 2.5rem;
     font-weight: 600;
-    color: #ffffff;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    color: #171a20;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.9);
     margin-bottom: 2rem;
     position: relative;
     z-index: 2;
@@ -569,16 +569,66 @@ footer {
 
 .gallery-item {
     position: relative;
-    border-radius: 12px;
+    width: 100%;
+    padding-top: 56.25%;
     overflow: hidden;
     background: #000;
-    aspect-ratio: 16/9;
+    border-radius: 8px;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
 }
 
 .gallery-item iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     border: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    max-width: 100vw;
+    max-height: 100vh;
+    object-fit: contain;
+}
+
+.gallery-item iframe.loaded {
+    opacity: 1;
+}
+
+.gallery-item .video-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+}
+
+.gallery-item .play-button {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.gallery-item .play-button i {
+    color: white;
+    font-size: 24px;
+    margin-left: 4px;
+}
+
+.gallery-item .video-placeholder:hover .play-button {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
 }
 
 .gallery-item-overlay {
@@ -640,6 +690,99 @@ footer {
 
     .gallery-item-overlay h3 {
         font-size: 1.1rem;
+    }
+
+    .gallery-item {
+        margin-bottom: 20px;
+    }
+
+    .gallery-item-overlay {
+        padding: 10px;
+        background: linear-gradient(transparent, rgba(0,0,0,0.8));
+    }
+
+    .gallery-item-overlay h3 {
+        font-size: 1rem;
+        margin-bottom: 4px;
+    }
+
+    .gallery-item-overlay p {
+        font-size: 0.9rem;
+        margin: 2px 0;
+    }
+
+    .play-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+    }
+
+    /* Video lightbox improvements */
+    .video-lightbox {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+
+    .video-container {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .video-container iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        max-width: 100vw;
+        max-height: 100vh;
+    }
+
+    /* iOS specific video fixes */
+    @supports (-webkit-touch-callout: none) {
+        .video-container {
+            height: -webkit-fill-available;
+        }
+        
+        .video-container iframe {
+            position: relative;
+            top: 0;
+            left: 0;
+            transform: none;
+            width: 100% !important;
+            height: 100% !important;
+        }
+    }
+
+    /* Video thumbnail optimization */
+    .video-thumbnail {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 1;
+        transition: opacity 0.3s ease;
+    }
+
+    .video-thumbnail.hidden {
+        opacity: 0;
     }
 }
 
@@ -1986,5 +2129,290 @@ footer {
     .privacy-section h2 {
         font-size: 1.3rem;
     }
+}
+
+/* Gallery video optimization */
+.gallery-item {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%;
+    overflow: hidden;
+    background: #000;
+    border-radius: 8px;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+}
+
+.gallery-item iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    max-width: 100vw;
+    max-height: 100vh;
+    object-fit: contain;
+}
+
+/* iOS specific fixes */
+@supports (-webkit-touch-callout: none) {
+    .gallery-item {
+        height: 0;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .gallery-item iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover;
+    }
+
+    .gallery-item.playing {
+        height: auto;
+        padding-top: 0;
+    }
+}
+
+/* Video lightbox improvements */
+.video-lightbox {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.video-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.video-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 100vw;
+    max-height: 100vh;
+}
+
+/* iOS specific video fixes */
+@supports (-webkit-touch-callout: none) {
+    .video-container {
+        height: -webkit-fill-available;
+    }
+    
+    .video-container iframe {
+        position: relative;
+        top: 0;
+        left: 0;
+        transform: none;
+        width: 100% !important;
+        height: 100% !important;
+    }
+}
+
+/* Video thumbnail optimization */
+.video-thumbnail {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+    transition: opacity 0.3s ease;
+}
+
+.video-thumbnail.hidden {
+    opacity: 0;
+}
+
+/* Alert styles */
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.alert-error {
+    background-color: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.alert-success {
+    background-color: #dcfce7;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+}
+
+/* Disable button styles */
+button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Registration specific styles */
+.registration-progress {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 2rem 0;
+    padding: 0 1rem;
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.step-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #f5f5f5;
+    border: 2px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.progress-step.active .step-number {
+    background: #171a20;
+    border-color: #171a20;
+    color: white;
+}
+
+.step-text {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.progress-step.active .step-text {
+    color: #171a20;
+    font-weight: 500;
+}
+
+.progress-line {
+    flex: 1;
+    height: 2px;
+    background: #ddd;
+    margin: 0 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Password strength meter */
+.password-input-wrapper {
+    width: 100%;
+}
+
+.password-strength-meter {
+    height: 4px;
+    background: #f5f5f5;
+    border-radius: 2px;
+    margin-top: 0.5rem;
+    overflow: hidden;
+}
+
+.strength-bar {
+    height: 100%;
+    width: 0;
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.strength-weak { width: 33%; background: #dc2626; }
+.strength-medium { width: 66%; background: #f59e0b; }
+.strength-strong { width: 100%; background: #16a34a; }
+
+/* Form validation icons */
+.form-validation-icon {
+    position: absolute;
+    right: -24px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #16a34a;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.form-group {
+    position: relative;
+}
+
+.form-group.valid .form-validation-icon {
+    opacity: 1;
+}
+
+/* Custom checkbox */
+.checkbox-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+}
+
+.custom-checkbox {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.custom-checkbox::after {
+    content: '\f00c';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    color: white;
+    transition: transform 0.2s ease;
+}
+
+.checkbox-wrapper input[type="checkbox"]:checked + .custom-checkbox {
+    background: #171a20;
+    border-color: #171a20;
+}
+
+.checkbox-wrapper input[type="checkbox"]:checked + .custom-checkbox::after {
+    transform: translate(-50%, -50%) scale(1);
 }
   

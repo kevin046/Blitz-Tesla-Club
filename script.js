@@ -94,22 +94,97 @@ function handleTouchMove(evt) {
     xDown = null;
     yDown = null;
 }
-
 // Login form handling
 const loginForm = document.getElementById('loginForm');
 if (loginForm) {
-    loginForm.addEventListener('submit', function(e) {
+    // Password visibility toggle
+    const togglePassword = document.querySelector('.toggle-password');
+    const passwordInput = document.getElementById('password');
+
+    togglePassword.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        
+        // Toggle eye icon
+        const eyeIcon = this.querySelector('i');
+        eyeIcon.classList.toggle('fa-eye');
+        eyeIcon.classList.toggle('fa-eye-slash');
+    });
+
+    // Form submission
+    loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
-        const email = document.getElementById('email').value;
+        
+        const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
         const remember = document.getElementById('remember').checked;
         
-        // Here you would typically send this data to your server
-        console.log('Login attempt:', { email, password, remember });
+        // Basic validation
+        if (!isValidEmail(email)) {
+            showError('Please enter a valid email address');
+            return;
+        }
         
-        // For demo purposes, show success message
-        alert('Login functionality coming soon!');
+        if (password.length < 6) {
+            showError('Password must be at least 6 characters long');
+            return;
+        }
+
+        try {
+            // Here you would typically send this data to your server
+            console.log('Login attempt:', { email, remember });
+            
+            // For demo purposes, show success message
+            showSuccess('Login successful! Redirecting...');
+            
+            // Simulate redirect delay
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 1500);
+            
+        } catch (error) {
+            showError('Login failed. Please try again.');
+            console.error('Login error:', error);
+        }
     });
+}
+
+// Helper functions
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+function showError(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'alert alert-error';
+    errorDiv.textContent = message;
+    
+    insertAlert(errorDiv);
+}
+
+function showSuccess(message) {
+    const successDiv = document.createElement('div');
+    successDiv.className = 'alert alert-success';
+    successDiv.textContent = message;
+    
+    insertAlert(successDiv);
+}
+
+function insertAlert(alertDiv) {
+    const form = document.querySelector('.login-form');
+    const existingAlert = form.querySelector('.alert');
+    
+    if (existingAlert) {
+        existingAlert.remove();
+    }
+    
+    form.insertBefore(alertDiv, form.firstChild);
+    
+    // Auto-remove alert after 5 seconds
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
 }
 
 // Registration form handling
@@ -132,16 +207,6 @@ if (registerForm) {
         alert('Registration functionality coming soon!');
     });
 }
-
-// Social login handling
-document.querySelectorAll('.social-btn').forEach(button => {
-    button.addEventListener('click', function(e) {
-        e.preventDefault();
-        const provider = this.classList[1]; // google, facebook, or twitter
-        console.log(`${provider} login attempted`);
-        alert(`${provider} login coming soon!`);
-    });
-});
 
 // Gallery functionality
 const galleryFilters = document.querySelector('.gallery-filters');
@@ -242,4 +307,83 @@ function sortGalleryItems(ascending = true) {
 // Sort items when page loads (ascending = true for oldest to latest)
 document.addEventListener('DOMContentLoaded', () => {
     sortGalleryItems(true);
-}); 
+});
+
+// Video handling for gallery
+document.addEventListener('DOMContentLoaded', function() {
+    const galleryItems = document.querySelectorAll('.gallery-item');
+    
+    galleryItems.forEach(item => {
+        const iframe = item.querySelector('iframe');
+        if (iframe) {
+            // Extract video ID from YouTube URL
+            const videoId = iframe.src.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i)?.[1];
+            
+            // Create and add thumbnail
+            if (videoId) {
+                const thumbnail = document.createElement('img');
+                thumbnail.className = 'video-thumbnail';
+                thumbnail.src = `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
+                thumbnail.loading = 'lazy';
+                item.appendChild(thumbnail);
+            }
+
+            // Create placeholder with play button
+            const placeholder = document.createElement('div');
+            placeholder.className = 'video-placeholder';
+            placeholder.innerHTML = `
+                <div class="play-button">
+                    <i class="fas fa-play"></i>
+                </div>
+            `;
+            item.appendChild(placeholder);
+
+            // Store original source
+            const originalSrc = iframe.src;
+            iframe.dataset.src = originalSrc;
+            iframe.src = '';
+
+            // Handle click on placeholder
+            placeholder.addEventListener('click', function(e) {
+                e.preventDefault();
+                const videoContainer = document.createElement('div');
+                videoContainer.className = 'video-lightbox';
+                
+                const innerContainer = document.createElement('div');
+                innerContainer.className = 'video-container';
+                
+                const videoIframe = document.createElement('iframe');
+                videoIframe.src = `${originalSrc}?autoplay=1&playsinline=1&rel=0&controls=1`;
+                videoIframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+                videoIframe.allowFullscreen = true;
+                
+                innerContainer.appendChild(videoIframe);
+                videoContainer.appendChild(innerContainer);
+                document.body.appendChild(videoContainer);
+                
+                // Prevent body scrolling
+                document.body.style.overflow = 'hidden';
+                
+                // Handle closing
+                videoContainer.addEventListener('click', function(event) {
+                    if (event.target === videoContainer) {
+                        videoContainer.remove();
+                        document.body.style.overflow = '';
+                    }
+                });
+            });
+
+            // Preload iframe when thumbnail is visible
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        iframe.src = iframe.dataset.src;
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            observer.observe(item);
+        }
+    });
+});

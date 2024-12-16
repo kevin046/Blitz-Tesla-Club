@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Register - Blitz Tesla Club</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
@@ -15,7 +15,7 @@
     <nav>
         <div class="logo">
             <a href="index.html">
-                <img src="https://i.postimg.cc/hG0TfXGR/logo2.png" alt="Blitz Tesla Club Logo">
+                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo">
                 <span>BLITZ TESLA CLUB</span>
             </a>
         </div>
@@ -37,47 +37,110 @@
         <div class="login-box register-box">
             <div class="login-header">
                 <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" class="login-logo">
-                <h2>Create Account</h2>
+                <h2>Join Blitz Tesla Club</h2>
+                <p>Create your account to become a member</p>
             </div>
-            <form class="login-form" id="registerForm">
-                <div class="form-group">
-                    <label for="fullName">Full Name</label>
-                    <input type="text" id="fullName" name="fullName" required>
+
+            <div class="registration-progress">
+                <div class="progress-step active">
+                    <span class="step-number">1</span>
+                    <span class="step-text">Account</span>
                 </div>
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required>
+                <div class="progress-line"></div>
+                <div class="progress-step">
+                    <span class="step-number">2</span>
+                    <span class="step-text">Verify</span>
                 </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
+                <div class="progress-line"></div>
+                <div class="progress-step">
+                    <span class="step-number">3</span>
+                    <span class="step-text">Complete</span>
                 </div>
+            </div>
+
+            <form class="login-form" id="registerForm" novalidate>
                 <div class="form-group">
-                    <label for="confirmPassword">Confirm Password</label>
-                    <input type="password" id="confirmPassword" name="confirmPassword" required>
+                    <label for="fullName">
+                        <i class="fas fa-user"></i>
+                        Full Name
+                    </label>
+                    <input type="text" id="fullName" name="fullName" required
+                           placeholder="Enter your full name"
+                           autocomplete="name"
+                           minlength="2"
+                           pattern="^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*$">
+                    <small class="form-hint">Please enter your real name as it will appear on your membership card</small>
+                    <div class="form-validation-icon"></div>
                 </div>
-                <button type="submit" class="btn login-btn">Create Account</button>
-                
-                <div class="social-login">
-                    <p class="divider"><span>Or register with</span></p>
-                    <div class="social-buttons">
-                        <button type="button" class="social-btn google">
-                            <i class="fab fa-google"></i>
-                            Google
-                        </button>
-                        <button type="button" class="social-btn facebook">
-                            <i class="fab fa-facebook-f"></i>
-                            Facebook
-                        </button>
-                        <button type="button" class="social-btn twitter">
-                            <i class="fab fa-x-twitter"></i>
-                            X
+
+                <div class="form-group">
+                    <label for="email">
+                        <i class="fas fa-envelope"></i>
+                        Email Address
+                    </label>
+                    <input type="email" id="email" name="email" required
+                           placeholder="Enter your email"
+                           autocomplete="email">
+                    <small class="form-hint">We'll send a verification link to this email</small>
+                    <div class="form-validation-icon"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">
+                        <i class="fas fa-lock"></i>
+                        Password
+                    </label>
+                    <div class="password-input-wrapper">
+                        <div class="password-input-group">
+                            <input type="password" id="password" name="password" required
+                                   placeholder="Create a password"
+                                   autocomplete="new-password"
+                                   minlength="8"
+                                   pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}">
+                            <button type="button" class="toggle-password" aria-label="Toggle password visibility">
+                                <i class="far fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="password-strength-meter">
+                            <div class="strength-bar"></div>
+                        </div>
+                    </div>
+                    <small class="form-hint">Must be at least 8 characters with numbers and letters</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">
+                        <i class="fas fa-lock"></i>
+                        Confirm Password
+                    </label>
+                    <div class="password-input-group">
+                        <input type="password" id="confirmPassword" name="confirmPassword" required
+                               placeholder="Confirm your password"
+                               autocomplete="new-password">
+                        <button type="button" class="toggle-password" aria-label="Toggle password visibility">
+                            <i class="far fa-eye"></i>
                         </button>
                     </div>
                 </div>
-                
+
+                <div class="form-group terms-checkbox">
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="terms" name="terms" required>
+                        <span class="custom-checkbox"></span>
+                        <label for="terms">
+                            I agree to the <a href="terms.html" target="_blank">Terms of Service</a> and 
+                            <a href="privacy.html" target="_blank">Privacy Policy</a>
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn login-btn" id="registerButton">
+                    <i class="fas fa-user-plus"></i>
+                    Create Account
+                </button>
+
                 <div class="form-footer">
-                    <a href="login.html">Already have an account? Sign in</a>
+                    <p>Already have an account? <a href="login.html">Sign in</a></p>
                 </div>
             </form>
         </div>
@@ -117,8 +180,8 @@
             <div class="footer-section">
                 <h3>Connect With Us</h3>
                 <div class="footer-social">
-                    <a href="https://x.com/BlitzTClub" target="_blank" aria-label="Follow us on X (Twitter)">
-                        <i class="fab fa-x-twitter"></i>
+                    <a href="https://x.com/BlitzTClub" target="_blank" aria-label="Follow us on X">
+                        <i class="fa-brands fa-square-x-twitter"></i>
                     </a>
                     <a href="https://www.instagram.com/blitztclub/" target="_blank" aria-label="Follow us on Instagram">
                         <i class="fab fa-instagram"></i>
@@ -136,5 +199,6 @@
     </footer>
 
     <script src="script.js"></script>
+    <script src="register.js"></script>
 </body>
 </html> 

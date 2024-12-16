@@ -133,13 +133,88 @@ if (registerForm) {
     });
 }
 
+// Social Media Authentication Configuration
+const config = {
+    google: {
+        client_id: 'YOUR_GOOGLE_CLIENT_ID' // Replace with your actual Google Client ID
+    },
+    facebook: {
+        appId: 'YOUR_FACEBOOK_APP_ID', // Replace with your actual Facebook App ID
+        cookie: true,
+        xfbml: true,
+        version: 'v18.0'
+    },
+    twitter: {
+        // X (Twitter) OAuth 2.0 credentials
+        client_id: 'YOUR_TWITTER_CLIENT_ID' // Replace with your actual X Client ID
+    }
+};
+
+// Initialize Facebook SDK
+window.fbAsyncInit = function() {
+    FB.init(config.facebook);
+};
+
+// Google Sign In
+async function signInWithGoogle() {
+    try {
+        const client = google.accounts.oauth2.initTokenClient({
+            client_id: config.google.client_id,
+            scope: 'email profile',
+            callback: async (response) => {
+                if (response.access_token) {
+                    // Send the token to your server for verification
+                    await handleSocialLogin('google', response.access_token);
+                }
+            },
+        });
+        client.requestAccessToken();
+    } catch (error) {
+        console.error('Google sign-in error:', error);
+        alert('Failed to sign in with Google. Please try again.');
+    }
+}
+
+// Facebook Sign In
+function signInWithFacebook() {
+    FB.login(async function(response) {
+        if (response.authResponse) {
+            // Send the access token to your server for verification
+            await handleSocialLogin('facebook', response.authResponse.accessToken);
+        } else {
+            console.error('Facebook login failed');
+            alert('Failed to sign in with Facebook. Please try again.');
+        }
+    }, {scope: 'public_profile,email'});
+}
+
+// X (Twitter) Sign In
+async function signInWithX() {
+    try {
+        // Redirect to X OAuth 2.0 authorization endpoint
+        const redirectUri = encodeURIComponent(window.location.origin + '/auth/twitter/callback');
+        const scope = encodeURIComponent('users.read tweet.read');
+        const authUrl = `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${config.twitter.client_id}&redirect_uri=${redirectUri}&scope=${scope}&state=state&code_challenge=challenge&code_challenge_method=plain`;
+        window.location.href = authUrl;
+    } catch (error) {
+        console.error('X sign-in error:', error);
+        alert('Failed to sign in with X. Please try again.');
+    }
+}
+
 // Social login handling
 document.querySelectorAll('.social-btn').forEach(button => {
     button.addEventListener('click', function(e) {
         e.preventDefault();
         const provider = this.classList[1]; // google, facebook, or twitter
+        if (provider === 'google') {
+            signInWithGoogle();
+        } else if (provider === 'facebook') {
+            signInWithFacebook();
+        } else if (provider === 'twitter') {
+            signInWithX();
+        }
         console.log(`${provider} login attempted`);
-        alert(`${provider} login coming soon!`);
     });
 });
 

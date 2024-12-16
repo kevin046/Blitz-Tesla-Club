@@ -55,15 +55,15 @@
                 <div class="social-login">
                     <p class="divider"><span>Or continue with</span></p>
                     <div class="social-buttons">
-                        <button type="button" class="social-btn google">
+                        <button type="button" class="social-btn google" onclick="signInWithGoogle()">
                             <i class="fab fa-google"></i>
                             Google
                         </button>
-                        <button type="button" class="social-btn facebook">
+                        <button type="button" class="social-btn facebook" onclick="signInWithFacebook()">
                             <i class="fab fa-facebook-f"></i>
                             Facebook
                         </button>
-                        <button type="button" class="social-btn twitter">
+                        <button type="button" class="social-btn twitter" onclick="signInWithX()">
                             <i class="fa-brands fa-square-x-twitter"></i>
                             X
                         </button>
@@ -129,7 +129,9 @@
             </p>
         </div>
     </footer>
-
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
+    <script src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
     <script src="script.js"></script>
 </body>
 </html> 

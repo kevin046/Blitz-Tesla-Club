@@ -6,8 +6,10 @@ const { createClient } = require('@supabase/supabase-js');
 const jwt = require('jsonwebtoken');
 const app = express();
 const path = require('path');
+const cors = require('cors');
 
 app.use(express.json());
+app.use(cors());
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));

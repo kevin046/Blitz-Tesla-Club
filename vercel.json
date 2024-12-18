@@ -3,6 +3,16 @@
   "outputDirectory": ".",
   "routes": [
     {
+      "src": "/api/generate-member-id",
+      "dest": "/api/generate-member-id.js",
+      "methods": ["POST", "OPTIONS"],
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization"
+      }
+    },
+    {
       "src": "/verify-email",
       "dest": "/api/verify-email"
     },
@@ -39,6 +49,16 @@
     {
       "src": "/api/update-member-ids",
       "dest": "/api/update-member-ids",
+      "methods": ["POST"],
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization"
+      }
+    },
+    {
+      "src": "/api/cleanup-orphaned-users",
+      "dest": "/api/cleanup-orphaned-users",
       "methods": ["POST"],
       "headers": {
         "Access-Control-Allow-Origin": "*",

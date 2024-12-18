@@ -222,6 +222,13 @@
     </footer>
 
     <script>
+        // Helper function to get API URL
+        function getApiUrl(endpoint) {
+            const isDevelopment = window.location.hostname === 'localhost';
+            const baseUrl = isDevelopment ? 'http://localhost:3000' : 'https://blitztclub.com';
+            return `${baseUrl}/api/${endpoint}`;
+        }
+
         // Initialize Supabase client
         const supabaseUrl = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
@@ -303,12 +310,24 @@
                 const confirmPassword = document.getElementById('confirmPassword').value;
                 const terms = document.getElementById('terms').checked;
 
+                let authData = null;
+                let memberId = null;
+
                 try {
+                    // Basic validation
+                    if (!fullName || !email || !password || !confirmPassword || !terms) {
+                        throw new Error('Please fill in all fields and accept the terms');
+                    }
+                    
+                    if (password !== confirmPassword) {
+                        throw new Error('Passwords do not match');
+                    }
+
                     // Generate verification token
                     const verificationToken = crypto.randomUUID();
 
                     // Generate member ID first
-                    const response = await fetch('/api/generate-member-id', {
+                    const response = await fetch(getApiUrl('generate-member-id'), {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -317,10 +336,11 @@
                     });
 
                     if (!response.ok) throw new Error('Failed to generate member ID');
-                    const { member_id } = await response.json();
+                    const memberIdData = await response.json();
+                    memberId = memberIdData.member_id;
 
                     // Create auth user
-                    const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+                    const { data, error: authError } = await supabaseClient.auth.signUp({
                         email,
                         password,
                         options: {
@@ -330,10 +350,8 @@
                         }
                     });
 
-                    if (authError) {
-                        console.error('Auth error:', authError);
-                        throw new Error(authError.message);
-                    }
+                    if (authError) throw authError;
+                    authData = data;
 
                     // Create profile
                     const { error: profileError } = await supabaseClient
@@ -342,7 +360,7 @@
                             id: authData.user.id,
                             email: email,
                             full_name: fullName,
-                            member_id: member_id,
+                            member_id: memberId,
                             membership_type: 'standard',
                             membership_status: 'pending',
                             created_at: new Date().toISOString(),
@@ -351,6 +369,10 @@
 
                     if (profileError) {
                         console.error('Profile error:', profileError);
+                        // If profile creation fails, clean up the auth user
+                        if (authData?.user?.id) {
+                            await supabaseClient.auth.admin.deleteUser(authData.user.id);
+                        }
                         throw new Error('Error creating user profile');
                     }
 
@@ -364,7 +386,7 @@
                     formData.append('_cc', 'info@blitztclub.com');
                     formData.append('message', `Welcome to Blitz Tesla Club!
 
-Your Member ID: ${member_id}
+Your Member ID: ${memberId}
 
 Please click the link below to verify your email:
 ${verificationUrl}
@@ -372,16 +394,39 @@ ${verificationUrl}
 Best regards,
 Blitz Tesla Club Team`);
 
-                    await fetch(`https://formsubmit.co/ajax/${email}`, {
+                    const emailResponse = await fetch(`https://formsubmit.co/ajax/${email}`, {
                         method: 'POST',
                         body: formData
                     });
+
+                    if (!emailResponse.ok) {
+                        throw new Error('Failed to send verification email');
+                    }
 
                     alert('Registration successful! Please check your email to verify your account.');
                     window.location.href = 'login.html';
 
                 } catch (error) {
                     console.error('Registration error:', error);
+                    // Clean up if auth user was created but something else failed
+                    if (authData?.user?.id) {
+                        try {
+                            // Call cleanup endpoint instead of direct admin function
+                            const cleanupResponse = await fetch(getApiUrl('cleanup-orphaned-users'), {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ user_id: authData.user.id })
+                            });
+
+                            if (!cleanupResponse.ok) {
+                                console.error('Failed to clean up user:', await cleanupResponse.text());
+                            }
+                        } catch (cleanupError) {
+                            console.error('Failed to clean up auth user:', cleanupError);
+                        }
+                    }
                     alert(error.message || 'Registration failed. Please try again.');
                 }
             });

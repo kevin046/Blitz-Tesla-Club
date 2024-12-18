@@ -2,7 +2,13 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
     process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    {
+        auth: {
+            autoRefreshToken: false,
+            persistSession: false
+        }
+    }
 );
 
 export default async function handler(req, res) {
@@ -32,9 +38,9 @@ export default async function handler(req, res) {
         }
 
         // Format the new member ID with leading zeros
-        const newMemberId = `${prefix}${String(nextNumber).padStart(3, '0')}`;
+        const member_id = `${prefix}${String(nextNumber).padStart(3, '0')}`;
 
-        return res.status(200).json({ member_id: newMemberId });
+        return res.status(200).json({ member_id });
 
     } catch (error) {
         console.error('Error generating member ID:', error);

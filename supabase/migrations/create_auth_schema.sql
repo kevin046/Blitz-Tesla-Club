@@ -48,24 +48,27 @@ create policy "Enable update for users based on id"
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-    insert into public.profiles (
-        id,
-        email,
-        full_name,
-        username,
-        member_id,
-        membership_status,
-        membership_type
-    )
-    values (
-        new.id,
-        new.email,
-        new.raw_user_meta_data->>'full_name',
-        new.raw_user_meta_data->>'username',
-        new.raw_user_meta_data->>'member_id',
-        coalesce(new.raw_user_meta_data->>'membership_status', 'pending'),
-        coalesce(new.raw_user_meta_data->>'membership_type', 'standard')
-    );
+    -- Only create profile if it doesn't exist
+    if not exists (select 1 from public.profiles where id = new.id) then
+        insert into public.profiles (
+            id,
+            email,
+            full_name,
+            username,
+            member_id,
+            membership_status,
+            membership_type
+        )
+        values (
+            new.id,
+            new.email,
+            new.raw_user_meta_data->>'full_name',
+            new.raw_user_meta_data->>'username',
+            new.raw_user_meta_data->>'member_id',
+            coalesce(new.raw_user_meta_data->>'membership_status', 'pending'),
+            coalesce(new.raw_user_meta_data->>'membership_type', 'standard')
+        );
+    end if;
     return new;
 end;
 $$ language plpgsql security definer;

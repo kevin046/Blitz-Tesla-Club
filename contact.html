@@ -2,116 +2,76 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Contact - Blitz Tesla Club</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Support - Blitz Tesla Club</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="nav.js"></script>
 </head>
 <body class="contact-page">
     <nav>
-        <div class="logo">
-            <a href="index.html">
-                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo">
-                <span>BLITZ TESLA CLUB</span>
-            </a>
-        </div>
-        <div class="menu-toggle">
-            <i class="fas fa-bars"></i>
-        </div>
-        <ul class="nav-links">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="events.html">Events</a></li>
-            <li><a href="gallery.html">Gallery</a></li>
-            <li><a href="executive.html">Executives</a></li>
-            <li><a href="news.html">News</a></li>
-            <li><a href="#join">Join Us</a></li>
-            <li><a href="login.html">Login</a></li>
-        </ul>
+        <!-- Navigation will be loaded by nav.js -->
     </nav>
 
     <main class="contact-container">
-        <header class="contact-header">
-            <h1>Contact</h1>
-            <p class="contact-email">Email: info@BlitzTClub.com</p>
-        </header>
+        <div class="contact-box">
+            <div class="contact-header">
+                <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" class="contact-logo">
+                <h2>Contact Support</h2>
+                <p>Need help? We're here to assist you.</p>
+            </div>
 
-        <div class="contact-form-container">
-            <form class="contact-form" id="contactForm">
+            <form class="contact-form" action="https://formsubmit.co/info@blitztclub.com" method="POST">
+                <input type="hidden" name="_captcha" value="false">
+                <input type="hidden" name="_template" value="box">
+                <input type="hidden" name="_subject" value="Support Request - Blitz Tesla Club">
+                <input type="hidden" name="_next" value="https://blitztclub.com/contact-success.html">
+
                 <div class="form-group">
-                    <label for="name">Name *</label>
+                    <label for="name">Full Name</label>
                     <input type="text" id="name" name="name" required>
                 </div>
+
                 <div class="form-group">
-                    <label for="email">Email Address *</label>
+                    <label for="email">Email Address</label>
                     <input type="email" id="email" name="email" required>
                 </div>
+
                 <div class="form-group">
-                    <label for="message">Message *</label>
-                    <textarea id="message" name="message" required rows="6"></textarea>
+                    <label for="memberId">Member ID (if applicable)</label>
+                    <input type="text" id="memberId" name="memberId">
                 </div>
-                <button type="submit" class="btn contact-btn">Submit</button>
+
+                <div class="form-group">
+                    <label for="subject">Subject</label>
+                    <select id="subject" name="subject" required>
+                        <option value="">Select a topic</option>
+                        <option value="Account Verification">Account Verification</option>
+                        <option value="Membership Issues">Membership Issues</option>
+                        <option value="Technical Support">Technical Support</option>
+                        <option value="General Inquiry">General Inquiry</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Message</label>
+                    <textarea id="message" name="message" rows="5" required></textarea>
+                </div>
+
+                <button type="submit" class="btn submit-btn">
+                    <i class="fas fa-paper-plane"></i>
+                    Send Message
+                </button>
             </form>
         </div>
     </main>
 
     <footer>
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3>Quick Links</h3>
-                <div class="footer-links">
-                    <a href="index.html">Home</a>
-                    <a href="events.html">Events</a>
-                    <a href="gallery.html">Gallery</a>
-                    <a href="contact.html">Contact</a>
-                </div>
-            </div>
-            
-            <div class="footer-section">
-                <h3>Member Area</h3>
-                <div class="footer-links">
-                    <a href="login.html">Login</a>
-                    <a href="register.html">Register</a>
-                    <a href="sponsors.html">Our Sponsors</a>
-                    <a href="#member-benefits">Member Benefits</a>
-                </div>
-            </div>
-            
-            <div class="footer-section">
-                <h3>Legal</h3>
-                <div class="footer-links">
-                    <a href="privacy.html">Privacy Policy</a>
-                    <a href="terms.html">Terms of Service</a>
-                    <a href="about.html">About Us</a>
-                </div>
-            </div>
-
-            <div class="footer-section">
-                <h3>Connect With Us</h3>
-                <div class="footer-social">
-                    <a href="https://x.com/BlitzTClub" target="_blank" aria-label="Follow us on X (Twitter)">
-                        <i class="fab fa-x-twitter"></i>
-                    </a>
-                    <a href="https://www.instagram.com/blitztclub/" target="_blank" aria-label="Follow us on Instagram">
-                        <i class="fab fa-instagram"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="footer-bottom">
-            <p>© 2024 Blitz Tesla Club. All rights reserved.</p>
-            <p class="powered-by">
-                Website powered by <a href="http://www.summitpixels.com" target="_blank">SummitPixels</a>
-            </p>
-        </div>
+        <!-- Footer content -->
     </footer>
 
-    <script src="script.js"></script>
+    <script src="nav.js"></script>
 </body>
 </html> 

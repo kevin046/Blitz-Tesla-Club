@@ -27,13 +27,7 @@
     },  
     { "src": "/", "dest": "/index.html" },
     { "src": "/dashboard", "dest": "/dashboard.html" },
-    { 
-      "src": "/login", 
-      "dest": "/login.html",
-      "headers": {
-        "Cache-Control": "no-store, must-revalidate"
-      }
-    },
+    { "src": "/login", "dest": "/login.html" },
     { "src": "/events", "dest": "/events.html" },
     { "src": "/gallery", "dest": "/gallery.html" },
     { "src": "/executive", "dest": "/executive.html" },

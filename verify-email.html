@@ -68,5 +68,49 @@
     </footer>
 
     <script src="verify-email.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+
+            if (!token) {
+                window.location.href = 'verification-failed.html';
+                return;
+            }
+
+            try {
+                // Get profile by verification token
+                const { data: profile, error: profileError } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('verification_token', token)
+                    .single();
+
+                if (profileError || !profile) {
+                    throw new Error('Invalid verification token');
+                }
+
+                // Update profile status
+                const { error: updateError } = await supabaseClient
+                    .from('profiles')
+                    .update({
+                        membership_status: 'active',
+                        verification_token: null
+                    })
+                    .eq('id', profile.id);
+
+                if (updateError) {
+                    throw updateError;
+                }
+
+                // Redirect to success page
+                window.location.href = `verification-success.html?verified=true&id=${profile.id}`;
+
+            } catch (error) {
+                console.error('Verification error:', error);
+                window.location.href = 'verification-failed.html';
+            }
+        });
+    </script>
 </body>
 </html> 

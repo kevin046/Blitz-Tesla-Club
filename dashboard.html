@@ -516,9 +516,9 @@
                     try {
                         // Generate verification token
                         function generateToken() {
-                            const randomPart = Math.random().toString(36).substring(2);
-                            const timestamp = Date.now().toString(36);
-                            return `${randomPart}${timestamp}`.trim();
+                            const array = new Uint8Array(32);
+                            crypto.getRandomValues(array);
+                            return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
                         }
                         
                         const verificationToken = generateToken();
@@ -530,7 +530,8 @@
                             .from('profiles')
                             .update({ 
                                 verification_token: verificationToken,
-                                membership_status: 'pending'
+                                membership_status: 'pending',
+                                verified_at: null
                             })
                             .eq('id', profile.id);
                         

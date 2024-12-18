@@ -1,28 +1,47 @@
-const express = require('express');
-const User = require('../models/User');
+import { createClient } from '@supabase/supabase-js';
 
-const router = express.Router();
+// Initialize Supabase client
+const supabaseUrl = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
+const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-router.get('/verify/:token', async (req, res) => {
-  try {
-    const token = req.params.token;
-    const user = await User.findOne({ verificationToken: token });
+export async function verifyEmail(token) {
+    try {
+        const cleanToken = token.trim();
+        console.log('Verifying email with token:', cleanToken);
 
-    if (!user) {
-      return res.status(400).send('Invalid verification token');
+        // Find user by verification token
+        const { data: profile, error } = await supabaseClient
+            .from('profiles')
+            .select('*')
+            .eq('verification_token', cleanToken)
+            .single();
+
+        if (error || !profile) {
+            console.error('Profile not found:', error);
+            return { success: false, error: 'Invalid verification token' };
+        }
+
+        // Update profile status
+        const { error: updateError } = await supabaseClient
+            .from('profiles')
+            .update({
+                membership_status: 'active',
+                verification_token: null,
+                verified_at: new Date().toISOString()
+            })
+            .eq('id', profile.id);
+
+        if (updateError) {
+            console.error('Update failed:', updateError);
+            return { success: false, error: 'Failed to verify email' };
+        }
+
+        return { success: true, profile };
+    } catch (error) {
+        console.error('Verification error:', error);
+        return { success: false, error: 'Internal server error' };
     }
+}
 
-    // Update user verification status and membership
-    user.isVerified = true;
-    user.membershipStatus = 'active';
-    user.verificationToken = undefined;
-    await user.save();
-
-    res.redirect('/login?verified=true');
-  } catch (error) {
-    console.error('Verification error:', error);
-    res.status(500).send('Error during verification');
-  }
-});
-
-module.exports = router; 
+module.exports = { verifyEmail }; 

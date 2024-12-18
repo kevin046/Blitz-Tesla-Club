@@ -771,12 +771,26 @@ Blitz Tesla Club Team`);
                     const cleanupResponse = await fetch('/api/cleanup-orphaned-users', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
                         },
                         body: JSON.stringify({ user_id: profile.id })
                     });
                     
-                    const responseData = await cleanupResponse.json();
+                    let responseData;
+                    try {
+                        const contentType = cleanupResponse.headers.get("content-type");
+                        if (contentType && contentType.indexOf("application/json") !== -1) {
+                            responseData = await cleanupResponse.json();
+                        } else {
+                            const text = await cleanupResponse.text();
+                            console.error('Non-JSON response:', text);
+                            throw new Error('Server returned non-JSON response');
+                        }
+                    } catch (parseError) {
+                        console.error('Error parsing response:', parseError);
+                        throw new Error('Failed to parse server response');
+                    }
                     
                     if (!cleanupResponse.ok) {
                         console.error('Cleanup response:', responseData);

@@ -12,6 +12,9 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
+    // Set JSON content type
+    res.setHeader('Content-Type', 'application/json');
+
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
@@ -25,6 +28,18 @@ export default async function handler(req, res) {
 
         console.log('Attempting to delete user:', user_id);
 
+        // Check if user exists first
+        const { data: userData, error: userError } = await supabase
+            .auth.admin.getUserById(user_id);
+
+        if (userError || !userData) {
+            console.error('User not found:', userError);
+            return res.status(404).json({ 
+                error: 'User not found',
+                details: userError?.message || 'User does not exist'
+            });
+        }
+
         // Delete profile first
         const { error: profileError } = await supabase
             .from('profiles')
@@ -33,7 +48,10 @@ export default async function handler(req, res) {
 
         if (profileError) {
             console.error('Profile deletion error:', profileError);
-            throw profileError;
+            return res.status(500).json({ 
+                error: 'Failed to delete profile',
+                details: profileError.message 
+            });
         }
 
         console.log('Profile deleted successfully');
@@ -45,7 +63,10 @@ export default async function handler(req, res) {
 
         if (authError) {
             console.error('Auth deletion error:', authError);
-            throw authError;
+            return res.status(500).json({ 
+                error: 'Failed to delete auth user',
+                details: authError.message 
+            });
         }
 
         console.log('Auth user deleted successfully');

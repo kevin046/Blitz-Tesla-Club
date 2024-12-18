@@ -1,18 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 
 export default async function handler(req, res) {
-    // Handle verification request
     if (req.method === 'GET') {
         try {
             const { token } = req.query;
 
             if (!token) {
+                console.error('No token provided');
                 return res.redirect('/verification-failed.html');
             }
 
-            // Initialize Supabase client
-            const supabaseUrl = process.env.SUPABASE_URL;
-            const supabaseKey = process.env.SUPABASE_KEY;
+            // Initialize Supabase client with correct credentials
+            const supabaseUrl = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
             const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
             console.log('Verifying token:', token);
@@ -49,14 +49,13 @@ export default async function handler(req, res) {
             }
 
             console.log('Successfully verified profile:', profile.id);
-            // Redirect to success page
-            res.redirect('/verification-success.html');
+            return res.redirect('/verification-success.html');
 
         } catch (error) {
             console.error('Verification error:', error);
-            res.redirect('/verification-failed.html');
+            return res.redirect('/verification-failed.html');
         }
     } else {
-        res.status(405).json({ error: 'Method not allowed' });
+        return res.status(405).json({ error: 'Method not allowed' });
     }
 } 

@@ -3,6 +3,10 @@
   "outputDirectory": ".",
   "routes": [
     {
+      "src": "/verify-email",
+      "dest": "/api/verify-email"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/$1",
       "headers": {
@@ -20,7 +24,6 @@
     { "src": "/news", "dest": "/news.html" },
     { "src": "/contact", "dest": "/contact.html" },
     { "src": "/privacy", "dest": "/privacy.html" },
-    { "src": "/verify-email", "dest": "/api/verify-email" },
     { "src": "/verification-success", "dest": "/verification-success.html" },
     { "src": "/verification-failed", "dest": "/verification-failed.html" }
   ],

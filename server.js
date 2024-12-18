@@ -8,35 +8,29 @@ require('dotenv').config();
 
 const app = express();
 app.use(express.json());
-app.use(cors({
-    origin: [
-        'https://blitz-tesla-club.vercel.app',
-        'https://www.blitztclub.com',
-        'https://blitztclub.com'
-    ],
-    credentials: true,
-    methods: ['GET', 'POST', 'OPTIONS']
-}));
+
+// CORS middleware for Vercel
+const corsMiddleware = (req, res, next) => {
+    // Set CORS headers
+    res.setHeader('Access-Control-Allow-Origin', 'https://www.blitztclub.com');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+        res.status(200).end();
+        return;
+    }
+
+    next();
+};
+
+// Apply CORS middleware to all routes
+app.use(corsMiddleware);
 
 // Get absolute path to project directory
 const PROJECT_ROOT = path.resolve(__dirname);
-
-// Enable CORS for all routes
-app.use((req, res, next) => {
-    const allowedOrigins = [
-        'https://blitz-tesla-club.vercel.app',
-        'https://www.blitztclub.com',
-        'https://blitztclub.com'
-    ];
-    const origin = req.headers.origin;
-    if (allowedOrigins.includes(origin)) {
-        res.header('Access-Control-Allow-Origin', origin);
-    }
-    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    next();
-});
 
 // Serve static files with proper MIME types
 app.use(express.static(PROJECT_ROOT, {

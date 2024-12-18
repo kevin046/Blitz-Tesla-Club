@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="login-page">
     <nav>
@@ -41,8 +42,9 @@
             </div>
             <form class="login-form" id="loginForm">
                 <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required>
+                    <label for="identifier">Email or Username</label>
+                    <input type="text" id="identifier" name="identifier" required
+                           placeholder="Enter your email or username">
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
@@ -57,11 +59,6 @@
                     <a href="#forgot-password">Forgot Password?</a>
                     <a href="register.html">Not a member? Join now</a>
                 </div>
-                                   </div>
-                </div>
-
-            
-                
             </form>
         </div>
     </main>
@@ -117,7 +114,63 @@
             </p>
         </div>
     </footer>
-    <script src="script.js"></script>
-    <script src="login.js"></script>
+    <script>
+        // Initialize Supabase client correctly
+        const supabaseUrl = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm = document.getElementById('loginForm');
+            
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const identifier = document.getElementById('identifier').value.trim();
+                const password = document.getElementById('password').value;
+                const remember = document.getElementById('remember').checked;
+
+                try {
+                    // Check if identifier is email or username
+                    const isEmail = identifier.includes('@');
+                    let email = identifier;
+
+                    if (!isEmail) {
+                        // Look up email by username
+                        const { data: profile, error: profileError } = await supabaseClient
+                            .from('profiles')
+                            .select('email')
+                            .eq('username', identifier)
+                            .single();
+
+                        if (profileError || !profile) {
+                            throw new Error('Invalid username or password');
+                        }
+
+                        email = profile.email;
+                    }
+
+                    const { data, error } = await supabaseClient.auth.signInWithPassword({
+                        email,
+                        password
+                    });
+
+                    if (error) throw error;
+
+                    // Store the session
+                    if (remember) {
+                        localStorage.setItem('supabase.auth.token', data.session.access_token);
+                    } else {
+                        sessionStorage.setItem('supabase.auth.token', data.session.access_token);
+                    }
+
+                    window.location.href = 'dashboard.html';
+
+                } catch (error) {
+                    alert(error.message);
+                }
+            });
+        });
+    </script>
 </body>
 </html> 

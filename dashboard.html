@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="dashboard-page">
     <nav>
@@ -169,7 +170,105 @@
         </div>
     </footer>
 
-    <script src="/js/script.js"></script>
-    <script src="/js/dashboard.js"></script>
+    <script>
+        // Initialize Supabase client
+        const supabaseUrl = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check if user is logged in
+            const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+            
+            if (!session) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                // Get user profile
+                const { data: profile, error: profileError } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+
+                if (profileError) {
+                    // If profile doesn't exist, create one
+                    const { data: newProfile, error: insertError } = await supabaseClient
+                        .from('profiles')
+                        .insert([{
+                            id: session.user.id,
+                            email: session.user.email,
+                            full_name: session.user.user_metadata.full_name || 'Member',
+                            membership_status: 'pending',
+                            membership_type: 'standard'
+                        }])
+                        .select()
+                        .single();
+
+                    if (insertError) throw insertError;
+                    profile = newProfile;
+                }
+
+                // Update user info
+                document.getElementById('userFullName').textContent = profile.full_name;
+                document.getElementById('membershipStatus').textContent = 
+                    profile.membership_status.charAt(0).toUpperCase() + 
+                    profile.membership_status.slice(1);
+
+                // Get upcoming events
+                const { data: events, error: eventsError } = await supabaseClient
+                    .from('events')
+                    .select('*')
+                    .gt('event_date', new Date().toISOString())
+                    .order('event_date', { ascending: true })
+                    .limit(3);
+
+                if (eventsError) throw eventsError;
+
+                // Update events list
+                const eventsList = document.getElementById('upcomingEventsList');
+                if (events && events.length > 0) {
+                    eventsList.innerHTML = events.map(event => `
+                        <div class="event-item">
+                            <h3>${event.title}</h3>
+                            <p>${event.description}</p>
+                            <span>${new Date(event.event_date).toLocaleDateString()}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    eventsList.innerHTML = '<p>No upcoming events</p>';
+                }
+
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                alert('Failed to load dashboard data. Please try again later.');
+            }
+
+            // Handle logout
+            const logoutButtons = document.querySelectorAll('#logoutBtn, #footerLogoutBtn');
+            logoutButtons.forEach(button => {
+                button.addEventListener('click', async () => {
+                    const { error } = await supabaseClient.auth.signOut();
+                    if (error) {
+                        console.error('Error signing out:', error);
+                    }
+                    localStorage.removeItem('supabase.auth.token');
+                    sessionStorage.removeItem('supabase.auth.token');
+                    window.location.href = 'login.html';
+                });
+            });
+
+            // Handle mobile menu
+            const menuToggle = document.querySelector('.menu-toggle');
+            const navLinks = document.querySelector('.nav-links');
+            if (menuToggle && navLinks) {
+                menuToggle.addEventListener('click', () => {
+                    navLinks.classList.toggle('active');
+                });
+            }
+        });
+    </script>
 </body>
 </html> 

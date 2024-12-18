@@ -10,11 +10,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="login-page">
     <nav>
         <div class="logo">
-            <a href="index.html">
+            <a href="/">
                 <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo">
                 <span>BLITZ TESLA CLUB</span>
             </a>
@@ -23,13 +24,13 @@
             <i class="fas fa-bars"></i>
         </div>
         <ul class="nav-links">
-            <li><a href="index.html">Home</a></li>
+            <li><a href="/">Home</a></li>
             <li><a href="events.html">Events</a></li>
             <li><a href="gallery.html">Gallery</a></li>
             <li><a href="executive.html">Executives</a></li>
             <li><a href="news.html">News</a></li>
             <li><a href="#join">Join Us</a></li>
-            <li><a href="login.html">Login</a></li>
+            <li><a href="/login">Login</a></li>
         </ul>
     </nav>
 
@@ -71,6 +72,20 @@
             </div>
 
             <form class="login-form" id="registerForm" novalidate>
+                <div class="form-group">
+                    <label for="username">
+                        <i class="fas fa-at"></i>
+                        Username
+                    </label>
+                    <input type="text" id="username" name="username" required
+                           placeholder="Choose a username"
+                           autocomplete="username"
+                           minlength="3"
+                           pattern="^[a-zA-Z0-9_-]{3,20}$">
+                    <small class="form-hint">3-20 characters, letters, numbers, - and _ only</small>
+                    <div class="form-validation-icon"></div>
+                </div>
+
                 <div class="form-group">
                     <label for="fullName">
                         <i class="fas fa-user"></i>
@@ -206,7 +221,133 @@
         </div>
     </footer>
 
-    <script src="script.js"></script>
-    <script src="register.js"></script>
+    <script>
+        // Initialize Supabase client correctly
+        const supabaseUrl = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const registerForm = document.getElementById('registerForm');
+            const passwordInput = document.getElementById('password');
+            const strengthBar = document.querySelector('.strength-bar');
+
+            // Password visibility toggle
+            document.querySelectorAll('.toggle-password').forEach(button => {
+                button.addEventListener('click', function() {
+                    const input = this.previousElementSibling;
+                    const icon = this.querySelector('i');
+                    
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        input.type = 'password';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                });
+            });
+
+            // Password strength checker
+            function checkPasswordStrength(password) {
+                let strength = 0;
+                const patterns = {
+                    length: password.length >= 8,
+                    lowercase: /[a-z]/.test(password),
+                    uppercase: /[A-Z]/.test(password),
+                    numbers: /\d/.test(password),
+                    special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+                };
+
+                strength += patterns.length ? 1 : 0;
+                strength += (patterns.lowercase && patterns.uppercase) ? 1 : 0;
+                strength += patterns.numbers ? 1 : 0;
+                strength += patterns.special ? 1 : 0;
+
+                return { score: strength, patterns };
+            }
+
+            // Password strength meter
+            passwordInput.addEventListener('input', () => {
+                const { score, patterns } = checkPasswordStrength(passwordInput.value);
+                strengthBar.className = 'strength-bar';
+                
+                if (score === 0) {
+                    strengthBar.style.width = '0';
+                } else if (score <= 2) {
+                    strengthBar.classList.add('strength-weak');
+                } else if (score === 3) {
+                    strengthBar.classList.add('strength-medium');
+                } else {
+                    strengthBar.classList.add('strength-strong');
+                }
+            });
+
+            // Form submission
+            registerForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const fullName = document.getElementById('fullName').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const password = passwordInput.value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                const terms = document.getElementById('terms').checked;
+                const username = document.getElementById('username').value.trim();
+
+                // Validation
+                if (!fullName || !email || !password || !confirmPassword) {
+                    alert('Please fill in all fields');
+                    return;
+                }
+
+                if (password !== confirmPassword) {
+                    alert('Passwords do not match');
+                    return;
+                }
+
+                if (!terms) {
+                    alert('Please accept the Terms of Service and Privacy Policy');
+                    return;
+                }
+
+                try {
+                    // Register through our server endpoint
+                    const response = await fetch('/api/register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            email,
+                            password,
+                            fullName,
+                            username
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error);
+
+                    alert('Registration successful! Please check your email to verify your account.');
+                    window.location.href = 'login.html';
+
+                } catch (error) {
+                    console.error('Registration error:', error);
+                    alert(error.message);
+                }
+            });
+
+            // Mobile menu
+            const menuToggle = document.querySelector('.menu-toggle');
+            const navLinks = document.querySelector('.nav-links');
+            if (menuToggle && navLinks) {
+                menuToggle.addEventListener('click', () => {
+                    navLinks.classList.toggle('active');
+                });
+            }
+        });
+    </script>
 </body>
 </html> 

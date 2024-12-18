@@ -161,22 +161,8 @@
     </footer>
 
     <script>
-        // Initialize Supabase client
-        const supabaseUrl = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
-        const supabaseKey = 'your_supabase_key';
-        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-
-        // Your existing events page JavaScript
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Check if user is logged in
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            
-            if (!session) {
-                window.location.href = 'login.html';
-                return;
-            }
-
-            // Your existing events page functionality here
+        document.addEventListener('DOMContentLoaded', () => {
+            // Events page functionality
             // Filter buttons, RSVP functionality, etc.
         });
     </script>

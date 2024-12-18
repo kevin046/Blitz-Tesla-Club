@@ -23,16 +23,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <i class="fas fa-bars"></i>
             </div>
             <ul class="nav-links">
-                <li><a href="dashboard.html" ${currentPage === 'dashboard.html' ? 'class="active"' : ''}>
-                    <i class="fas fa-home"></i>Dashboard
-                </a></li>
-                <li><a href="events.html" ${currentPage === 'events.html' ? 'class="active"' : ''}>Events</a></li>
-                <li><a href="gallery.html" ${currentPage === 'gallery.html' ? 'class="active"' : ''}>Gallery</a></li>
-                <li><a href="executive.html" ${currentPage === 'executive.html' ? 'class="active"' : ''}>Executives</a></li>
-                <li><a href="news.html" ${currentPage === 'news.html' ? 'class="active"' : ''}>News</a></li>
-                <li><a href="#" id="logoutBtn">
-                    <i class="fas fa-sign-out-alt"></i>Logout
-                </a></li>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="events.html">Events</a></li>
+                <li><a href="gallery.html">Gallery</a></li>
+                <li><a href="executive.html">Executives</a></li>
+                <li><a href="news.html">News</a></li>
+                <li><a href="register.html">Join Us</a></li>
+                <li><a href="login.html">Login</a></li>
             </ul>
         `;
 

@@ -27,8 +27,7 @@ export async function verifyEmail(token) {
             .from('profiles')
             .update({
                 membership_status: 'active',
-                verification_token: null,
-                verified_at: new Date().toISOString()
+                verification_token: null
             })
             .eq('id', profile.id);
 

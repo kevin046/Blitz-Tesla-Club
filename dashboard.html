@@ -530,8 +530,7 @@
                             .from('profiles')
                             .update({ 
                                 verification_token: verificationToken,
-                                membership_status: 'pending',
-                                verified_at: null
+                                membership_status: 'pending'
                             })
                             .eq('id', profile.id);
                         

@@ -289,12 +289,40 @@
             registerForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
+                // Get form values
+                const fullName = document.getElementById('fullName').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const password = passwordInput.value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                const terms = document.getElementById('terms').checked;
+                const username = document.getElementById('username').value.trim();
+
+                // Validation
+                if (!fullName || !email || !password || !confirmPassword) {
+                    alert('Please fill in all fields');
+                    return;
+                }
+
+                if (password !== confirmPassword) {
+                    alert('Passwords do not match');
+                    return;
+                }
+
+                if (!terms) {
+                    alert('Please accept the Terms of Service and Privacy Policy');
+                    return;
+                }
+
                 try {
                     // Create auth user with Supabase
                     const { data: authData, error: authError } = await supabaseClient.auth.signUp({
                         email,
                         password,
                         options: {
+                            data: {
+                                full_name: fullName,
+                                username: username
+                            },
                             emailRedirectTo: 'https://www.blitztclub.com/verify-email'
                         }
                     });

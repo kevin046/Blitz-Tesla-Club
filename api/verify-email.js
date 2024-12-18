@@ -39,12 +39,25 @@ export default async function handler(req, res) {
                 .from('profiles')
                 .update({ 
                     membership_status: 'active',
-                    verification_token: null 
+                    verification_token: null,
+                    verified_at: new Date().toISOString()
                 })
                 .eq('id', profile.id);
 
             if (updateError) {
                 console.error('Error updating profile:', updateError);
+                return res.redirect('/verification-failed.html');
+            }
+
+            // Double-check the update
+            const { data: checkProfile, error: checkError } = await supabaseClient
+                .from('profiles')
+                .select('membership_status')
+                .eq('id', profile.id)
+                .single();
+
+            if (checkError || checkProfile.membership_status !== 'active') {
+                console.error('Verification status not updated properly');
                 return res.redirect('/verification-failed.html');
             }
 

@@ -13,26 +13,31 @@ const userSchema = new mongoose.Schema({
         trim: true,
         lowercase: true
     },
-    password: {
+    supabaseId: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
-    verified: {
-        type: Boolean,
-        default: false
+    memberId: {
+        type: String,
+        required: true,
+        unique: true
     },
-    verificationToken: String,
-    verificationExpires: Date,
-    createdAt: {
-        type: Date,
-        default: Date.now
-    },
-    lastLogin: Date,
     membershipStatus: {
         type: String,
         enum: ['pending', 'active', 'expired'],
         default: 'pending'
-    }
+    },
+    membershipType: {
+        type: String,
+        enum: ['standard', 'premium'],
+        default: 'standard'
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    lastLogin: Date
 });
 
 module.exports = mongoose.model('User', userSchema); 

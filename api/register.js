@@ -29,27 +29,37 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: authError.message });
         }
 
+        if (!authData || !authData.user) {
+            console.error('No user data returned from auth signup');
+            return res.status(400).json({ error: 'Failed to create user account' });
+        }
+
         // Generate member ID
         const memberId = 'BTC' + Date.now().toString().slice(-6);
 
         // Create profile
+        const profileData = {
+            id: authData.user.id,
+            full_name: fullName,
+            username: username,
+            email: email,
+            member_id: memberId,
+            membership_status: 'pending',
+            membership_type: 'standard',
+            created_at: new Date().toISOString()
+        };
+
+        console.log('Creating profile with data:', profileData);
+
         const { error: profileError } = await supabaseClient
             .from('profiles')
-            .insert([
-                {
-                    id: authData.user.id,
-                    full_name: fullName,
-                    username: username,
-                    email: email,
-                    member_id: memberId,
-                    membership_status: 'pending',
-                    membership_type: 'standard',
-                    created_at: new Date().toISOString()
-                }
-            ]);
+            .insert([profileData])
+            .select();
 
         if (profileError) {
             console.error('Profile creation error:', profileError);
+            // Clean up auth user if profile creation fails
+            await supabaseClient.auth.admin.deleteUser(authData.user.id);
             return res.status(400).json({ error: profileError.message });
         }
 

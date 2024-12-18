@@ -9,7 +9,11 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 app.use(cors({
-    origin: ['https://blitz-tesla-club.vercel.app'],
+    origin: [
+        'https://blitz-tesla-club.vercel.app',
+        'https://www.blitztclub.com',
+        'https://blitztclub.com'
+    ],
     credentials: true,
     methods: ['GET', 'POST', 'OPTIONS']
 }));
@@ -19,7 +23,15 @@ const PROJECT_ROOT = path.resolve(__dirname);
 
 // Enable CORS for all routes
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', req.headers.origin);
+    const allowedOrigins = [
+        'https://blitz-tesla-club.vercel.app',
+        'https://www.blitztclub.com',
+        'https://blitztclub.com'
+    ];
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+        res.header('Access-Control-Allow-Origin', origin);
+    }
     res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     res.header('Access-Control-Allow-Credentials', 'true');

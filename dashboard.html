@@ -395,9 +395,7 @@
                             body: JSON.stringify({
                                 userId: profile.id,
                                 email: profile.email
-                            }),
-                            mode: 'cors',
-                            credentials: 'include'
+                            })
                         });
 
                         if (!response.ok) throw new Error('Failed to resend verification email');

@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema({
     lastLogin: Date,
     membershipStatus: {
         type: String,
-        enum: ['pending', 'active', 'suspended'],
+        enum: ['pending', 'active', 'expired'],
         default: 'pending'
     }
 });

@@ -10,18 +10,31 @@ export default async function handler(req, res) {
                 return res.redirect('/verification-failed.html');
             }
 
-            console.log('Received token:', token);
+            console.log('Received token for verification:', token.trim());
 
             // Initialize Supabase client with correct credentials
             const supabaseUrl = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
             const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
+            // First check if token exists in profiles
+            const { data: tokenCheck, error: tokenError } = await supabaseClient
+                .from('profiles')
+                .select('verification_token')
+                .eq('verification_token', token.trim());
+
+            console.log('Token check result:', tokenCheck);
+
+            if (tokenError || !tokenCheck || tokenCheck.length === 0) {
+                console.error('Token not found in database:', token);
+                return res.redirect('/verification-failed.html');
+            }
+
             // Find user by verification token
             const { data: profile, error } = await supabaseClient
                 .from('profiles')
                 .select('*')
-                .eq('verification_token', token)
+                .eq('verification_token', token.trim())
                 .single();
 
             console.log('Found profile:', profile);

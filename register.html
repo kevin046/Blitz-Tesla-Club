@@ -225,6 +225,7 @@
         // Initialize Supabase client
         const supabaseUrl = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
+        const serviceRoleKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczNDMyNDg3OCwiZXhwIjoyMDQ5OTAwODc4fQ.Ow5Qj5YQGnOGqnYBjyLGVZQZZEOBGPBKGVXaONMtBjE';
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey, {
             auth: {
                 autoRefreshToken: true,
@@ -292,9 +293,24 @@
             });
 
             // Form submission
+            const REGISTRATION_COOLDOWN = 300000; // 5 minutes cooldown
+            
             registerForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
+                // Check if enough time has passed since last attempt
+                const lastAttempt = localStorage.getItem('lastRegistrationAttempt');
+                const now = Date.now();
+                const timeElapsed = lastAttempt ? now - parseInt(lastAttempt) : REGISTRATION_COOLDOWN;
+                
+                if (timeElapsed < REGISTRATION_COOLDOWN) {
+                    const waitTime = Math.ceil((REGISTRATION_COOLDOWN - timeElapsed) / 1000);
+                    const minutes = Math.floor(waitTime / 60);
+                    const seconds = waitTime % 60;
+                    alert(`Please wait ${minutes} minutes and ${seconds} seconds before trying again`);
+                    return;
+                }
+
                 // Get form values
                 const fullName = document.getElementById('fullName').value.trim();
                 const email = document.getElementById('email').value.trim();
@@ -320,26 +336,34 @@
                 }
 
                 try {
-                    // Create auth user with Supabase
-                    // Determine if we're in local development or production
-                    const isLocalhost = window.location.hostname === 'localhost' || 
-                                      window.location.hostname === '127.0.0.1';
-                    
-                    const redirectUrl = isLocalhost 
-                        ? 'http://localhost:3000/verify-email.html'
-                        : 'https://blitztclub.com/verify-email.html';
+                    // Update last attempt timestamp
+                    localStorage.setItem('lastRegistrationAttempt', now.toString());
 
+                    // Generate member ID first
+                    const memberId = 'BTC' + Date.now().toString().slice(-6);
+
+                    // Create auth user with Supabase
                     const { data: authData, error: authError } = await supabaseClient.auth.signUp({
                         email,
                         password,
                         options: {
-                            emailRedirectTo: redirectUrl,
-                            redirectTo: redirectUrl
+                            data: {
+                                full_name: fullName,
+                                username: username,
+                                member_id: memberId,
+                                membership_status: 'pending'
+                            },
+                            emailRedirectTo: 'https://blitztclub.com/verify-email.html',
+                            allowUnverifiedLogin: true
                         }
                     });
 
                     if (authError) {
                         console.error('Auth error:', authError);
+                        if (authError.message.includes('rate limit') || 
+                            authError.message.includes('security purposes')) {
+                            throw new Error('Please wait a moment before trying again');
+                        }
                         throw new Error(authError.message);
                     }
 
@@ -347,13 +371,18 @@
                         throw new Error('No user ID returned from signup');
                     }
 
-                    // Generate member ID
-                    const memberId = 'BTC' + Date.now().toString().slice(-6);
+                    // Create profile using service role client
+                    const serviceClient = supabase.createClient(supabaseUrl, serviceRoleKey, {
+                        auth: {
+                            autoRefreshToken: false,
+                            persistSession: false
+                        }
+                    });
 
-                    // Create profile in Supabase
-                    const { error: profileError } = await supabaseClient
+                    // Create profile after successful signup
+                    const { error: profileError } = await serviceClient
                         .from('profiles')
-                        .insert([{
+                        .insert({
                             id: authData.user.id,
                             full_name: fullName,
                             username: username,
@@ -361,7 +390,7 @@
                             member_id: memberId,
                             membership_status: 'pending',
                             membership_type: 'standard'
-                        }]);
+                        });
 
                     if (profileError) {
                         console.error('Profile error:', profileError);
@@ -378,8 +407,8 @@
 
 Your Member ID: ${memberId}
 
-Please check your email for a verification link to activate your account.
-Once verified, you can log in and access your membership benefits.
+Please check your email for a verification link to verify your account.
+You can still log in and use your account while waiting for verification.
 
 Best regards,
 Blitz Tesla Club Team`);
@@ -389,7 +418,7 @@ Blitz Tesla Club Team`);
                         body: formData
                     });
 
-                    alert('Registration successful! Please check your email to verify your account.');
+                    alert('Registration successful! You can now log in. Please check your email to verify your account.');
                     window.location.href = 'login.html';
 
                 } catch (error) {

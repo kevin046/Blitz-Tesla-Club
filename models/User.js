@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
+    id: {
+        type: String,
+        required: true,
+        unique: true
+    },
     fullName: {
         type: String,
         required: true,
@@ -13,10 +18,11 @@ const userSchema = new mongoose.Schema({
         trim: true,
         lowercase: true
     },
-    supabaseId: {
+    username: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        trim: true
     },
     memberId: {
         type: String,

@@ -12,8 +12,8 @@ drop trigger if exists on_auth_user_created on auth.users;
 drop function if exists public.handle_new_user();
 drop table if exists profiles;
 
--- Create profiles table
-create table public.profiles (
+-- Create profiles table (if not exists)
+create table if not exists public.profiles (
     id uuid references auth.users on delete cascade primary key,
     full_name text,
     username text unique,
@@ -28,24 +28,43 @@ create table public.profiles (
 alter table public.profiles enable row level security;
 
 -- Create policies
-create policy "Public profiles are viewable by everyone"
-    on profiles for select
-    using ( true );
-
-create policy "Users can insert their own profile"
+create policy "Enable insert for authenticated users only"
     on profiles for insert
-    with check ( auth.uid() = id );
+    to authenticated, anon
+    with check (true);
 
-create policy "Users can update own profile"
+create policy "Enable select for authenticated users only"
+    on profiles for select
+    to authenticated, anon
+    using (true);
+
+create policy "Enable update for users based on id"
     on profiles for update
-    using ( auth.uid() = id );
+    to authenticated
+    using (auth.uid() = id);
 
--- Create trigger function for new users
-create function public.handle_new_user()
+-- Create trigger for new users
+create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-    insert into public.profiles (id, email, full_name)
-    values (new.id, new.email, new.raw_user_meta_data->>'full_name');
+    insert into public.profiles (
+        id,
+        email,
+        full_name,
+        username,
+        member_id,
+        membership_status,
+        membership_type
+    )
+    values (
+        new.id,
+        new.email,
+        new.raw_user_meta_data->>'full_name',
+        new.raw_user_meta_data->>'username',
+        new.raw_user_meta_data->>'member_id',
+        coalesce(new.raw_user_meta_data->>'membership_status', 'pending'),
+        coalesce(new.raw_user_meta_data->>'membership_type', 'standard')
+    );
     return new;
 end;
 $$ language plpgsql security definer;
@@ -53,4 +72,9 @@ $$ language plpgsql security definer;
 -- Create trigger
 create trigger on_auth_user_created
     after insert on auth.users
-    for each row execute procedure public.handle_new_user(); 
+    for each row execute procedure public.handle_new_user();
+
+-- Grant permissions
+grant usage on schema public to anon, authenticated;
+grant all on public.profiles to anon, authenticated;
+  

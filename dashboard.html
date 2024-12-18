@@ -11,11 +11,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 </head>
 <body class="dashboard-page">
+    <!-- Standard Navigation -->
     <nav>
         <div class="logo">
-            <a href="index.html">
+            <a href="/">
                 <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo">
                 <span>BLITZ TESLA CLUB</span>
             </a>
@@ -24,94 +26,99 @@
             <i class="fas fa-bars"></i>
         </div>
         <ul class="nav-links">
-            <li><a href="index.html">Home</a></li>
+            <li><a href="dashboard.html" class="active">
+                <i class="fas fa-home"></i>Dashboard
+            </a></li>
             <li><a href="events.html">Events</a></li>
             <li><a href="gallery.html">Gallery</a></li>
             <li><a href="executive.html">Executives</a></li>
             <li><a href="news.html">News</a></li>
-            <li><a href="#" id="logoutBtn">Logout</a></li>
+            <li><a href="#" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>Logout
+            </a></li>
         </ul>
     </nav>
 
+    <!-- Dashboard Content -->
     <main class="dashboard-container">
+        <!-- Welcome Header -->
         <div class="dashboard-header">
             <div class="user-welcome">
                 <h1>Welcome, <span id="userFullName"></span></h1>
-                <p>Membership Status: <span id="membershipStatus"></span></p>
+                <div class="status-badge">
+                    <span class="status-label">Membership Status:</span>
+                    <span id="membershipStatus" data-status="pending"></span>
+                    <span class="verification-status" id="verificationStatus"></span>
+                </div>
             </div>
             <div class="quick-actions">
-                <button class="btn action-btn" id="editProfileBtn">
+                <button class="btn primary-btn" id="editProfileBtn">
                     <i class="fas fa-user-edit"></i>
                     Edit Profile
                 </button>
-                <button class="btn action-btn" id="membershipCardBtn">
+                <button class="btn primary-btn" id="membershipCardBtn">
                     <i class="fas fa-id-card"></i>
                     View Membership Card
                 </button>
             </div>
         </div>
 
+        <!-- Dashboard Grid -->
         <div class="dashboard-grid">
-            <div class="dashboard-card upcoming-events">
+            <!-- Upcoming Events Card -->
+            <div class="dashboard-card">
                 <div class="card-header">
                     <h2><i class="fas fa-calendar"></i> Upcoming Events</h2>
                     <a href="events.html" class="view-all">View All</a>
                 </div>
                 <div class="card-content" id="upcomingEventsList">
-                    <!-- Events will be loaded dynamically -->
                     <div class="loading-spinner">
                         <i class="fas fa-spinner fa-spin"></i>
                     </div>
                 </div>
             </div>
 
-            <div class="dashboard-card membership-info">
+            <!-- Member Stats Card -->
+            <div class="dashboard-card">
                 <div class="card-header">
-                    <h2><i class="fas fa-star"></i> Membership Benefits</h2>
+                    <h2><i class="fas fa-chart-line"></i> Member Stats</h2>
                 </div>
                 <div class="card-content">
-                    <ul class="benefits-list">
-                        <li><i class="fas fa-check"></i> Exclusive access to club events</li>
-                        <li><i class="fas fa-check"></i> Member-only discounts</li>
-                        <li><i class="fas fa-check"></i> Priority registration for drives</li>
-                        <li><i class="fas fa-check"></i> Access to member forums</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="dashboard-card recent-activity">
-                <div class="card-header">
-                    <h2><i class="fas fa-history"></i> Recent Activity</h2>
-                </div>
-                <div class="card-content" id="recentActivityList">
-                    <!-- Activity will be loaded dynamically -->
-                    <div class="loading-spinner">
-                        <i class="fas fa-spinner fa-spin"></i>
+                    <div class="stat-grid">
+                        <div class="stat-item">
+                            <span class="stat-label">Member Since</span>
+                            <span class="stat-value" id="memberSince">Loading...</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Member ID</span>
+                            <span class="stat-value" id="memberId" style="font-family: monospace; font-weight: bold;"></span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Events Attended</span>
+                            <span class="stat-value" id="eventsAttended">0</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="dashboard-card quick-links">
+            <!-- Quick Links Card -->
+            <div class="dashboard-card">
                 <div class="card-header">
                     <h2><i class="fas fa-link"></i> Quick Links</h2>
                 </div>
                 <div class="card-content">
                     <div class="quick-links-grid">
-                        <a href="gallery.html" class="quick-link-item">
-                            <i class="fas fa-images"></i>
-                            <span>Gallery</span>
+                        <a href="#" class="quick-link-item">
+                            <i class="fas fa-calendar-plus"></i>
+                            <span>Register for Event</span>
                         </a>
-                        <a href="events.html" class="quick-link-item">
-                            <i class="fas fa-calendar-alt"></i>
-                            <span>Events</span>
+                        <a href="#" class="quick-link-item">
+                            <i class="fas fa-file-invoice"></i>
+                            <span>View Invoices</span>
                         </a>
-                        <a href="news.html" class="quick-link-item">
-                            <i class="fas fa-newspaper"></i>
-                            <span>News</span>
-                        </a>
-                        <a href="contact.html" class="quick-link-item">
-                            <i class="fas fa-envelope"></i>
-                            <span>Contact</span>
+                        <a href="#" class="quick-link-item">
+                            <i class="fas fa-cog"></i>
+                            <span>Account Settings</span>
                         </a>
                     </div>
                 </div>
@@ -119,6 +126,7 @@
         </div>
     </main>
 
+    <!-- Standard Footer -->
     <footer>
         <div class="footer-content">
             <div class="footer-section">
@@ -170,6 +178,7 @@
         </div>
     </footer>
 
+    <!-- Keep your existing script -->
     <script>
         // Initialize Supabase client
         const supabaseUrl = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
@@ -180,6 +189,8 @@
             // Check if user is logged in
             const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
             
+            console.log('Session:', session);
+            
             if (!session) {
                 window.location.href = 'login.html';
                 return;
@@ -187,13 +198,15 @@
 
             try {
                 // Get user profile
-                const { data: profile, error: profileError } = await supabaseClient
+                let { data: profile, error: profileError } = await supabaseClient
                     .from('profiles')
                     .select('*')
                     .eq('id', session.user.id)
                     .single();
 
-                if (profileError) {
+                console.log('Profile query result:', { profile, profileError });
+
+                if (!profile && !profileError) {
                     // If profile doesn't exist, create one
                     const { data: newProfile, error: insertError } = await supabaseClient
                         .from('profiles')
@@ -201,21 +214,46 @@
                             id: session.user.id,
                             email: session.user.email,
                             full_name: session.user.user_metadata.full_name || 'Member',
+                            username: session.user.email.split('@')[0].replace(/[^a-zA-Z0-9]/g, ''),
                             membership_status: 'pending',
-                            membership_type: 'standard'
+                            membership_type: 'standard',
+                            member_id: `BTC${Date.now().toString().slice(-6)}`
                         }])
                         .select()
                         .single();
 
-                    if (insertError) throw insertError;
+                    if (insertError) {
+                        console.error('Insert error:', insertError);
+                        throw insertError;
+                    }
                     profile = newProfile;
                 }
 
                 // Update user info
                 document.getElementById('userFullName').textContent = profile.full_name;
-                document.getElementById('membershipStatus').textContent = 
-                    profile.membership_status.charAt(0).toUpperCase() + 
+                const statusElement = document.getElementById('membershipStatus');
+                statusElement.textContent = profile.membership_status.charAt(0).toUpperCase() + 
                     profile.membership_status.slice(1);
+                statusElement.dataset.status = profile.membership_status;
+
+                // Update member ID display
+                const memberIdElement = document.getElementById('memberId');
+                memberIdElement.textContent = profile.member_id || 'Not Assigned';
+                memberIdElement.style.color = profile.membership_type === 'premium' ? '#9333ea' : '#0369a1';
+
+                // Update member since date
+                const memberSinceElement = document.getElementById('memberSince');
+                if (profile.created_at) {
+                    const registrationDate = new Date(profile.created_at);
+                    const formattedDate = registrationDate.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    memberSinceElement.textContent = formattedDate;
+                } else {
+                    memberSinceElement.textContent = 'Not Available';
+                }
 
                 // Get upcoming events
                 const { data: events, error: eventsError } = await supabaseClient
@@ -243,7 +281,7 @@
 
             } catch (error) {
                 console.error('Error loading dashboard data:', error);
-                alert('Failed to load dashboard data. Please try again later.');
+                alert(`Failed to load dashboard data: ${error.message || 'Unknown error'}`);
             }
 
             // Handle logout
@@ -268,7 +306,90 @@
                     navLinks.classList.toggle('active');
                 });
             }
+
+            // Add this after profile data is loaded
+            const membershipCardBtn = document.getElementById('membershipCardBtn');
+            const modal = document.getElementById('membershipCardModal');
+            const closeModal = document.querySelector('.close-modal');
+
+            membershipCardBtn.addEventListener('click', () => {
+                // Update card info
+                document.getElementById('cardFullName').textContent = profile.full_name;
+                document.getElementById('cardMemberId').textContent = profile.member_id;
+                document.getElementById('cardMemberSince').textContent = formattedDate;
+                document.getElementById('cardMembershipStatus').textContent = 
+                    profile.membership_type.charAt(0).toUpperCase() + profile.membership_type.slice(1);
+
+                // Set card style based on membership type
+                const cardElement = document.querySelector('.membership-card');
+                cardElement.dataset.type = profile.membership_type;
+
+                // Generate QR code
+                const qrData = JSON.stringify({
+                    id: profile.id,
+                    memberId: profile.member_id,
+                    type: profile.membership_type
+                });
+                
+                QRCode.toCanvas(document.getElementById('memberQRCode'), qrData, {
+                    width: 100,
+                    margin: 0,
+                    color: {
+                        dark: '#171a20',
+                        light: '#ffffff'
+                    }
+                });
+
+                modal.style.display = 'block';
+            });
+
+            closeModal.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+
+            window.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
         });
     </script>
+
+    <!-- Membership Card Modal -->
+    <div id="membershipCardModal" class="modal">
+        <div class="modal-content membership-card">
+            <span class="close-modal">&times;</span>
+            <div class="card-front">
+                <div class="card-header">
+                    <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo">
+                    <h2>MEMBERSHIP CARD</h2>
+                </div>
+                <div class="card-body">
+                    <div class="member-photo">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="member-info">
+                        <h3 id="cardFullName"></h3>
+                        <div class="info-row">
+                            <span class="label">Member ID:</span>
+                            <span id="cardMemberId"></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Member Since:</span>
+                            <span id="cardMemberSince"></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Status:</span>
+                            <span id="cardMembershipStatus"></span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="qr-code" id="memberQRCode"></div>
+                        <small>Scan for verification</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html> 

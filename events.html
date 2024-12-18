@@ -10,11 +10,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="nav.js"></script>
 </head>
 <body class="events-page">
     <nav>
         <div class="logo">
-            <a href="index.html">
+            <a href="/">
                 <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo">
                 <span>BLITZ TESLA CLUB</span>
             </a>
@@ -23,13 +25,16 @@
             <i class="fas fa-bars"></i>
         </div>
         <ul class="nav-links">
-            <li><a href="index.html">Home</a></li>
+            <li><a href="dashboard.html">
+                <i class="fas fa-home"></i>Dashboard
+            </a></li>
             <li><a href="events.html">Events</a></li>
             <li><a href="gallery.html">Gallery</a></li>
             <li><a href="executive.html">Executives</a></li>
             <li><a href="news.html">News</a></li>
-            <li><a href="#join">Join Us</a></li>
-            <li><a href="login.html">Login</a></li>
+            <li><a href="#" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>Logout
+            </a></li>
         </ul>
     </nav>
 
@@ -155,6 +160,25 @@
         </div>
     </footer>
 
-    <script src="script.js"></script>
+    <script>
+        // Initialize Supabase client
+        const supabaseUrl = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
+        const supabaseKey = 'your_supabase_key';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Your existing events page JavaScript
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check if user is logged in
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            
+            if (!session) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Your existing events page functionality here
+            // Filter buttons, RSVP functionality, etc.
+        });
+    </script>
 </body>
 </html> 

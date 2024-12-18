@@ -3,11 +3,24 @@
     {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Origin", "value": "https://www.blitztclub.com" },
         { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
       ]
     }
+  ],
+  "routes": [
+    { "src": "/", "dest": "/index.html" },
+    { "src": "/dashboard", "dest": "/dashboard.html" },
+    { "src": "/login", "dest": "/login.html" },
+    { "src": "/events", "dest": "/events.html" },
+    { "src": "/gallery", "dest": "/gallery.html" },
+    { "src": "/executive", "dest": "/executive.html" },
+    { "src": "/news", "dest": "/news.html" },
+    { "src": "/contact", "dest": "/contact.html" },
+    { "src": "/privacy", "dest": "/privacy.html" },
+    { "src": "/verification-success", "dest": "/verification-success.html" },
+    { "src": "/verification-failed", "dest": "/verification-failed.html" }
   ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" }

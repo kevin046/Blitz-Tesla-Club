@@ -28,18 +28,6 @@ export default async function handler(req, res) {
 
         console.log('Attempting to delete user:', user_id);
 
-        // Check if user exists first
-        const { data: userData, error: userError } = await supabase
-            .auth.admin.getUserById(user_id);
-
-        if (userError || !userData) {
-            console.error('User not found:', userError);
-            return res.status(404).json({ 
-                error: 'User not found',
-                details: userError?.message || 'User does not exist'
-            });
-        }
-
         // Delete profile first
         const { error: profileError } = await supabase
             .from('profiles')
@@ -57,9 +45,7 @@ export default async function handler(req, res) {
         console.log('Profile deleted successfully');
 
         // Then delete auth user
-        const { error: authError } = await supabase.auth.admin.deleteUser({
-            id: user_id
-        });
+        const { error: authError } = await supabase.auth.admin.deleteUser(user_id);
 
         if (authError) {
             console.error('Auth deletion error:', authError);
@@ -76,7 +62,7 @@ export default async function handler(req, res) {
         console.error('Cleanup error:', error);
         return res.status(500).json({ 
             error: 'Failed to clean up user',
-            details: error.message 
+            details: error.message || 'Unknown error occurred'
         });
     }
 } 

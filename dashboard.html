@@ -794,14 +794,14 @@ Blitz Tesla Club Team`);
                     
                     if (!cleanupResponse.ok) {
                         console.error('Cleanup response:', responseData);
-                        throw new Error(responseData.details || 'Failed to delete account');
+                        throw new Error(responseData.error?.details || responseData.error || 'Failed to delete account');
                     }
                     
                     await supabaseClient.auth.signOut();
                     window.location.href = '/';
                 } catch (error) {
                     console.error('Error deleting account:', error);
-                    alert(error.message || 'Failed to delete account. Please try again.');
+                    alert(`Failed to delete account: ${error.message}. Please try again.`);
                 }
             });
             

@@ -15,6 +15,8 @@ export default async function handler(req, res) {
             const supabaseKey = process.env.SUPABASE_KEY;
             const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
+            console.log('Verifying token:', token);
+
             // Find user by verification token
             const { data: profile, error } = await supabaseClient
                 .from('profiles')
@@ -22,7 +24,13 @@ export default async function handler(req, res) {
                 .eq('verification_token', token)
                 .single();
 
-            if (error || !profile) {
+            if (error) {
+                console.error('Error finding profile:', error);
+                return res.redirect('/verification-failed.html');
+            }
+
+            if (!profile) {
+                console.error('No profile found with token:', token);
                 return res.redirect('/verification-failed.html');
             }
 
@@ -36,9 +44,11 @@ export default async function handler(req, res) {
                 .eq('id', profile.id);
 
             if (updateError) {
+                console.error('Error updating profile:', updateError);
                 return res.redirect('/verification-failed.html');
             }
 
+            console.log('Successfully verified profile:', profile.id);
             // Redirect to success page
             res.redirect('/verification-success.html');
 

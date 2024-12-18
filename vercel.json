@@ -1,7 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "outputDirectory": "public",
+  "outputDirectory": ".",
   "routes": [
     {
       "src": "/api/(.*)",
@@ -37,6 +36,8 @@
   }],
   "github": {
     "enabled": true,
-    "silent": true
+    "silent": true,
+    "repo": "kevin046/Blitz-Tesla-Club",
+    "branch": "main"
   }
 } 

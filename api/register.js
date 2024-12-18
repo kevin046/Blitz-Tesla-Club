@@ -21,7 +21,13 @@ export default async function handler(req, res) {
         // Create auth user
         const { data: authData, error: authError } = await supabaseClient.auth.signUp({
             email,
-            password
+            password,
+            options: {
+                data: {
+                    full_name: fullName,
+                    username: username
+                }
+            }
         });
 
         if (authError) {
@@ -37,6 +43,18 @@ export default async function handler(req, res) {
         // Generate member ID
         const memberId = 'BTC' + Date.now().toString().slice(-6);
 
+        // Check if profile already exists
+        const { data: existingProfile } = await supabaseClient
+            .from('profiles')
+            .select('*')
+            .eq('email', email)
+            .single();
+
+        if (existingProfile) {
+            console.error('Profile already exists');
+            return res.status(400).json({ error: 'User already exists' });
+        }
+
         // Create profile
         const profileData = {
             id: authData.user.id,
@@ -46,20 +64,27 @@ export default async function handler(req, res) {
             member_id: memberId,
             membership_status: 'pending',
             membership_type: 'standard',
-            created_at: new Date().toISOString()
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
         };
 
         console.log('Creating profile with data:', profileData);
 
-        const { error: profileError } = await supabaseClient
+        const { data: profile, error: profileError } = await supabaseClient
             .from('profiles')
-            .insert([profileData])
-            .select();
+            .upsert([profileData], { 
+                onConflict: 'id',
+                returning: 'minimal'
+            });
 
         if (profileError) {
             console.error('Profile creation error:', profileError);
             // Clean up auth user if profile creation fails
-            await supabaseClient.auth.admin.deleteUser(authData.user.id);
+            try {
+                await supabaseClient.auth.admin.deleteUser(authData.user.id);
+            } catch (deleteError) {
+                console.error('Failed to clean up auth user:', deleteError);
+            }
             return res.status(400).json({ error: profileError.message });
         }
 

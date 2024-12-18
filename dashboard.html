@@ -438,6 +438,50 @@
             const statusElement = document.getElementById('membershipStatus');
             const verificationStatus = document.getElementById('verificationStatus');
             
+            // Function to update status display
+            const updateStatusDisplay = async () => {
+                // Fetch latest profile data
+                const { data: updatedProfile, error: profileError } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', profile.id)
+                    .single();
+
+                if (profileError) {
+                    console.error('Error fetching updated profile:', profileError);
+                    return;
+                }
+
+                // Update status display
+                if (updatedProfile.membership_status === 'active') {
+                    verificationStatus.innerHTML = `
+                        <span class="badge success">
+                            <i class="fas fa-check-circle"></i>
+                            Email verified
+                        </span>
+                    `;
+                    statusElement.textContent = 'Active';
+                    statusElement.className = 'status-active';
+                } else {
+                    verificationStatus.innerHTML = `
+                        <span class="badge warning">
+                            <i class="fas fa-envelope"></i>
+                            Please verify your email
+                            <button id="resendVerification" class="resend-btn">
+                                <i class="fas fa-redo"></i> Resend Verification
+                            </button>
+                        </span>
+                    `;
+                    statusElement.textContent = 'Pending';
+                    statusElement.className = 'status-pending';
+                }
+            };
+
+            // Check URL for verification success
+            if (window.location.href.includes('verification-success')) {
+                await updateStatusDisplay();
+            }
+            
             if (profile.membership_status === 'pending') {
                 verificationStatus.innerHTML = `
                     <span class="badge warning">
@@ -519,7 +563,12 @@ Blitz Tesla Club Team`);
                         Email verified
                     </span>
                 `;
+                statusElement.textContent = 'Active';
+                statusElement.className = 'status-active';
             }
+
+            // Add periodic status check
+            setInterval(updateStatusDisplay, 30000); // Check every 30 seconds
         });
     </script>
 

@@ -49,7 +49,7 @@ export default async function handler(req, res) {
             }
 
             console.log('Successfully verified profile:', profile.id);
-            return res.redirect('/verification-success.html');
+            return res.redirect('/verification-success.html?verified=true&id=' + profile.id);
 
         } catch (error) {
             console.error('Verification error:', error);

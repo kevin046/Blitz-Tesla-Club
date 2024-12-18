@@ -452,6 +452,8 @@
                     return;
                 }
 
+                console.log('Updated profile status:', updatedProfile.membership_status);
+
                 // Update status display
                 if (updatedProfile.membership_status === 'active') {
                     verificationStatus.innerHTML = `
@@ -462,6 +464,12 @@
                     `;
                     statusElement.textContent = 'Active';
                     statusElement.className = 'status-active';
+
+                    // Update membership card if it exists
+                    const cardMembershipStatus = document.getElementById('cardMembershipStatus');
+                    if (cardMembershipStatus) {
+                        cardMembershipStatus.textContent = 'Active';
+                    }
                 } else {
                     verificationStatus.innerHTML = `
                         <span class="badge warning">
@@ -477,95 +485,16 @@
                 }
             };
 
-            // Check URL for verification success
-            if (window.location.href.includes('verification-success')) {
+            // Check if coming from verification success
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('verified') === 'true') {
                 await updateStatusDisplay();
+                // Clear the URL parameters
+                window.history.replaceState({}, document.title, window.location.pathname);
             }
-            
-            if (profile.membership_status === 'pending') {
-                verificationStatus.innerHTML = `
-                    <span class="badge warning">
-                        <i class="fas fa-envelope"></i>
-                        Please verify your email
-                        <button id="resendVerification" class="resend-btn">
-                            <i class="fas fa-redo"></i> Resend Verification
-                        </button>
-                    </span>
-                `;
 
-                // Add click handler for resend button
-                const resendBtn = document.getElementById('resendVerification');
-                resendBtn.addEventListener('click', async () => {
-                    try {
-                        // Generate new verification token
-                        const verificationToken = generateToken();
-                        
-                        console.log('Generated token:', verificationToken);
-
-                        // Update verification token in profile
-                        const { error: updateError } = await supabaseClient
-                            .from('profiles')
-                            .update({ verification_token: verificationToken })
-                            .eq('id', profile.id);
-                        
-                        if (updateError) {
-                            console.error('Error updating token:', updateError);
-                            throw updateError;
-                        }
-
-                        // Get base URL
-                        const baseUrl = window.location.origin;
-                        const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
-
-                        const formData = new FormData();
-                        formData.append('email', profile.email);
-                        formData.append('_captcha', 'false');
-                        formData.append('_template', 'box');
-                        formData.append('_subject', 'Verify Your Blitz Tesla Club Membership');
-                        formData.append('_cc', 'info@blitztclub.com');
-                        formData.append('_autoresponse', 'Thank you for verifying your email. Your Blitz Tesla Club membership will be activated shortly.');
-                        formData.append('message', `Welcome to Blitz Tesla Club!
-
-Your Member ID: ${profile.member_id}
-
-Please click the link below to verify your email and activate your membership:
-${verificationUrl}
-
-Next Steps:
-1. Click the verification link above
-2. Your membership will be activated instantly
-3. Access your digital membership card
-4. Start enjoying member benefits
-
-If you didn't request this email, please ignore it.
-
-Best regards,
-Blitz Tesla Club Team`);
-
-                        const response = await fetch(`https://formsubmit.co/ajax/${profile.email}`, {
-                            method: 'POST',
-                            body: formData
-                        });
-
-                        if (!response.ok) throw new Error('Failed to send verification email');
-
-                        // Redirect to verification sent page
-                        window.location.href = 'verification-sent.html';
-                    } catch (error) {
-                        console.error('Error sending verification:', error);
-                        alert('Failed to send verification email. Please try again.');
-                    }
-                });
-            } else if (profile.membership_status === 'active') {
-                verificationStatus.innerHTML = `
-                    <span class="badge success">
-                        <i class="fas fa-check-circle"></i>
-                        Email verified
-                    </span>
-                `;
-                statusElement.textContent = 'Active';
-                statusElement.className = 'status-active';
-            }
+            // Initial status check
+            await updateStatusDisplay();
 
             // Add periodic status check
             setInterval(updateStatusDisplay, 30000); // Check every 30 seconds

@@ -765,6 +765,8 @@ Blitz Tesla Club Team`);
                 }
                 
                 try {
+                    console.log('Deleting account for user:', profile.id);
+
                     // Delete profile and auth user
                     const cleanupResponse = await fetch('/api/cleanup-orphaned-users', {
                         method: 'POST',
@@ -774,15 +776,18 @@ Blitz Tesla Club Team`);
                         body: JSON.stringify({ user_id: profile.id })
                     });
                     
+                    const responseData = await cleanupResponse.json();
+                    
                     if (!cleanupResponse.ok) {
-                        throw new Error('Failed to delete account');
+                        console.error('Cleanup response:', responseData);
+                        throw new Error(responseData.details || 'Failed to delete account');
                     }
                     
                     await supabaseClient.auth.signOut();
                     window.location.href = '/';
                 } catch (error) {
                     console.error('Error deleting account:', error);
-                    alert('Failed to delete account');
+                    alert(error.message || 'Failed to delete account. Please try again.');
                 }
             });
             

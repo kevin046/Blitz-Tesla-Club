@@ -18,6 +18,12 @@ export default async function handler(req, res) {
 
     try {
         const { user_id } = req.body;
+        
+        if (!user_id) {
+            return res.status(400).json({ error: 'User ID is required' });
+        }
+
+        console.log('Attempting to delete user:', user_id);
 
         // Delete profile first
         const { error: profileError } = await supabase
@@ -30,17 +36,26 @@ export default async function handler(req, res) {
             throw profileError;
         }
 
+        console.log('Profile deleted successfully');
+
         // Then delete auth user
-        const { error: authError } = await supabase.auth.admin.deleteUser(user_id);
+        const { error: authError } = await supabase.auth.admin.deleteUser({
+            id: user_id
+        });
 
         if (authError) {
             console.error('Auth deletion error:', authError);
             throw authError;
         }
 
+        console.log('Auth user deleted successfully');
+
         return res.status(200).json({ message: 'User cleaned up successfully' });
     } catch (error) {
         console.error('Cleanup error:', error);
-        return res.status(500).json({ error: 'Failed to clean up user' });
+        return res.status(500).json({ 
+            error: 'Failed to clean up user',
+            details: error.message 
+        });
     }
 } 

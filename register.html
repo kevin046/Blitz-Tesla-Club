@@ -302,40 +302,30 @@
                 const password = passwordInput.value;
                 const confirmPassword = document.getElementById('confirmPassword').value;
                 const terms = document.getElementById('terms').checked;
-                const username = document.getElementById('username').value.trim();
-
-                // Validation
-                if (!fullName || !email || !password || !confirmPassword) {
-                    alert('Please fill in all fields');
-                    return;
-                }
-
-                if (password !== confirmPassword) {
-                    alert('Passwords do not match');
-                    return;
-                }
-
-                if (!terms) {
-                    alert('Please accept the Terms of Service and Privacy Policy');
-                    return;
-                }
 
                 try {
-                    // Generate member ID first
-                    const memberId = 'BTC' + Date.now().toString().slice(-6);
+                    // Generate verification token
                     const verificationToken = crypto.randomUUID();
 
-                    // Create auth user with Supabase
+                    // Generate member ID first
+                    const response = await fetch('/api/generate-member-id', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ membership_type: 'standard' })
+                    });
+
+                    if (!response.ok) throw new Error('Failed to generate member ID');
+                    const { member_id } = await response.json();
+
+                    // Create auth user
                     const { data: authData, error: authError } = await supabaseClient.auth.signUp({
                         email,
                         password,
                         options: {
                             data: {
-                                full_name: fullName,
-                                username: username,
-                                member_id: memberId,
-                                membership_status: 'pending',
-                                verification_token: verificationToken
+                                full_name: fullName
                             }
                         }
                     });
@@ -345,34 +335,23 @@
                         throw new Error(authError.message);
                     }
 
-                    // Create profile in database
+                    // Create profile
                     const { error: profileError } = await supabaseClient
                         .from('profiles')
-                        .insert({
+                        .insert([{
                             id: authData.user.id,
-                            full_name: fullName,
-                            username: username,
                             email: email,
-                            member_id: memberId,
-                            membership_status: 'pending',
+                            full_name: fullName,
+                            member_id: member_id,
                             membership_type: 'standard',
+                            membership_status: 'pending',
+                            created_at: new Date().toISOString(),
                             verification_token: verificationToken
-                        });
+                        }]);
 
                     if (profileError) {
                         console.error('Profile error:', profileError);
                         throw new Error('Error creating user profile');
-                    }
-
-                    // Update profile with verification token
-                    const { error: tokenError } = await supabaseClient
-                        .from('profiles')
-                        .update({ verification_token: verificationToken })
-                        .eq('id', authData.user.id);
-
-                    if (tokenError) {
-                        console.error('Token update error:', tokenError);
-                        throw new Error('Error setting verification token');
                     }
 
                     // Send verification email using FormSubmit
@@ -383,21 +362,12 @@
                     formData.append('_template', 'box');
                     formData.append('_subject', 'Verify Your Blitz Tesla Club Membership');
                     formData.append('_cc', 'info@blitztclub.com');
-                    formData.append('_autoresponse', 'Thank you for verifying your email. Your Blitz Tesla Club membership will be activated shortly.');
                     formData.append('message', `Welcome to Blitz Tesla Club!
 
-Your Member ID: ${memberId}
+Your Member ID: ${member_id}
 
-Please click the link below to verify your email and activate your membership:
+Please click the link below to verify your email:
 ${verificationUrl}
-
-Next Steps:
-1. Click the verification link above
-2. Your membership will be activated instantly
-3. Access your digital membership card
-4. Start enjoying member benefits
-
-If you didn't request this email, please ignore it.
 
 Best regards,
 Blitz Tesla Club Team`);

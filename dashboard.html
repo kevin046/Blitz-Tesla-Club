@@ -583,69 +583,12 @@ Blitz Tesla Club Team`);
                     }
                 });
             }
-
-            // Update membership card display
-            function updateMembershipCard() {
-                const membershipCard = document.getElementById('membershipCard');
-                const cardType = profile.membership_type === 'vip' ? 'premium' : 'standard';
-                
-                // Remove existing classes
-                membershipCard.classList.remove('standard', 'premium');
-                // Add appropriate class
-                membershipCard.classList.add(cardType);
-                membershipCard.setAttribute('data-type', cardType);
-
-                document.getElementById('cardFullName').textContent = profile.full_name;
-                // Format member ID based on type
-                const formattedMemberId = profile.membership_type === 'vip' 
-                    ? profile.member_id.replace('BTC', 'VIP') 
-                    : profile.member_id;
-                document.getElementById('cardMemberId').textContent = formattedMemberId;
-                document.getElementById('cardType').textContent = 
-                    profile.membership_type === 'vip' ? 'VIP Member' : 'Standard Member';
-                
-                // Format member since date
-                const memberSince = new Date(profile.created_at).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
-                document.getElementById('cardMemberSince').textContent = memberSince;
-                document.getElementById('cardMembershipStatus').textContent = 
-                    profile.membership_status === 'active' ? 'Active' : 'Pending';
-
-                // Generate QR Code
-                const qrCanvas = document.getElementById('memberQRCode');
-                QRCode.toCanvas(qrCanvas, `https://blitztclub.com/verify-member?id=${profile.member_id}`, {
-                    width: 128,
-                    height: 128,
-                    color: {
-                        dark: profile.membership_type === 'vip' ? "#ffd700" : "#ffffff",
-                        light: "#00000000"  // transparent background
-                    }
-                });
-            }
-
-            // Function to show membership card
-            function showMembershipCard() {
-                const modal = document.getElementById('membershipCardModal');
-                const cardType = profile.membership_type === 'vip' ? 'premium' : 'standard';
-                
-                // Remove existing classes
-                modal.classList.remove('standard-modal', 'premium-modal');
-                // Add appropriate class
-                modal.classList.add(`${cardType}-modal`);
-                
-                modal.style.display = 'flex';
-                updateMembershipCard();
-            }
         });
     </script>
 
     <!-- Membership Card Modal -->
     <div id="membershipCardModal" class="modal">
-        <div class="modal-content membership-card" id="membershipCard">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
+        <div class="modal-content membership-card">
             <div class="card-front">
                 <div class="card-header">
                     <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo">
@@ -673,32 +616,18 @@ Blitz Tesla Club Team`);
                             <span id="cardMembershipStatus"></span>
                         </div>
                     </div>
-                </div>
-                <div class="card-footer">
-                    <div class="qr-code">
-                        <canvas id="memberQRCode"></canvas>
+                    <div class="card-footer">
+                        <div class="qr-section">
+                            <canvas class="qr-code" id="memberQRCode"></canvas>
+                            <div class="qr-text">
+                                <i class="fas fa-qrcode"></i>
+                                <small>Scan to verify membership</small>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Add QR Code library -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-
-    <script>
-        // Function to close modal
-        function closeModal() {
-            document.getElementById('membershipCardModal').style.display = 'none';
-        }
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('membershipCardModal');
-            if (event.target === modal) {
-                modal.style.display = 'none';
-            }
-        }
-    </script>
 </body>
 </html> 

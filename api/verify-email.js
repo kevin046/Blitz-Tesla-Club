@@ -1,19 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 
 export default async function handler(req, res) {
-    // Set CORS headers for all requests
-    res.setHeader('Access-Control-Allow-Origin', 'http://192.168.2.86:8080');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-    // Handle preflight request
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
-
+    // Handle verification request
     if (req.method === 'GET') {
         try {
             const { token } = req.query;
+
+            if (!token) {
+                return res.redirect('/verification-failed.html');
+            }
 
             // Initialize Supabase client
             const supabaseUrl = process.env.SUPABASE_URL;
@@ -28,11 +23,11 @@ export default async function handler(req, res) {
                 .single();
 
             if (error || !profile) {
-                return res.redirect('https://blitz-tesla-club-cyan.vercel.app/verification-failed');
+                return res.redirect('/verification-failed.html');
             }
 
             // Update profile status
-            await supabaseClient
+            const { error: updateError } = await supabaseClient
                 .from('profiles')
                 .update({ 
                     membership_status: 'active',
@@ -40,12 +35,16 @@ export default async function handler(req, res) {
                 })
                 .eq('id', profile.id);
 
+            if (updateError) {
+                return res.redirect('/verification-failed.html');
+            }
+
             // Redirect to success page
-            res.redirect('https://blitz-tesla-club-cyan.vercel.app/verification-success');
+            res.redirect('/verification-success.html');
 
         } catch (error) {
             console.error('Verification error:', error);
-            res.redirect('https://www.blitztclub.com/verification-failed');
+            res.redirect('/verification-failed.html');
         }
     } else {
         res.status(405).json({ error: 'Method not allowed' });

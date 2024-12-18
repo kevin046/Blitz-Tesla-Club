@@ -1,13 +1,17 @@
 {
-  "cleanUrls": true,
-  "functions": {
-    "api/**/*": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  },
-  "trailingSlash": false,
+  "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": "public",
   "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type"
+      }
+    },
     { "src": "/", "dest": "/index.html" },
     { "src": "/dashboard", "dest": "/dashboard.html" },
     { "src": "/login", "dest": "/login.html" },
@@ -21,21 +25,18 @@
     { "src": "/verification-success", "dest": "/verification-success.html" },
     { "src": "/verification-failed", "dest": "/verification-failed.html" }
   ],
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" }
-  ],
+  "functions": {
+    "api/**/*": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
   "crons": [{
     "path": "/api/cron",
     "schedule": "0 10 * * *"
   }],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
-      ]
-    }
-  ]
+  "github": {
+    "enabled": true,
+    "silent": true
+  }
 } 

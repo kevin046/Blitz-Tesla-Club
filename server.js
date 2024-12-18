@@ -4,18 +4,25 @@ const cors = require('cors');
 const nodemailer = require('nodemailer');
 const { createClient } = require('@supabase/supabase-js');
 const crypto = require('crypto');
+require('dotenv').config();
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin: ['http://localhost:3000', 'http://127.0.0.1:5500', 'http://localhost:5500'],
+    credentials: true,
+    methods: ['GET', 'POST', 'OPTIONS']
+}));
 
 // Get absolute path to project directory
 const PROJECT_ROOT = path.resolve(__dirname);
 
 // Enable CORS for all routes
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Origin', req.headers.origin);
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    res.header('Access-Control-Allow-Credentials', 'true');
     next();
 });
 
@@ -48,11 +55,23 @@ app.get('/register', (req, res) => {
 // Email configuration
 const transporter = nodemailer.createTransport({
     host: 'smtp.privateemail.com',
-    port: 465,  // Use 465 for secure SSL/TLS
+    port: 465,
     secure: true,
     auth: {
         user: 'info@blitztclub.com',
-        pass: 'your_email_password'
+        pass: process.env.EMAIL_PASSWORD
+    },
+    tls: {
+        rejectUnauthorized: false
+    }
+});
+
+// Test email connection
+transporter.verify(function(error, success) {
+    if (error) {
+        console.log('Email server error:', error);
+    } else {
+        console.log("Email server is ready to send messages");
     }
 });
 
@@ -92,10 +111,16 @@ async function generateMemberId(membershipType) {
     }
 }
 
+// Add verification token generation
+const generateVerificationToken = () => {
+    return crypto.randomBytes(32).toString('hex');
+};
+
 // Registration endpoint
 app.post('/api/register', async (req, res) => {
     try {
         const { email, password, fullName, username } = req.body;
+        const verificationToken = generateVerificationToken();
 
         // Register with Supabase
         const { data, error } = await supabaseClient.auth.signUp({
@@ -106,7 +131,8 @@ app.post('/api/register', async (req, res) => {
                     full_name: fullName, 
                     username,
                     membership_status: 'pending',
-                    membership_type: 'regular'
+                    membership_type: 'regular',
+                    verification_token: verificationToken
                 }
             }
         });
@@ -123,43 +149,30 @@ app.post('/api/register', async (req, res) => {
                 username: username,
                 full_name: fullName,
                 membership_status: 'pending',
-                membership_type: 'regular'
+                membership_type: 'regular',
+                verification_token: verificationToken
             }]);
 
         if (profileError) throw profileError;
 
         // Send verification email
-        const verificationToken = crypto.randomBytes(32).toString('hex');
-        const verificationUrl = `http://localhost:3000/verify-email?token=${verificationToken}`;
-        
-        // Store verification token in profile
-        await supabaseClient
-            .from('profiles')
-            .update({ verification_token: verificationToken })
-            .eq('id', data.user.id);
-
+        const verificationUrl = `http://yourwebsite.com/verify-email?token=${verificationToken}`;
         await transporter.sendMail({
             from: 'info@blitztclub.com',
             to: email,
-            subject: 'Welcome to Blitz Tesla Club - Verify Your Email',
+            subject: 'Verify Your Blitz Tesla Club Membership',
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                     <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" style="width: 150px; margin: 20px auto; display: block;">
                     <h1 style="color: #171a20; text-align: center;">Welcome to Blitz Tesla Club!</h1>
                     <p>Hi ${fullName},</p>
-                    <p>Thank you for joining Blitz Tesla Club! We're excited to have you as a member.</p>
-                    <p>Your Member ID is: <strong>${memberId}</strong></p>
-                    <p>Please verify your email address by clicking the button below:</p>
+                    <p>Thank you for joining Blitz Tesla Club! Please verify your email to activate your membership.</p>
                     <div style="text-align: center; margin: 30px 0;">
                         <a href="${verificationUrl}" 
                            style="background: #171a20; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
                             Verify Email Address
                         </a>
                     </div>
-                    <p>If the button doesn't work, copy and paste this link into your browser:</p>
-                    <p>${verificationUrl}</p>
-                    <p>This verification link will expire in 24 hours.</p>
-                    <hr style="margin: 30px 0; border: 1px solid #eee;">
                     <p style="color: #666; font-size: 14px;">
                         If you didn't create this account, please ignore this email.
                     </p>
@@ -169,7 +182,7 @@ app.post('/api/register', async (req, res) => {
 
         res.json({ 
             message: 'Registration successful! Please check your email to verify your account.',
-            memberId 
+            userId: data.user.id 
         });
 
     } catch (error) {
@@ -178,7 +191,7 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// Email verification endpoint
+// Add verification endpoint
 app.get('/verify-email', async (req, res) => {
     try {
         const { token } = req.query;
@@ -269,6 +282,74 @@ app.post('/api/admin/upgrade-member', async (req, res) => {
 
     } catch (error) {
         console.error('Upgrade error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Add resend verification endpoint
+app.post('/api/resend-verification', async (req, res) => {
+    try {
+        const { userId, email } = req.body;
+        const verificationToken = generateVerificationToken();
+
+        // Update verification token in profile
+        const { error: updateError } = await supabaseClient
+            .from('profiles')
+            .update({ verification_token: verificationToken })
+            .eq('id', userId);
+
+        if (updateError) throw updateError;
+
+        // Send verification email
+        const verificationUrl = `http://yourwebsite.com/verify-email?token=${verificationToken}`;
+        await transporter.sendMail({
+            from: 'info@blitztclub.com',
+            to: email,
+            subject: 'Verify Your Blitz Tesla Club Membership',
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" style="width: 150px; margin: 20px auto; display: block;">
+                    <h1 style="color: #171a20; text-align: center;">Verify Your Email</h1>
+                    <p>Please verify your email to activate your Blitz Tesla Club membership.</p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="${verificationUrl}" 
+                           style="background: #171a20; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                            Verify Email Address
+                        </a>
+                    </div>
+                    <p style="color: #666; font-size: 14px;">
+                        If you didn't request this email, please ignore it.
+                    </p>
+                </div>
+            `
+        });
+
+        res.json({ message: 'Verification email resent successfully' });
+
+    } catch (error) {
+        console.error('Resend verification error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Add test endpoint for email
+app.get('/test-email', async (req, res) => {
+    try {
+        await transporter.sendMail({
+            from: 'info@blitztclub.com',
+            to: 'info@blitztclub.com', // Send to self for testing
+            subject: 'Test Email Connection',
+            html: `
+                <div style="font-family: Arial, sans-serif;">
+                    <h1>Test Email</h1>
+                    <p>This is a test email to verify the email server connection.</p>
+                    <p>Time sent: ${new Date().toLocaleString()}</p>
+                </div>
+            `
+        });
+        res.json({ message: 'Test email sent successfully' });
+    } catch (error) {
+        console.error('Email test error:', error);
         res.status(500).json({ error: error.message });
     }
 });

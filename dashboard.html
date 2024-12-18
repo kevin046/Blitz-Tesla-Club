@@ -196,17 +196,20 @@
                 return;
             }
 
+            // Declare profile variable in outer scope
+            let profile;
+
             try {
                 // Get user profile
-                let { data: profile, error: profileError } = await supabaseClient
+                const { data: userData, error: profileError } = await supabaseClient
                     .from('profiles')
                     .select('*')
                     .eq('id', session.user.id)
                     .single();
 
-                console.log('Profile query result:', { profile, profileError });
+                console.log('Profile query result:', { profile: userData, profileError });
 
-                if (!profile && !profileError) {
+                if (!userData && !profileError) {
                     // If profile doesn't exist, create one
                     const { data: newProfile, error: insertError } = await supabaseClient
                         .from('profiles')
@@ -227,7 +230,17 @@
                         throw insertError;
                     }
                     profile = newProfile;
+                } else {
+                    profile = userData;
                 }
+
+                // Store registration date in a variable
+                const formattedDate = profile.created_at ? 
+                    new Date(profile.created_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    }) : 'Not Available';
 
                 // Update user info
                 document.getElementById('userFullName').textContent = profile.full_name;
@@ -243,17 +256,7 @@
 
                 // Update member since date
                 const memberSinceElement = document.getElementById('memberSince');
-                if (profile.created_at) {
-                    const registrationDate = new Date(profile.created_at);
-                    const formattedDate = registrationDate.toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                    });
-                    memberSinceElement.textContent = formattedDate;
-                } else {
-                    memberSinceElement.textContent = 'Not Available';
-                }
+                memberSinceElement.textContent = formattedDate;
 
                 // Get upcoming events
                 const { data: events, error: eventsError } = await supabaseClient
@@ -313,6 +316,14 @@
             const closeModal = document.querySelector('.close-modal');
 
             membershipCardBtn.addEventListener('click', () => {
+                // Format date for card display
+                const formattedDate = profile.created_at ? 
+                    new Date(profile.created_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    }) : 'Not Available';
+
                 // Update card info
                 document.getElementById('cardFullName').textContent = profile.full_name;
                 document.getElementById('cardMemberId').textContent = profile.member_id;
@@ -328,11 +339,19 @@
                 const qrData = JSON.stringify({
                     id: profile.id,
                     memberId: profile.member_id,
-                    type: profile.membership_type
+                    type: profile.membership_type,
+                    name: profile.full_name,
+                    since: formattedDate,
+                    verified: true
                 });
                 
-                QRCode.toCanvas(document.getElementById('memberQRCode'), qrData, {
-                    width: 100,
+                const qrCanvas = document.getElementById('memberQRCode');
+                // Clear previous QR code if any
+                const context = qrCanvas.getContext('2d');
+                context.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
+                
+                QRCode.toCanvas(qrCanvas, qrData, {
+                    width: 120,
                     margin: 0,
                     color: {
                         dark: '#171a20',
@@ -340,29 +359,80 @@
                     }
                 });
 
-                modal.style.display = 'block';
-            });
-
-            closeModal.addEventListener('click', () => {
-                modal.style.display = 'none';
+                modal.classList.add('show');
             });
 
             window.addEventListener('click', (e) => {
                 if (e.target === modal) {
-                    modal.style.display = 'none';
+                    modal.classList.remove('show');
                 }
             });
+
+            // In your existing profile update code
+            const statusElement = document.getElementById('membershipStatus');
+            const verificationStatus = document.getElementById('verificationStatus');
+            
+            if (profile.membership_status === 'pending') {
+                verificationStatus.innerHTML = `
+                    <span class="badge warning">
+                        <i class="fas fa-envelope"></i>
+                        Please verify your email
+                        <button id="resendVerification" class="resend-btn">
+                            <i class="fas fa-redo"></i> Resend
+                        </button>
+                    </span>
+                `;
+
+                // Add resend verification email functionality
+                const resendBtn = document.getElementById('resendVerification');
+                resendBtn.addEventListener('click', async () => {
+                    try {
+                        const response = await fetch('http://localhost:3000/api/resend-verification', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                userId: profile.id,
+                                email: profile.email
+                            }),
+                            mode: 'cors',
+                            credentials: 'include'
+                        });
+
+                        if (!response.ok) throw new Error('Failed to resend verification email');
+
+                        alert('Verification email has been resent. Please check your inbox.');
+                        resendBtn.disabled = true;
+                        setTimeout(() => {
+                            resendBtn.disabled = false;
+                        }, 60000); // Enable after 1 minute
+                    } catch (error) {
+                        console.error('Error resending verification:', error);
+                        alert('Failed to resend verification email. Please try again later.');
+                    }
+                });
+            } else if (profile.membership_status === 'active') {
+                verificationStatus.innerHTML = `
+                    <span class="badge success">
+                        <i class="fas fa-check-circle"></i>
+                        Email verified
+                    </span>
+                `;
+            }
         });
     </script>
 
     <!-- Membership Card Modal -->
     <div id="membershipCardModal" class="modal">
         <div class="modal-content membership-card">
-            <span class="close-modal">&times;</span>
             <div class="card-front">
                 <div class="card-header">
                     <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo">
-                    <h2>MEMBERSHIP CARD</h2>
+                    <div class="header-text">
+                        <h2>Blitz Membership Card</h2>
+                        <span class="card-type" id="cardType"></span>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="member-photo">
@@ -384,8 +454,13 @@
                         </div>
                     </div>
                     <div class="card-footer">
-                        <div class="qr-code" id="memberQRCode"></div>
-                        <small>Scan for verification</small>
+                        <div class="qr-section">
+                            <canvas class="qr-code" id="memberQRCode"></canvas>
+                            <div class="qr-text">
+                                <i class="fas fa-qrcode"></i>
+                                <small>Scan to verify membership</small>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -9,7 +9,7 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:5500', 'http://localhost:5500'],
+    origin: ['https://blitz-tesla-club.vercel.app'],
     credentials: true,
     methods: ['GET', 'POST', 'OPTIONS']
 }));
@@ -156,7 +156,7 @@ app.post('/api/register', async (req, res) => {
         if (profileError) throw profileError;
 
         // Send verification email
-        const verificationUrl = `http://yourwebsite.com/verify-email?token=${verificationToken}`;
+        const verificationUrl = `https://blitz-tesla-club.vercel.app/verify-email?token=${verificationToken}`;
         await transporter.sendMail({
             from: 'info@blitztclub.com',
             to: email,
@@ -301,7 +301,7 @@ app.post('/api/resend-verification', async (req, res) => {
         if (updateError) throw updateError;
 
         // Send verification email
-        const verificationUrl = `http://yourwebsite.com/verify-email?token=${verificationToken}`;
+        const verificationUrl = `https://blitz-tesla-club.vercel.app/verify-email?token=${verificationToken}`;
         await transporter.sendMail({
             from: 'info@blitztclub.com',
             to: email,

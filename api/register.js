@@ -40,20 +40,10 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'Failed to create user account' });
         }
 
+        console.log('Auth user created:', authData.user);
+
         // Generate member ID
         const memberId = 'BTC' + Date.now().toString().slice(-6);
-
-        // Check if profile already exists
-        const { data: existingProfile } = await supabaseClient
-            .from('profiles')
-            .select('*')
-            .eq('email', email)
-            .single();
-
-        if (existingProfile) {
-            console.error('Profile already exists');
-            return res.status(400).json({ error: 'User already exists' });
-        }
 
         // Create profile
         const profileData = {
@@ -64,34 +54,28 @@ export default async function handler(req, res) {
             member_id: memberId,
             membership_status: 'pending',
             membership_type: 'standard',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
         };
 
         console.log('Creating profile with data:', profileData);
 
+        // Wait for profile creation
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
         const { data: profile, error: profileError } = await supabaseClient
             .from('profiles')
-            .upsert([profileData], { 
+            .upsert([profileData], {
                 onConflict: 'id',
                 returning: 'minimal'
             });
 
         if (profileError) {
             console.error('Profile creation error:', profileError);
-            // Clean up auth user if profile creation fails
-            try {
-                await supabaseClient.auth.admin.deleteUser(authData.user.id);
-            } catch (deleteError) {
-                console.error('Failed to clean up auth user:', deleteError);
-            }
-            return res.status(400).json({ error: profileError.message });
+            console.error('Profile data:', profileData);
+            return res.status(400).json({ error: 'Database error saving new user' });
         }
 
         // Generate verification token
-        const verificationToken = Array.from(crypto.getRandomValues(new Uint8Array(32)))
-            .map(byte => byte.toString(16).padStart(2, '0'))
-            .join('');
+        const verificationToken = crypto.randomBytes(32).toString('hex');
 
         // Update profile with verification token
         const { error: tokenError } = await supabaseClient

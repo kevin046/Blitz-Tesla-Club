@@ -1,10 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 
 export default async function handler(req, res) {
-    // Set CORS headers
-    res.setHeader('Access-Control-Allow-Origin', 'https://www.blitztclub.com');
+    // Set CORS headers for all requests
+    res.setHeader('Access-Control-Allow-Origin', 'http://192.168.2.86:8080');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    // Handle preflight request
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
 
     if (req.method === 'GET') {
         try {
@@ -23,7 +28,7 @@ export default async function handler(req, res) {
                 .single();
 
             if (error || !profile) {
-                return res.redirect('https://www.blitztclub.com/verification-failed');
+                return res.redirect('https://blitz-tesla-club-cyan.vercel.app/verification-failed');
             }
 
             // Update profile status
@@ -36,7 +41,7 @@ export default async function handler(req, res) {
                 .eq('id', profile.id);
 
             // Redirect to success page
-            res.redirect('https://www.blitztclub.com/verification-success');
+            res.redirect('https://blitz-tesla-club-cyan.vercel.app/verification-success');
 
         } catch (error) {
             console.error('Verification error:', error);

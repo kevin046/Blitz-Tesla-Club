@@ -35,11 +35,11 @@
     </nav>
 
     <main class="login-container">
-        <div class="login-box register-box">
-            <div class="login-header">
-                <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" class="login-logo">
-                <h2>Join Blitz Tesla Club</h2>
-                <p>Create your account to become a member</p>
+        <div class="register-box">
+            <div class="register-header">
+                <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" class="register-logo">
+                <h2 style="color: #171a20;">Join Blitz Tesla Club</h2>
+                <p style="color: #666;">Create your account to become a member</p>
             </div>
 
             <div class="registration-progress">
@@ -51,16 +51,14 @@
                     <span class="step-text">Account</span>
                     <span class="step-description">Create your account</span>
                 </div>
-                <div class="progress-line"></div>
                 <div class="progress-step">
                     <div class="step-icon">
-                        <i class="fas fa-envelope"></i>
+                        <i class="fas fa-envelope-open-text"></i>
                         <span class="step-number">2</span>
                     </div>
                     <span class="step-text">Verify</span>
                     <span class="step-description">Verify your email</span>
                 </div>
-                <div class="progress-line"></div>
                 <div class="progress-step">
                     <div class="step-icon">
                         <i class="fas fa-check-circle"></i>
@@ -71,28 +69,54 @@
                 </div>
             </div>
 
-            <form class="register-form" id="registerForm">
+            <form class="login-form" id="registerForm" novalidate>
+
                 <div class="form-group">
-                    <label for="fullName">Full Name</label>
-                    <input type="text" id="fullName" name="fullName" required>
+                    <label for="fullName">
+                        <i class="fas fa-user"></i>
+                        Full Name
+                    </label>
+                    <input type="text" id="fullName" name="fullName" required
+                           placeholder="Enter your full name"
+                           autocomplete="name"
+                           minlength="2"
+                           pattern="^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*$">
+                    <small class="form-hint">Please enter your real name as it will appear on your membership card</small>
+                    <div class="form-validation-icon"></div>
                 </div>
 
                 <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required>
+                    <label for="email">
+                        <i class="fas fa-envelope"></i>
+                        Email Address
+                    </label>
+                    <input type="email" id="email" name="email" required
+                           placeholder="Enter your email"
+                           autocomplete="email">
+                    <small class="form-hint">We'll send a verification link to this email</small>
+                    <div class="form-validation-icon"></div>
                 </div>
 
                 <div class="form-group">
-                    <label for="password">Password</label>
-                    <div class="password-input-container">
-                        <input type="password" id="password" name="password" required>
-                        <button type="button" class="toggle-password">
-                            <i class="fas fa-eye"></i>
-                        </button>
+                    <label for="password">
+                        <i class="fas fa-lock"></i>
+                        Password
+                    </label>
+                    <div class="password-input-wrapper">
+                        <div class="password-input-group">
+                            <input type="password" id="password" name="password" required
+                                   placeholder="Create a password"
+                                   autocomplete="new-password"
+                                   minlength="8">
+                            <button type="button" class="toggle-password" aria-label="Toggle password visibility">
+                                <i class="far fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="password-strength-meter">
+                            <div class="strength-bar"></div>
+                        </div>
                     </div>
-                    <div class="strength-meter">
-                        <div class="strength-bar"></div>
-                    </div>
+                    <small class="form-hint">Must be at least 8 characters with numbers and letters</small>
                 </div>
 
                 <div class="form-group">
@@ -264,9 +288,10 @@
             registerForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
+                // Get form values
                 const fullName = document.getElementById('fullName').value.trim();
                 const email = document.getElementById('email').value.trim();
-                const password = document.getElementById('password').value;
+                const password = passwordInput.value;
                 const confirmPassword = document.getElementById('confirmPassword').value;
                 const terms = document.getElementById('terms').checked;
 
@@ -289,7 +314,7 @@
                     // Generate member ID first
                     const apiUrl = window.location.hostname === 'localhost' 
                         ? 'http://localhost:3000/api/generate-member-id'
-                        : '/api/generate-member-id';
+                        : 'https://www.blitztclub.com/api/generate-member-id';
                     
                     console.log('Making request to:', apiUrl);
                     const response = await fetch(apiUrl, {
@@ -299,6 +324,7 @@
                             'Accept': 'application/json'
                         },
                         body: JSON.stringify({ membership_type: 'standard' }),
+                        credentials: 'same-origin',
                         mode: 'cors'
                     });
 
@@ -306,11 +332,11 @@
                     console.log('Server response:', responseData);
 
                     if (!response.ok) {
-                        console.error('Server error:', responseData);
                         throw new Error(
-                            typeof responseData.error === 'object' 
-                                ? responseData.error.message 
-                                : responseData.error || 'A server error has occurred'
+                            responseData.error?.message || 
+                            responseData.error || 
+                            responseData.message || 
+                            'Failed to generate member ID'
                         );
                     }
 

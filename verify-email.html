@@ -79,29 +79,42 @@
             }
 
             try {
+                console.log('Starting verification process with token:', token);
+                
                 // Initialize Supabase
                 const supabaseClient = supabase.createClient(
                     'https://qhkcrrphsjpytdfqfamq.supabase.co',
-                    'your_anon_key'
+                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI'
                 );
 
                 // Get profile by verification token
+                console.log('Fetching profile for token...');
                 const { data: profile, error: profileError } = await supabaseClient
                     .from('profiles')
                     .select('*')
                     .eq('verification_token', token)
                     .single();
 
-                if (profileError || !profile) {
-                    throw new Error('Invalid verification token');
+                if (profileError) {
+                    console.error('Profile fetch error:', profileError);
+                    throw new Error(`Failed to fetch profile: ${profileError.message}`);
                 }
 
+                if (!profile) {
+                    console.error('No profile found for token');
+                    throw new Error('Invalid or expired verification token');
+                }
+
+                console.log('Profile found:', { id: profile.id, status: profile.membership_status });
+
                 // Check if token is expired
-                if (new Date(profile.token_expires_at) < new Date()) {
-                    throw new Error('Verification token has expired');
+                if (profile.token_expires_at && new Date(profile.token_expires_at) < new Date()) {
+                    console.error('Token expired at:', profile.token_expires_at);
+                    throw new Error('Verification token has expired. Please request a new verification email.');
                 }
 
                 // Update profile status
+                console.log('Updating profile status...');
                 const { error: updateError } = await supabaseClient
                     .from('profiles')
                     .update({
@@ -113,14 +126,17 @@
                     .eq('id', profile.id);
 
                 if (updateError) {
-                    throw updateError;
+                    console.error('Profile update error:', updateError);
+                    throw new Error(`Failed to update profile: ${updateError.message}`);
                 }
 
-                // Redirect to success page
+                console.log('Verification successful, redirecting to success page...');
                 window.location.href = './verification-success.html';
 
             } catch (error) {
                 console.error('Verification error:', error);
+                // Store error message for display
+                localStorage.setItem('verificationError', error.message);
                 window.location.href = './verification-failed.html';
             }
         });

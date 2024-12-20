@@ -327,17 +327,30 @@
                     const verificationToken = crypto.randomUUID();
 
                     // Generate member ID first
-                    const response = await fetch(getApiUrl('generate-member-id'), {
+                    const apiUrl = window.location.hostname === 'localhost' 
+                        ? 'http://localhost:3000/api/generate-member-id'
+                        : '/api/generate-member-id';
+                    
+                    console.log('Making request to:', apiUrl);
+                    const response = await fetch(apiUrl, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
                         },
-                        body: JSON.stringify({ membership_type: 'standard' })
+                        body: JSON.stringify({ membership_type: 'standard' }),
+                        mode: 'cors',
+                        credentials: 'omit'
                     });
 
-                    if (!response.ok) throw new Error('Failed to generate member ID');
-                    const memberIdData = await response.json();
-                    memberId = memberIdData.member_id;
+                    const responseData = await response.json();
+                    console.log('Server response:', responseData);
+
+                    if (!response.ok) {
+                        throw new Error(responseData.error || responseData.message || 'Failed to generate member ID');
+                    }
+
+                    memberId = responseData.member_id;
 
                     // Create auth user
                     const { data, error: authError } = await supabaseClient.auth.signUp({
@@ -345,35 +358,53 @@
                         password,
                         options: {
                             data: {
-                                full_name: fullName
-                            }
+                                full_name: fullName,
+                                member_id: memberId,
+                                membership_type: 'standard',
+                                membership_status: 'pending'
+                            },
+                            emailRedirectTo: `${window.location.origin}/verify-email`,
+                            autoConfirm: false
                         }
                     });
 
-                    if (authError) throw authError;
+                    if (authError) {
+                        console.error('Auth error:', authError);
+                        if (authError.message.includes('already registered')) {
+                            throw new Error('An account with this email already exists');
+                        }
+                        throw new Error(authError.message);
+                    }
+
                     authData = data;
 
-                    // Create profile
-                    const { error: profileError } = await supabaseClient
-                        .from('profiles')
-                        .insert([{
-                            id: authData.user.id,
+                    if (!authData?.user?.id) {
+                        throw new Error('Failed to create user account');
+                    }
+
+                    // Wait a moment for auth to complete
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+
+                    // Create profile through server endpoint
+                    const profileResponse = await fetch('/api/create-profile', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            user_id: authData.user.id,
                             email: email,
                             full_name: fullName,
                             member_id: memberId,
-                            membership_type: 'standard',
-                            membership_status: 'pending',
-                            created_at: new Date().toISOString(),
                             verification_token: verificationToken
-                        }]);
+                        })
+                    });
 
-                    if (profileError) {
-                        console.error('Profile error:', profileError);
-                        // If profile creation fails, clean up the auth user
-                        if (authData?.user?.id) {
-                            await supabaseClient.auth.admin.deleteUser(authData.user.id);
-                        }
-                        throw new Error('Error creating user profile');
+                    const profileData = await profileResponse.json();
+
+                    if (!profileResponse.ok || (profileData.error && !profileData.message?.includes('already exists'))) {
+                        console.error('Profile error:', profileData);
+                        throw new Error('Failed to create user profile');
                     }
 
                     // Send verification email using FormSubmit
@@ -403,16 +434,34 @@ Blitz Tesla Club Team`);
                         throw new Error('Failed to send verification email');
                     }
 
-                    alert('Registration successful! Please check your email to verify your account.');
-                    window.location.href = 'login.html';
+                    // Store email and verification token for resend functionality
+                    localStorage.setItem('pendingVerificationEmail', email);
+                    localStorage.setItem('verificationToken', verificationToken);
+                    localStorage.setItem('pendingMemberId', memberId);
+                    localStorage.setItem('registrationTime', new Date().toISOString());
+                    
+                    // Redirect to verification sent page
+                    window.location.href = 'verification-sent.html';
 
                 } catch (error) {
                     console.error('Registration error:', error);
-                    // Clean up if auth user was created but something else failed
+                    let errorMessage = 'Registration failed. Please try again.';
+
+                    if (error.message.includes('already exists')) {
+                        errorMessage = 'An account with this email already exists. Please login instead.';
+                    } else if (error.message.includes('Invalid email')) {
+                        errorMessage = 'Please enter a valid email address.';
+                    } else if (error.message.includes('password')) {
+                        errorMessage = 'Password must be at least 6 characters long.';
+                    } else if (error.message.includes('Database error')) {
+                        errorMessage = 'Server error. Please try again in a few minutes.';
+                    }
+
+                    // If we have an auth user but profile creation failed
                     if (authData?.user?.id) {
                         try {
-                            // Call cleanup endpoint instead of direct admin function
-                            const cleanupResponse = await fetch(getApiUrl('cleanup-orphaned-users'), {
+                            // Call cleanup endpoint
+                            const cleanupResponse = await fetch('/api/cleanup-orphaned-users', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json'
@@ -427,7 +476,7 @@ Blitz Tesla Club Team`);
                             console.error('Failed to clean up auth user:', cleanupError);
                         }
                     }
-                    alert(error.message || 'Registration failed. Please try again.');
+                    alert(errorMessage);
                 }
             });
 

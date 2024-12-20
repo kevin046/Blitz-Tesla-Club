@@ -3,12 +3,23 @@
   "outputDirectory": ".",
   "routes": [
     {
-      "src": "/api/generate-member-id",
-      "dest": "/api/generate-member-id.js",
-      "methods": ["POST", "OPTIONS"],
+      "src": "/api/(.*)",
+      "methods": ["OPTIONS"],
+      "status": 204,
       "headers": {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Max-Age": "86400"
+      }
+    },
+    {
+      "src": "/api/generate-member-id",
+      "dest": "/api/generate-member-id.js",
+      "methods": ["POST"],
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST",
         "Access-Control-Allow-Headers": "Content-Type, Authorization"
       }
     },
@@ -19,22 +30,13 @@
     {
       "src": "/api/register",
       "dest": "/api/register",
-      "methods": ["POST", "OPTIONS"],
+      "methods": ["POST"],
       "headers": {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization"
       }
     },
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1",
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type"
-      }
-    },  
     { "src": "/", "dest": "/index.html" },
     { "src": "/dashboard", "dest": "/dashboard.html" },
     { "src": "/login", "dest": "/login.html" },
@@ -46,6 +48,7 @@
     { "src": "/privacy", "dest": "/privacy.html" },
     { "src": "/verification-success", "dest": "/verification-success.html" },
     { "src": "/verification-failed", "dest": "/verification-failed.html" },
+    { "src": "/verification-sent", "dest": "/verification-sent.html" },
     {
       "src": "/api/update-member-ids",
       "dest": "/api/update-member-ids",
@@ -66,6 +69,9 @@
         "Access-Control-Allow-Headers": "Content-Type, Authorization"
       }
     }
+  ],
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/:path*" }
   ],
   "functions": {
     "api/**/*": {

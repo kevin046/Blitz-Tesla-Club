@@ -8,7 +8,7 @@ module.exports = (req, res) => {
   }
 
   res.json({
-    message: 'Test API is working',
-    timestamp: new Date().toISOString()
+    message: 'API is working',
+    version: '1.0.0'
   });
 }; 

@@ -2,29 +2,32 @@
   "version": 2,
   "builds": [
     { "src": "*.html", "use": "@vercel/static" },
-    { "src": "api/**/*.js", "use": "@vercel/node" }
+    { "src": "/api/**/*.js", "use": "@vercel/node" }
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
+      "src": "/api/generate-member-id",
+      "methods": ["POST", "OPTIONS"],
+      "dest": "api/generate-member-id.js"
+    },
+    {
+      "src": "/api/test",
+      "methods": ["GET"],
+      "dest": "api/test.js"
+    },
+    {
+      "src": "/api",
+      "methods": ["GET"],
+      "dest": "api/index.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "$1",
       "headers": {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization"
-      },
-      "continue": true
-    },
-    { "handle": "filesystem" },
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/verify-email", "dest": "/api/verify-email.js" },
-    { "src": "/", "dest": "/index.html" },
-    { "src": "/dashboard", "dest": "/dashboard.html" },
-    { "src": "/login", "dest": "/login.html" },
-    { "src": "/events", "dest": "/events.html" },
-    { "src": "/gallery", "dest": "/gallery.html" },
-    { "src": "/executive", "dest": "/executive.html" },
-    { "src": "/news", "dest": "/news.html" },
-    { "src": "/contact", "dest": "/contact.html" },
-    { "src": "/privacy", "dest": "/privacy.html" }
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type"
+      }
+    }
   ]
 } 

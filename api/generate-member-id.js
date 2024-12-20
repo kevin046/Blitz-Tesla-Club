@@ -1,56 +1,34 @@
-export const config = {
-  runtime: 'edge'
-};
+const { createClient } = require('@supabase/supabase-js');
 
-import { createClient } from '@supabase/supabase-js';
-
-// Initialize Supabase client
 const supabase = createClient(
   'https://qhkcrrphsjpytdfqfamq.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczNDMyNDg3OCwiZXhwIjoyMDQ5OTAwODc4fQ.A6ltvW5H0Hr8mnTAlesPHyCa6STI9IoSg9ZVgzsSzdw',
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczNDMyNDg3OCwiZXhwIjoyMDQ5OTAwODc4fQ.A6ltvW5H0Hr8mnTAlesPHyCa6STI9IoSg9ZVgzsSzdw'
 );
 
-export default async function handler(req) {
-  // Handle preflight request
+module.exports = async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 204,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
-      }
-    });
+    return res.status(200).end();
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const body = await req.json();
-    console.log('Request body:', body);
-    const { membership_type } = body;
+    const { membership_type } = req.body;
     
     if (!membership_type) {
-      return new Response(JSON.stringify({
-        error: {
-          message: 'membership_type is required'
-        }
-      }), {
-        status: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
+      return res.status(400).json({
+        error: 'membership_type is required'
       });
     }
 
     const prefix = membership_type === 'vip' ? 'VIP' : 'BTC';
     
-    // Get the latest member ID
     const { data: latestMember, error: queryError } = await supabase
       .from('profiles')
       .select('member_id')
@@ -60,21 +38,10 @@ export default async function handler(req) {
 
     if (queryError) {
       console.error('Database query error:', queryError);
-      return new Response(JSON.stringify({
-        error: {
-          message: 'Failed to generate member ID',
-          details: queryError.message
-        }
-      }), {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
+      return res.status(500).json({
+        error: 'Failed to generate member ID'
       });
     }
-
-    console.log('Latest member:', latestMember);
 
     let nextNumber = 1;
     if (latestMember && latestMember.length > 0) {
@@ -83,30 +50,12 @@ export default async function handler(req) {
     }
 
     const member_id = `${prefix}${String(nextNumber).padStart(3, '0')}`;
-    console.log('Generated member_id:', member_id);
-    return new Response(JSON.stringify({ member_id }), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
+    return res.status(200).json({ member_id });
 
   } catch (error) {
     console.error('Error:', error);
-    console.error('Stack trace:', error.stack);
-    return new Response(JSON.stringify({
-      error: {
-        message: error.message || 'Internal server error',
-        type: 'database_error',
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-      }
-    }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
+    return res.status(500).json({
+      error: 'Internal server error'
     });
   }
-} 
+}; 

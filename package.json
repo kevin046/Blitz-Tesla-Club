@@ -2,6 +2,9 @@
   "name": "blitz-tesla-club",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=18.x"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.3",
     "cors": "^2.8.5",
@@ -13,7 +16,9 @@
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "echo 'No build step'",
+    "vercel-build": "echo 'Vercel build step'"
   },
   "keywords": [],
   "author": "",

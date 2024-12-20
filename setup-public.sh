@@ -1,15 +1,18 @@
 #!/bin/bash
 
 # Create directory structure
-mkdir -p public/css public/js
+mkdir -p public/{css,js,api}
 
-# Move files to their correct locations
+# Move static files
+mv *.html public/
 mv styles.css public/css/
-mv script.js public/js/
-mv register.js public/js/
-mv login.js public/js/
-mv dashboard.js public/js/
-mv nav.js public/js/
+mv *.js public/js/
+mv api/*.js public/api/
 
-# Move HTML files to public directory
-mv *.html public/ 
+# Create Vercel config if not exists
+if [ ! -f vercel.json ]; then
+  cp vercel.json.example vercel.json
+fi
+
+# Ensure proper permissions
+chmod +x public/api/*.js

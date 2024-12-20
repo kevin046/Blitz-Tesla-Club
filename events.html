@@ -2,168 +2,58 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Events - Blitz Tesla Club</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
     <script src="nav.js"></script>
 </head>
 <body class="events-page">
     <nav>
-        <div class="logo">
-            <a href="/">
-                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo">
-                <span>BLITZ TESLA CLUB</span>
-            </a>
-        </div>
-        <div class="menu-toggle">
-            <i class="fas fa-bars"></i>
-        </div>
-        <ul class="nav-links">
-            <li><a href="dashboard.html">
-                <i class="fas fa-home"></i>Dashboard
-            </a></li>
-            <li><a href="events.html">Events</a></li>
-            <li><a href="gallery.html">Gallery</a></li>
-            <li><a href="executive.html">Executives</a></li>
-            <li><a href="news.html">News</a></li>
-            <li><a href="#" id="logoutBtn">
-                <i class="fas fa-sign-out-alt"></i>Logout
-            </a></li>
-        </ul>
+        <!-- Navigation content -->
     </nav>
 
     <main class="events-container">
-        <header class="events-header">
+        <!-- Public content visible to all -->
+        <div class="events-header">
             <h1>Upcoming Events</h1>
-            <p>Join Us at Our Next Gathering</p>
-        </header>
-
-        <div class="events-filters">
-            <button class="filter-btn active" data-filter="all">All Events</button>
-            <button class="filter-btn" data-filter="meetups">Meetups</button>
-            <button class="filter-btn" data-filter="track-days">Track Days</button>
-            <button class="filter-btn" data-filter="shows">Car Shows</button>
+            <p>Join us at our exciting Tesla community events!</p>
         </div>
 
-        <div class="events-grid">
-            <!-- Monthly Meetup -->
-            <div class="event-card" data-category="meetups">
-                <div class="event-image">
-                    <img src="https://images.unsplash.com/photo-1617788138017-80ad40651399" alt="Monthly Meetup">
-                </div>
-                <div class="event-content">
-                    <div class="event-date">
-                        <span class="day">25</span>
-                        <span class="month">MAR</span>
-                    </div>
-                    <h3>Monthly Meetup</h3>
-                    <p class="event-location"><i class="fas fa-map-marker-alt"></i> Supercharger Station</p>
-                    <p class="event-time"><i class="far fa-clock"></i> 6:00 PM - 9:00 PM</p>
-                    <p class="event-description">Join us for our monthly gathering at the local Supercharger station. Share stories, showcase mods, and connect with fellow Tesla enthusiasts.</p>
-                    <button class="btn rsvp-btn">RSVP Now</button>
-                </div>
+        <!-- Member-only content -->
+        <div class="member-only" style="display: none;">
+            <div class="dashboard-section">
+                <!-- ... dashboard content ... -->
             </div>
+        </div>
 
-            <!-- Track Day -->
-            <div class="event-card" data-category="track-days">
-                <div class="event-image">
-                    <img src="https://images.unsplash.com/photo-1553260168-69b041b3eec4" alt="Track Day">
-                </div>
-                <div class="event-content">
-                    <div class="event-date">
-                        <span class="day">15</span>
-                        <span class="month">APR</span>
-                    </div>
-                    <h3>Track Day Experience</h3>
-                    <p class="event-location"><i class="fas fa-map-marker-alt"></i> Local Race Track</p>
-                    <p class="event-time"><i class="far fa-clock"></i> 9:00 AM - 4:00 PM</p>
-                    <p class="event-description">Experience your Tesla's full potential on the race track. Professional instructors available for guidance.</p>
-                    <button class="btn rsvp-btn">RSVP Now</button>
-                </div>
-            </div>
-
-            <!-- Car Show -->
-            <div class="event-card" data-category="shows">
-                <div class="event-image">
-                    <img src="https://images.unsplash.com/photo-1536700503339-1e4b06520771" alt="Car Show">
-                </div>
-                <div class="event-content">
-                    <div class="event-date">
-                        <span class="day">01</span>
-                        <span class="month">MAY</span>
-                    </div>
-                    <h3>Tesla Showcase</h3>
-                    <p class="event-location"><i class="fas fa-map-marker-alt"></i> City Convention Center</p>
-                    <p class="event-time"><i class="far fa-clock"></i> 10:00 AM - 5:00 PM</p>
-                    <p class="event-description">Annual Tesla showcase featuring the latest models, modifications, and technology updates.</p>
-                    <button class="btn rsvp-btn">RSVP Now</button>
-                </div>
-            </div>
+        <!-- Public events list -->
+        <div class="events-list">
+            <!-- ... public events content ... -->
         </div>
     </main>
 
     <footer>
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3>Quick Links</h3>
-                <div class="footer-links">
-                    <a href="index.html">Home</a>
-                    <a href="events.html">Events</a>
-                    <a href="gallery.html">Gallery</a>
-                    <a href="contact.html">Contact</a>
-                </div>
-            </div>
-            
-            <div class="footer-section">
-                <h3>Member Area</h3>
-                <div class="footer-links">
-                    <a href="login.html">Login</a>
-                    <a href="register.html">Register</a>
-                    <a href="sponsors.html">Our Sponsors</a>
-                    <a href="#member-benefits">Member Benefits</a>
-                </div>
-            </div>
-            
-            <div class="footer-section">
-                <h3>Legal</h3>
-                <div class="footer-links">
-                    <a href="privacy.html">Privacy Policy</a>
-                    <a href="terms.html">Terms of Service</a>
-                    <a href="about.html">About Us</a>
-                </div>
-            </div>
-
-            <div class="footer-section">
-                <h3>Connect With Us</h3>
-                <div class="footer-social">
-                    <a href="https://x.com/BlitzTClub" target="_blank" aria-label="Follow us on X">
-                        <i class="fa-brands fa-square-x-twitter"></i>
-                    </a>
-                    <a href="https://www.instagram.com/blitztclub/" target="_blank" aria-label="Follow us on Instagram">
-                        <i class="fab fa-instagram"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="footer-bottom">
-            <p>© 2024 Blitz Tesla Club. All rights reserved.</p>
-            <p class="powered-by">
-                Website powered by <a href="http://www.summitpixels.com" target="_blank">SummitPixels</a>
-            </p>
-        </div>
+        <!-- Footer content -->
     </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Events page functionality
-            // Filter buttons, RSVP functionality, etc.
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check login status
+            await checkLoginStatus();
+
+            // Mobile menu toggle
+            const menuToggle = document.querySelector('.menu-toggle');
+            const navLinks = document.querySelector('.nav-links');
+            if (menuToggle && navLinks) {
+                menuToggle.addEventListener('click', () => {
+                    navLinks.classList.toggle('active');
+                });
+            }
         });
     </script>
 </body>

@@ -42,13 +42,18 @@
             </div>
             <form class="login-form" id="loginForm">
                 <div class="form-group">
-                    <label for="email">Email or Username</label>
-                    <input type="text" id="email" name="email" required
-                           placeholder="Enter your email or username">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required
+                           placeholder="Enter your email">
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
+                    <div class="password-input-container">
+                        <input type="password" id="password" name="password" required>
+                        <button type="button" class="toggle-password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="form-group remember-me">
                     <input type="checkbox" id="remember" name="remember">
@@ -126,29 +131,11 @@
             loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
-                const emailOrUsername = document.getElementById('email').value;
+                const email = document.getElementById('email').value.trim();
                 const password = document.getElementById('password').value;
+                const remember = document.getElementById('remember').checked;
 
                 try {
-                    // Check if input is email or username
-                    const isEmail = emailOrUsername.toLowerCase().includes('@');
-                    
-                    let email = isEmail ? emailOrUsername.toLowerCase() : emailOrUsername;
-                    if (!isEmail) {
-                        // If username provided, get email from profiles table
-                        const { data: profile, error: profileError } = await supabaseClient
-                            .from('profiles')
-                            .select('email')
-                            .ilike('username', emailOrUsername)
-                            .single();
-
-                        if (profileError || !profile) {
-                            throw new Error('Username not found');
-                        }
-
-                        email = profile.email.toLowerCase();
-                    }
-
                     const { data, error } = await supabaseClient.auth.signInWithPassword({
                         email,
                         password
@@ -156,26 +143,22 @@
 
                     if (error) {
                         if (error.message.includes('Invalid login')) {
-                            throw new Error(isEmail ? 'Invalid email or password' : 'Invalid username or password');
+                            throw new Error('Invalid email or password');
                         }
                         throw error;
                     }
 
-                    // Redirect to dashboard on successful login
-                    window.location.href = 'dashboard.html';
-                } catch (error) {
-                    console.error('Login error:', error);
-                    let errorMessage = 'Login failed. Please check your credentials.';
-
-                    if (error.message === 'Username not found') {
-                        errorMessage = 'Username not found. Please check your username or use email to login.';
-                    } else if (error.message.includes('Invalid')) {
-                        errorMessage = error.message;
-                    } else if (error.message.includes('database')) {
-                        errorMessage = 'Server error. Please try again later.';
+                    // Store the session
+                    if (remember) {
+                        localStorage.setItem('supabase.auth.token', data.session.access_token);
+                    } else {
+                        sessionStorage.setItem('supabase.auth.token', data.session.access_token);
                     }
 
-                    alert(errorMessage);
+                    window.location.href = 'dashboard.html';
+
+                } catch (error) {
+                    alert(error.message);
                 }
             });
         });

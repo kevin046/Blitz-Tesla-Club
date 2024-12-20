@@ -11,6 +11,16 @@
       "dest": "api/generate-member-id.js"
     },
     {
+      "src": "/api/create-profile",
+      "methods": ["POST", "OPTIONS"],
+      "dest": "api/create-profile.js"
+    },
+    {
+      "src": "/api/cleanup-orphaned-users",
+      "methods": ["POST", "OPTIONS"],
+      "dest": "api/cleanup-orphaned-users.js"
+    },
+    {
       "src": "/api/test",
       "methods": ["GET"],
       "dest": "api/test.js"

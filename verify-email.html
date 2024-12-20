@@ -75,14 +75,16 @@
             const token = urlParams.get('token');
 
             if (!token) {
-                window.location.href = './verification-failed.html';
+                console.error('No token provided in URL');
+                localStorage.setItem('verificationError', 'No verification token provided');
+                window.location.href = 'verification-failed.html';
                 return;
             }
 
             try {
-                console.log('Starting verification process with token:', token);
+                console.log('Starting verification with token:', token);
                 
-                // Initialize Supabase
+                // Initialize Supabase client
                 const supabaseClient = supabase.createClient(
                     'https://qhkcrrphsjpytdfqfamq.supabase.co',
                     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI'
@@ -121,24 +123,24 @@
                     .from('profiles')
                     .update({
                         membership_status: 'active',
-                        verification_token: null,
-                        verified_at: new Date().toISOString()
+                        verification_token: null
                     })
                     .eq('id', profile.id);
 
                 if (updateError) {
-                    console.error('Profile update error:', updateError);
+                    console.error('Update error:', updateError);
                     throw new Error(`Failed to update profile: ${updateError.message}`);
                 }
 
-                console.log('Verification successful, redirecting to success page...');
-                window.location.href = './verification-success.html';
+                console.log('Verification successful, redirecting...');
+                // Redirect to success page
+                window.location.href = `verification-success.html?verified=true&id=${profile.id}`;
 
             } catch (error) {
                 console.error('Verification error:', error);
-                // Store error message for display
-                localStorage.setItem('verificationError', error.message);
-                window.location.href = './verification-failed.html';
+                // Store the actual error message for display
+                localStorage.setItem('verificationError', error.message || 'Verification process failed. Please try again.');
+                window.location.href = 'verification-failed.html';
             }
         });
     </script>

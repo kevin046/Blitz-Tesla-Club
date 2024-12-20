@@ -1,61 +1,67 @@
-import { createClient } from '@supabase/supabase-js';
+const { createClient } = require('@supabase/supabase-js');
 
+// Initialize Supabase client
 const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
-    {
-        auth: {
-            autoRefreshToken: false,
-            persistSession: false
-        }
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
     }
+  }
 );
 
-export default async function handler(req, res) {
-    // Handle CORS
-    res.setHeader('Access-Control-Allow-Credentials', true);
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-    res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+module.exports = async (req, res) => {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', 'https://www.blitztclub.com');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    // Handle preflight request
-    if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
+  // Handle preflight request
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  try {
+    const { membership_type } = req.body;
+    const prefix = membership_type === 'vip' ? 'VIP' : 'BTC';
+    
+    // Get the latest member ID
+    const { data: latestMember, error: queryError } = await supabase
+      .from('profiles')
+      .select('member_id')
+      .like('member_id', `${prefix}%`)
+      .order('member_id', { ascending: false })
+      .limit(1);
+
+    if (queryError) {
+      console.error('Database query error:', queryError);
+      return res.status(500).json({ 
+        error: { 
+          message: 'Failed to generate member ID',
+          details: queryError.message
+        } 
+      });
     }
 
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
+    let nextNumber = 1;
+    if (latestMember && latestMember.length > 0) {
+      const currentNumber = parseInt(latestMember[0].member_id.slice(3));
+      nextNumber = currentNumber + 1;
     }
 
-    try {
-        const { membership_type } = req.body;
-        const prefix = membership_type === 'vip' ? 'VIP' : 'BTC';
+    const member_id = `${prefix}${String(nextNumber).padStart(3, '0')}`;
+    res.json({ member_id });
 
-        // Get the latest member ID for the specific type
-        const { data: latestMember, error: queryError } = await supabase
-            .from('profiles')
-            .select('member_id')
-            .like('member_id', `${prefix}%`)
-            .order('member_id', { ascending: false })
-            .limit(1);
-
-        if (queryError) throw queryError;
-
-        let nextNumber = 1;
-        if (latestMember && latestMember.length > 0) {
-            // Extract the number from the latest member ID and increment
-            const currentNumber = parseInt(latestMember[0].member_id.slice(3));
-            nextNumber = currentNumber + 1;
-        }
-
-        // Format the new member ID with leading zeros
-        const member_id = `${prefix}${String(nextNumber).padStart(3, '0')}`;
-
-        return res.status(200).json({ member_id });
-
-    } catch (error) {
-        console.error('Error:', error);
-        return res.status(500).json({ error: error.message });
-    }
-} 
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ 
+      error: {
+        message: error.message || 'Internal server error',
+        type: 'database_error'
+      }
+    });
+  }
+}; 

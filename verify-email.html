@@ -74,11 +74,17 @@
             const token = urlParams.get('token');
 
             if (!token) {
-                window.location.href = 'verification-failed.html';
+                window.location.href = './verification-failed.html';
                 return;
             }
 
             try {
+                // Initialize Supabase
+                const supabaseClient = supabase.createClient(
+                    'https://qhkcrrphsjpytdfqfamq.supabase.co',
+                    'your_anon_key'
+                );
+
                 // Get profile by verification token
                 const { data: profile, error: profileError } = await supabaseClient
                     .from('profiles')
@@ -90,12 +96,19 @@
                     throw new Error('Invalid verification token');
                 }
 
+                // Check if token is expired
+                if (new Date(profile.token_expires_at) < new Date()) {
+                    throw new Error('Verification token has expired');
+                }
+
                 // Update profile status
                 const { error: updateError } = await supabaseClient
                     .from('profiles')
                     .update({
                         membership_status: 'active',
-                        verification_token: null
+                        verification_token: null,
+                        token_expires_at: null,
+                        verified_at: new Date().toISOString()
                     })
                     .eq('id', profile.id);
 
@@ -104,11 +117,11 @@
                 }
 
                 // Redirect to success page
-                window.location.href = `verification-success.html?verified=true&id=${profile.id}`;
+                window.location.href = './verification-success.html';
 
             } catch (error) {
                 console.error('Verification error:', error);
-                window.location.href = 'verification-failed.html';
+                window.location.href = './verification-failed.html';
             }
         });
     </script>

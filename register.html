@@ -224,56 +224,51 @@
             // Form submission
             registerForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                
-                // Get form values
-                const fullName = document.getElementById('fullName').value.trim();
-                const email = document.getElementById('email').value.trim();
-                const password = passwordInput.value;
-                const confirmPassword = document.getElementById('confirmPassword').value;
-                const terms = document.getElementById('terms').checked;
-
-                let authData = null;
-                let memberId = null;
+                const submitButton = document.querySelector('.login-btn');
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
 
                 try {
+                    // Get form values
+                    const fullName = document.getElementById('fullName').value.trim();
+                    const email = document.getElementById('email').value.trim();
+                    const password = passwordInput.value;
+                    const confirmPassword = document.getElementById('confirmPassword').value;
+                    const terms = document.getElementById('terms').checked;
+
                     // Basic validation
                     if (!fullName || !email || !password || !confirmPassword || !terms) {
                         throw new Error('Please fill in all fields and accept the terms');
                     }
-                    
-                    if (password !== confirmPassword) {
-                        throw new Error('Passwords do not match');
-                    }
 
                     // Generate verification token
                     const verificationToken = crypto.randomUUID();
+                    console.log('Starting registration process...');
 
-                    // Use production API for member ID generation
-                    const apiUrl = 'https://www.blitztclub.com/api/generate-member-id';
-                    
-                     // Generate member ID first
-                    const response = await fetch(getApiUrl('generate-member-id'), {
+                    // Generate member ID
+                    const response = await fetch('https://www.blitztclub.com/api/generate-member-id', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({ membership_type: 'standard' })
                     });
-                    if (!response.ok) throw new Error('Failed to generate member ID');
-                    const memberIdData = await response.json();
-                    memberId = memberIdData.member_id;
 
+                    if (!response.ok) {
+                        throw new Error('Failed to generate member ID');
+                    }
 
-                    memberId = responseData.member_id;
+                    const { member_id } = await response.json();
+                    console.log('Generated Member ID:', member_id);
 
-                    // Create auth user with the server-generated member ID
+                    // Create auth user
                     const { data: authData, error: authError } = await supabaseClient.auth.signUp({
                         email,
                         password,
                         options: {
                             data: {
                                 full_name: fullName,
-                                member_id: memberId,
+                                member_id: member_id,
                                 membership_type: 'standard',
                                 membership_status: 'pending',
                                 verification_token: verificationToken
@@ -281,64 +276,43 @@
                         }
                     });
 
-                    if (authError) {
-                        console.error('Auth error:', authError);
-                        if (authError.message.includes('already registered')) {
-                            throw new Error('An account with this email already exists');
-                        }
-                        throw new Error(authError.message);
-                    }
-
-                    authData = data;
-
-                    if (!authData?.user?.id) {
-                        throw new Error('Failed to create user account');
-                    }
-
-                    // Wait a moment for auth to complete
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-
-                    // Create profile through server endpoint
-                    const profileResponse = await fetch('/api/create-profile', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            user_id: authData.user.id,
-                            email: email,
-                            full_name: fullName,
-                            member_id: memberId,
-                            verification_token: verificationToken
-                        })
-                    });
-
-                    const profileData = await profileResponse.json();
-
-                    if (!profileResponse.ok || (profileData.error && !profileData.message?.includes('already exists'))) {
-                        console.error('Profile error:', profileData);
-                        throw new Error('Failed to create user profile');
-                    }
+                    if (authError) throw authError;
 
                     // Send verification email using FormSubmit
-                    const verificationUrl = `https://www.blitztclub.com/verify-email?token=${verificationToken}`;
+                    const verificationUrl = `${window.location.origin}/verify-email.html?token=${verificationToken}`;
                     const formData = new FormData();
                     formData.append('email', email);
                     formData.append('_captcha', 'false');
                     formData.append('_template', 'box');
                     formData.append('_subject', 'Verify Your Blitz Tesla Club Membership');
-                    formData.append('_cc', 'info@blitztclub.com');
-                    formData.append('message', `Welcome to Blitz Tesla Club!
+                    formData.append('message', `
+Welcome to Blitz Tesla Club!
 
-Your Member ID: ${memberId}
+Your Member ID: ${member_id}
 
 Please click the link below to verify your email:
 ${verificationUrl}
 
+Note: This link will expire in 24 hours.
+
 Best regards,
 Blitz Tesla Club Team`);
 
-                    const emailResponse = await fetch(`https://formsubmit.co/ajax/${email}`, {
+                    // Store token in Supabase profile
+                    const { error: profileError } = await supabaseClient
+                        .from('profiles')
+                        .update({ 
+                            verification_token: verificationToken,
+                            token_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
+                        })
+                        .eq('id', authData.user.id);
+
+                    if (profileError) {
+                        throw new Error('Failed to store verification token');
+                    }
+
+                    console.log('Sending verification email...');
+                    const emailResponse = await fetch('https://formsubmit.co/ajax/info@blitztclub.com', {
                         method: 'POST',
                         body: formData
                     });
@@ -347,49 +321,20 @@ Blitz Tesla Club Team`);
                         throw new Error('Failed to send verification email');
                     }
 
-                    // Store email and verification token for resend functionality
+                    // Store verification data
                     localStorage.setItem('pendingVerificationEmail', email);
                     localStorage.setItem('verificationToken', verificationToken);
-                    localStorage.setItem('pendingMemberId', memberId);
+                    localStorage.setItem('pendingMemberId', member_id);
                     localStorage.setItem('registrationTime', new Date().toISOString());
-                    
-                    // Redirect to verification sent page
-                    window.location.href = 'verification-sent.html';
+
+                    console.log('Registration successful, redirecting...');
+                    window.location.replace('./verification-sent.html');
 
                 } catch (error) {
                     console.error('Registration error:', error);
-                    let errorMessage = 'Registration failed. Please try again.';
-
-                    if (error.message.includes('already exists')) {
-                        errorMessage = 'An account with this email already exists. Please login instead.';
-                    } else if (error.message.includes('Invalid email')) {
-                        errorMessage = 'Please enter a valid email address.';
-                    } else if (error.message.includes('password')) {
-                        errorMessage = 'Password must be at least 6 characters long.';
-                    } else if (error.message.includes('Database error')) {
-                        errorMessage = 'Server error. Please try again in a few minutes.';
-                    }
-
-                    // If we have an auth user but profile creation failed
-                    if (authData?.user?.id) {
-                        try {
-                            // Call cleanup endpoint
-                            const cleanupResponse = await fetch('/api/cleanup-orphaned-users', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({ user_id: authData.user.id })
-                            });
-
-                            if (!cleanupResponse.ok) {
-                                console.error('Failed to clean up user:', await cleanupResponse.text());
-                            }
-                        } catch (cleanupError) {
-                            console.error('Failed to clean up auth user:', cleanupError);
-                        }
-                    }
-                    alert(errorMessage);
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+                    alert(error.message || 'Registration failed. Please try again.');
                 }
             });
 

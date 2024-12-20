@@ -9,25 +9,16 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 
-// CORS middleware for Vercel
-const corsMiddleware = (req, res, next) => {
-    // Set CORS headers
-    res.setHeader('Access-Control-Allow-Origin', 'https://www.blitztclub.com');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-
-    // Handle preflight requests
-    if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
-    }
-
-    next();
+// CORS middleware configuration
+const corsOptions = {
+    origin: ['https://www.blitztclub.com', 'https://blitztclub.com'],
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Accept', 'Origin'],
+    credentials: true,
+    maxAge: 86400 // 24 hours
 };
 
-// Apply CORS middleware to all routes
-app.use(corsMiddleware);
+app.use(cors(corsOptions));
 
 // Get absolute path to project directory
 const PROJECT_ROOT = path.resolve(__dirname);
@@ -362,7 +353,13 @@ app.get('/test-email', async (req, res) => {
     }
 });
 
+// Member ID generation endpoint
 app.post('/api/generate-member-id', async (req, res) => {
+    // Handle preflight
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+
     try {
         const { membership_type } = req.body;
         
@@ -390,6 +387,12 @@ app.post('/api/generate-member-id', async (req, res) => {
         }
 
         const member_id = `BTC${String(nextNumber).padStart(3, '0')}`;
+        
+        // Set CORS headers explicitly for the response
+        res.setHeader('Access-Control-Allow-Origin', 'https://www.blitztclub.com');
+        res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Origin');
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
         
         res.json({ member_id });
     } catch (error) {

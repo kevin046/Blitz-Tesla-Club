@@ -12,7 +12,10 @@ create table if not exists public.profiles (
     member_id text unique,
     membership_status text default 'pending',
     membership_type text default 'standard',
-    created_at timestamp with time zone default timezone('utc'::text, now())
+    created_at timestamp with time zone default timezone('utc'::text, now()),
+    verification_token text,
+    token_expires_at timestamptz,
+    verified_at timestamptz
 );
 
 -- Set up Row Level Security (RLS)

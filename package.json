@@ -7,5 +7,15 @@
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2"
-  }
+  },
+  "description": "Modern, responsive website for the Blitz Tesla Club featuring:\r - Responsive design for all devices\r - Mobile-optimized navigation\r - Smooth scrolling\r - Interactive elements\r - Tesla-inspired design",
+  "main": "auth.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }

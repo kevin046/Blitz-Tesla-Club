@@ -1,67 +1,30 @@
 {
   "version": 2,
-  "outputDirectory": ".",
-  "headers": [
+  "builds": [
+    { "src": "*.html", "use": "@vercel/static" },
+    { "src": "api/**/*.js", "use": "@vercel/node" }
+  ],
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, PUT, DELETE, OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization"
-        },
-        {
-          "key": "Access-Control-Allow-Credentials",
-          "value": "true"
-        },
-        {
-          "key": "Access-Control-Max-Age",
-          "value": "86400"
-        }
-      ]
-    }
-  ],
-  "rewrites": [
-    { "source": "/api/generate-member-id", "destination": "/api/generate-member-id.js" },
-    { "source": "/verify-email", "destination": "/api/verify-email" },
-    { "source": "/api/register", "destination": "/api/register" },
-    { "source": "/", "destination": "/index.html" },
-    { "source": "/dashboard", "destination": "/dashboard.html" },
-    { "source": "/login", "destination": "/login.html" },
-    { "source": "/events", "destination": "/events.html" },
-    { "source": "/gallery", "destination": "/gallery.html" },
-    { "source": "/executive", "destination": "/executive.html" },
-    { "source": "/news", "destination": "/news.html" },
-    { "source": "/contact", "destination": "/contact.html" },
-    { "source": "/privacy", "destination": "/privacy.html" },
-    { "source": "/verification-success", "destination": "/verification-success.html" },
-    { "source": "/verification-failed", "destination": "/verification-failed.html" },
-    { "source": "/verification-sent", "destination": "/verification-sent.html" },
-    { "source": "/api/update-member-ids", "destination": "/api/update-member-ids" },
-    { "source": "/api/cleanup-orphaned-users", "destination": "/api/cleanup-orphaned-users" },
-    { "source": "/api/:path*", "destination": "/api/:path*" }
-  ],
-  "functions": {
-    "api/**/*": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  },
-  "crons": [{
-    "path": "/api/cron",
-    "schedule": "0 10 * * *"
-  }],
-  "github": {
-    "enabled": true,
-    "silent": true,
-    "repo": "kevin046/Blitz-Tesla-Club",
-    "branch": "main"
-  }
+      "src": "/api/(.*)",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization"
+      },
+      "continue": true
+    },
+    { "handle": "filesystem" },
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/verify-email", "dest": "/api/verify-email.js" },
+    { "src": "/", "dest": "/index.html" },
+    { "src": "/dashboard", "dest": "/dashboard.html" },
+    { "src": "/login", "dest": "/login.html" },
+    { "src": "/events", "dest": "/events.html" },
+    { "src": "/gallery", "dest": "/gallery.html" },
+    { "src": "/executive", "dest": "/executive.html" },
+    { "src": "/news", "dest": "/news.html" },
+    { "src": "/contact", "dest": "/contact.html" },
+    { "src": "/privacy", "dest": "/privacy.html" }
+  ]
 } 

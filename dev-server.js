@@ -53,7 +53,14 @@ async function testSupabaseConnection() {
       .select('*')
       .limit(1);
     
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase connection error:', {
+        error: error.message,
+        code: error.code,
+        details: error.details
+      });
+      throw error;
+    }
     console.log('Test query result:', data);
     return true;
   } catch (error) {
@@ -92,10 +99,22 @@ app.post('/api/generate-member-id', async (req, res) => {
     // Test connection before proceeding
     const isConnected = await testSupabaseConnection();
     if (!isConnected) {
-      throw new Error('Database connection failed');
+      return res.status(500).json({ 
+        error: { 
+          message: 'Database connection failed. Please try again.' 
+        } 
+      });
     }
 
     const { membership_type } = req.body;
+    if (!membership_type) {
+      return res.status(400).json({ 
+        error: { 
+          message: 'Membership type is required' 
+        } 
+      });
+    }
+
     const prefix = membership_type === 'vip' ? 'VIP' : 'BTC';
     
     // Get the latest member ID
@@ -108,7 +127,12 @@ app.post('/api/generate-member-id', async (req, res) => {
 
     if (queryError) {
       console.error('Database query error:', queryError);
-      throw new Error('Failed to generate member ID');
+      return res.status(500).json({ 
+        error: { 
+          message: 'Failed to generate member ID',
+          details: queryError.message
+        } 
+      });
     }
 
     let nextNumber = 1;
@@ -123,8 +147,10 @@ app.post('/api/generate-member-id', async (req, res) => {
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ 
-      error: error.message,
-      type: 'database_error'
+      error: {
+        message: error.message || 'Internal server error',
+        type: 'database_error'
+      }
     });
   }
 });

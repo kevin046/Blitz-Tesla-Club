@@ -329,7 +329,7 @@
                     // Generate member ID first
                     const apiUrl = window.location.hostname === 'localhost' 
                         ? 'http://localhost:3000/api/generate-member-id'
-                        : '/api/generate-member-id';
+                        : 'https://www.blitztclub.com/api/generate-member-id';
                     
                     console.log('Making request to:', apiUrl);
                     const response = await fetch(apiUrl, {
@@ -339,7 +339,7 @@
                             'Accept': 'application/json'
                         },
                         body: JSON.stringify({ membership_type: 'standard' }),
-                        credentials: 'include',
+                        credentials: 'same-origin',
                         mode: 'cors'
                     });
 
@@ -347,7 +347,12 @@
                     console.log('Server response:', responseData);
 
                     if (!response.ok) {
-                        throw new Error(responseData.error || responseData.message || 'Failed to generate member ID');
+                        throw new Error(
+                            responseData.error?.message || 
+                            responseData.error || 
+                            responseData.message || 
+                            'Failed to generate member ID'
+                        );
                     }
 
                     memberId = responseData.member_id;

@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="login-page">
     <nav>
@@ -74,31 +75,50 @@
             const token = urlParams.get('token');
 
             if (!token) {
-                window.location.href = './verification-failed.html';
+                console.error('No token provided in URL');
+                localStorage.setItem('verificationError', 'No verification token provided');
+                window.location.href = 'verification-failed.html';
                 return;
             }
 
             try {
-                console.log('Starting verification process with token:', token);
+                console.log('Starting verification with token:', token);
                 
-                // Initialize Supabase
+                // Initialize Supabase client
                 const supabaseClient = supabase.createClient(
                     'https://qhkcrrphsjpytdfqfamq.supabase.co',
                     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI'
                 );
 
                 // Get profile by verification token
-                const { data: profile, error: profileError } = await supabaseClient
+                console.log('Fetching profile for token...');
+                const { data: profiles, error: profileError } = await supabaseClient
                     .from('profiles')
                     .select('*')
-                    .eq('verification_token', token)
-                    .single();
+                    .eq('verification_token', token);
 
-                if (profileError || !profile) {
-                    throw new Error('Invalid verification token');
+                if (profileError) {
+                    console.error('Profile fetch error:', profileError);
+                    throw new Error(`Failed to fetch profile: ${profileError.message}`);
                 }
 
+                console.log('Profiles found:', profiles ? profiles.length : 0);
+
+                if (!profiles || profiles.length === 0) {
+                    console.error('No profile found for token');
+                    throw new Error('Invalid or expired verification token. Please request a new verification email.');
+                }
+
+                if (profiles.length > 1) {
+                    console.error('Multiple profiles found for token');
+                    throw new Error('Invalid verification state. Please contact support.');
+                }
+
+                const profile = profiles[0];
+                console.log('Profile found:', { id: profile.id, status: profile.membership_status });
+
                 // Update profile status
+                console.log('Updating profile status...');
                 const { error: updateError } = await supabaseClient
                     .from('profiles')
                     .update({
@@ -108,18 +128,19 @@
                     .eq('id', profile.id);
 
                 if (updateError) {
-                    console.error('Profile update error:', updateError);
+                    console.error('Update error:', updateError);
                     throw new Error(`Failed to update profile: ${updateError.message}`);
                 }
 
-                console.log('Verification successful, redirecting to success page...');
-                window.location.href = './verification-success.html';
+                console.log('Verification successful, redirecting...');
+                // Redirect to success page
+                window.location.href = `verification-success.html?verified=true&id=${profile.id}`;
 
             } catch (error) {
                 console.error('Verification error:', error);
-                // Store error message for display
-                localStorage.setItem('verificationError', error.message);
-                window.location.href = './verification-failed.html';
+                // Store the actual error message for display
+                localStorage.setItem('verificationError', error.message || 'Verification process failed. Please try again.');
+                window.location.href = 'verification-failed.html';
             }
         });
     </script>

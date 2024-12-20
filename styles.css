@@ -3183,4 +3183,56 @@ canvas.qr-code {
         margin-bottom: 0;
     }
 }
+
+/* Login and Register Header Styles */
+.login-header h2,
+.register-header h2 {
+    color: #171a20 !important;  /* Force black color */
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.login-header p,
+.register-header p {
+    color: #666 !important;  /* Dark gray for subtitle */
+    font-size: 1.1rem;
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+/* Logo styling */
+.login-logo,
+.register-logo {
+    width: 150px;
+    height: auto;
+    margin: 0 auto 1.5rem;
+    display: block;
+}
+
+/* Container styling */
+.login-box,
+.register-box {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .login-header h2,
+    .register-header h2 {
+        font-size: 1.75rem;
+    }
+
+    .login-header p,
+    .register-header p {
+        font-size: 1rem;
+    }
+}
   

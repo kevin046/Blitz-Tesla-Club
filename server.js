@@ -362,6 +362,42 @@ app.get('/test-email', async (req, res) => {
     }
 });
 
+app.post('/api/generate-member-id', async (req, res) => {
+    try {
+        const { membership_type } = req.body;
+        
+        if (!membership_type) {
+            return res.status(400).json({ error: 'Membership type is required' });
+        }
+
+        // Get the latest member ID from Supabase
+        const { data: latestMember, error: queryError } = await supabase
+            .from('profiles')
+            .select('member_id')
+            .like('member_id', 'BTC%')
+            .order('member_id', { ascending: false })
+            .limit(1);
+
+        if (queryError) {
+            console.error('Database query error:', queryError);
+            throw new Error('Failed to generate member ID');
+        }
+
+        let nextNumber = 1;
+        if (latestMember && latestMember.length > 0) {
+            const currentNumber = parseInt(latestMember[0].member_id.slice(3));
+            nextNumber = currentNumber + 1;
+        }
+
+        const member_id = `BTC${String(nextNumber).padStart(3, '0')}`;
+        
+        res.json({ member_id });
+    } catch (error) {
+        console.error('Error generating member ID:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);

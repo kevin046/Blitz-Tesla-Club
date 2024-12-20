@@ -55,17 +55,7 @@
 
             <form class="login-form" id="registerForm" novalidate>
                 <div class="form-group">
-                    <label for="username">
-                        <i class="fas fa-at"></i>
-                        Username
-                    </label>
-                    <input type="text" id="username" name="username" required
-                           placeholder="Choose a username"
-                           autocomplete="username"
-                           minlength="3"
-                           pattern="^[a-zA-Z0-9_-]{3,20}$">
-                    <small class="form-hint">3-20 characters, letters, numbers, - and _ only</small>
-                    <div class="form-validation-icon"></div>
+
                 </div>
 
                 <div class="form-group">
@@ -258,34 +248,26 @@
                     // Generate verification token
                     const verificationToken = crypto.randomUUID();
 
-                    // Generate member ID first
-                    const apiUrl = window.location.hostname === 'localhost' 
-                        ? 'http://localhost:3000/api/generate-member-id'
-                        : '/api/generate-member-id';
+                    // Use production API for member ID generation
+                    const apiUrl = 'https://www.blitztclub.com/api/generate-member-id';
                     
-                    console.log('Making request to:', apiUrl);
-                    const response = await fetch(apiUrl, {
+                     // Generate member ID first
+                    const response = await fetch(getApiUrl('generate-member-id'), {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
+                            'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ membership_type: 'standard' }),
-                        credentials: 'include',
-                        mode: 'cors'
+                        body: JSON.stringify({ membership_type: 'standard' })
                     });
+                    if (!response.ok) throw new Error('Failed to generate member ID');
+                    const memberIdData = await response.json();
+                    memberId = memberIdData.member_id;
 
-                    const responseData = await response.json();
-                    console.log('Server response:', responseData);
-
-                    if (!response.ok) {
-                        throw new Error(responseData.error || responseData.message || 'Failed to generate member ID');
-                    }
 
                     memberId = responseData.member_id;
 
-                    // Create auth user
-                    const { data, error: authError } = await supabaseClient.auth.signUp({
+                    // Create auth user with the server-generated member ID
+                    const { data: authData, error: authError } = await supabaseClient.auth.signUp({
                         email,
                         password,
                         options: {
@@ -293,10 +275,9 @@
                                 full_name: fullName,
                                 member_id: memberId,
                                 membership_type: 'standard',
-                                membership_status: 'pending'
-                            },
-                            emailRedirectTo: `${window.location.origin}/verify-email`,
-                            autoConfirm: false
+                                membership_status: 'pending',
+                                verification_token: verificationToken
+                            }
                         }
                     });
 

@@ -96,42 +96,35 @@ app.get('/api/test-supabase', async (req, res) => {
 // Handle generate-member-id endpoint
 app.post('/api/generate-member-id', async (req, res) => {
   try {
-    // Test connection before proceeding
-    const isConnected = await testSupabaseConnection();
-    if (!isConnected) {
-      return res.status(500).json({ 
-        error: { 
-          message: 'Database connection failed. Please try again.' 
-        } 
-      });
+    // Enable CORS for localhost
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept');
+
+    if (req.method === 'OPTIONS') {
+      return res.status(200).end();
     }
 
     const { membership_type } = req.body;
     if (!membership_type) {
       return res.status(400).json({ 
-        error: { 
-          message: 'Membership type is required' 
-        } 
+        error: { message: 'Membership type is required' }
       });
     }
 
-    const prefix = membership_type === 'vip' ? 'VIP' : 'BTC';
-    
     // Get the latest member ID
     const { data: latestMember, error: queryError } = await supabase
       .from('profiles')
       .select('member_id')
-      .like('member_id', `${prefix}%`)
+      .like('member_id', 'BTC%')
       .order('member_id', { ascending: false })
       .limit(1);
 
     if (queryError) {
       console.error('Database query error:', queryError);
       return res.status(500).json({ 
-        error: { 
-          message: 'Failed to generate member ID',
-          details: queryError.message
-        } 
+        error: { message: 'Failed to generate member ID' }
       });
     }
 
@@ -141,16 +134,13 @@ app.post('/api/generate-member-id', async (req, res) => {
       nextNumber = currentNumber + 1;
     }
 
-    const member_id = `${prefix}${String(nextNumber).padStart(3, '0')}`;
+    const member_id = `BTC${String(nextNumber).padStart(3, '0')}`;
     res.json({ member_id });
 
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ 
-      error: {
-        message: error.message || 'Internal server error',
-        type: 'database_error'
-      }
+      error: { message: 'Internal server error' }
     });
   }
 });

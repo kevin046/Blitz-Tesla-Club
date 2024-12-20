@@ -1,78 +1,51 @@
 {
   "version": 2,
   "outputDirectory": ".",
-  "routes": [
+  "headers": [
     {
-      "src": "/api/(.*)",
-      "methods": ["OPTIONS"],
-      "status": 204,
-      "headers": {
-        "Access-Control-Allow-Origin": "${process.env.NODE_ENV === 'production' ? 'https://www.blitztclub.com' : 'http://localhost:3000'}",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Max-Age": "86400"
-      }
-    },
-    {
-      "src": "/api/generate-member-id",
-      "dest": "/api/generate-member-id.js",
-      "methods": ["POST"],
-      "headers": {
-        "Access-Control-Allow-Origin": "${process.env.NODE_ENV === 'production' ? 'https://www.blitztclub.com' : 'http://localhost:3000'}",
-        "Access-Control-Allow-Methods": "POST",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Allow-Credentials": "true"
-      }
-    },
-    {
-      "src": "/verify-email",
-      "dest": "/api/verify-email"
-    },
-    {
-      "src": "/api/register",
-      "dest": "/api/register",
-      "methods": ["POST"],
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization"
-      }
-    },
-    { "src": "/", "dest": "/index.html" },
-    { "src": "/dashboard", "dest": "/dashboard.html" },
-    { "src": "/login", "dest": "/login.html" },
-    { "src": "/events", "dest": "/events.html" },
-    { "src": "/gallery", "dest": "/gallery.html" },
-    { "src": "/executive", "dest": "/executive.html" },
-    { "src": "/news", "dest": "/news.html" },
-    { "src": "/contact", "dest": "/contact.html" },
-    { "src": "/privacy", "dest": "/privacy.html" },
-    { "src": "/verification-success", "dest": "/verification-success.html" },
-    { "src": "/verification-failed", "dest": "/verification-failed.html" },
-    { "src": "/verification-sent", "dest": "/verification-sent.html" },
-    {
-      "src": "/api/update-member-ids",
-      "dest": "/api/update-member-ids",
-      "methods": ["POST"],
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization"
-      }
-    },
-    {
-      "src": "/api/cleanup-orphaned-users",
-      "dest": "/api/cleanup-orphaned-users",
-      "methods": ["POST"],
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization"
-      }
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "https://www.blitztclub.com"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        },
+        {
+          "key": "Access-Control-Allow-Credentials",
+          "value": "true"
+        },
+        {
+          "key": "Access-Control-Max-Age",
+          "value": "86400"
+        }
+      ]
     }
   ],
   "rewrites": [
+    { "source": "/api/generate-member-id", "destination": "/api/generate-member-id.js" },
+    { "source": "/verify-email", "destination": "/api/verify-email" },
+    { "source": "/api/register", "destination": "/api/register" },
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/dashboard", "destination": "/dashboard.html" },
+    { "source": "/login", "destination": "/login.html" },
+    { "source": "/events", "destination": "/events.html" },
+    { "source": "/gallery", "destination": "/gallery.html" },
+    { "source": "/executive", "destination": "/executive.html" },
+    { "source": "/news", "destination": "/news.html" },
+    { "source": "/contact", "destination": "/contact.html" },
+    { "source": "/privacy", "destination": "/privacy.html" },
+    { "source": "/verification-success", "destination": "/verification-success.html" },
+    { "source": "/verification-failed", "destination": "/verification-failed.html" },
+    { "source": "/verification-sent", "destination": "/verification-sent.html" },
+    { "source": "/api/update-member-ids", "destination": "/api/update-member-ids" },
+    { "source": "/api/cleanup-orphaned-users", "destination": "/api/cleanup-orphaned-users" },
     { "source": "/api/:path*", "destination": "/api/:path*" }
   ],
   "functions": {

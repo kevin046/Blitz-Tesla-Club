@@ -5,13 +5,21 @@ const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 
-app.use(cors({
-  origin: '*',
+// CORS configuration
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://www.blitztclub.com', 'https://blitztclub.com']
+    : ['http://localhost:3000', 'http://127.0.0.1:3000'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  maxAge: 86400 // 24 hours
+};
 
-app.options('*', cors());
+app.use(cors(corsOptions));
+
+// Pre-flight requests
+app.options('*', cors(corsOptions));
 
 app.use(express.json());
 app.use(express.static('.'));

@@ -339,8 +339,8 @@
                             'Accept': 'application/json'
                         },
                         body: JSON.stringify({ membership_type: 'standard' }),
-                        mode: 'cors',
-                        credentials: 'omit'
+                        credentials: 'include',
+                        mode: 'cors'
                     });
 
                     const responseData = await response.json();

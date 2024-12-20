@@ -11,39 +11,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        body.login-page {
-            background: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.9) 100%);
-            min-height: 100vh;
-        }
-    </style>
+    <script src="./nav.js"></script>
 </head>
 <body class="login-page">
-    <nav>
-        <div class="logo">
-            <a href="./index.html">
-                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo">
-                <span>BLITZ TESLA CLUB</span>
-            </a>
-        </div>
-        <div class="menu-toggle">
-            <i class="fas fa-bars"></i>
-        </div>
-        <ul class="nav-links">
-            <li><a href="./index.html">Home</a></li>
-            <li><a href="./events.html">Events</a></li>
-            <li><a href="./gallery.html">Gallery</a></li>
-            <li><a href="./executive.html">Executives</a></li>
-            <li><a href="./news.html">News</a></li>
-            <li><a href="./register.html">Join Us</a></li>
-            <li><a href="./login.html">Login</a></li>
-        </ul>
-    </nav>
+    <nav></nav>
 
-    <main class="register-container">
-        <div class="register-box">
-            <div class="register-header">
-                <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" class="register-logo">
+    <main class="login-container">
+        <div class="login-box register-box">
+            <div class="login-header">
+                <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" class="login-logo">
                 <h2>Join Blitz Tesla Club</h2>
                 <p>Create your account to become a member</p>
             </div>
@@ -57,14 +33,16 @@
                     <span class="step-text">Account</span>
                     <span class="step-description">Create your account</span>
                 </div>
+                <div class="progress-line"></div>
                 <div class="progress-step">
                     <div class="step-icon">
-                        <i class="fas fa-envelope-open-text"></i>
+                        <i class="fas fa-envelope"></i>
                         <span class="step-number">2</span>
                     </div>
                     <span class="step-text">Verify</span>
                     <span class="step-description">Verify your email</span>
                 </div>
+                <div class="progress-line"></div>
                 <div class="progress-step">
                     <div class="step-icon">
                         <i class="fas fa-check-circle"></i>
@@ -76,6 +54,19 @@
             </div>
 
             <form class="login-form" id="registerForm" novalidate>
+                <div class="form-group">
+                    <label for="username">
+                        <i class="fas fa-at"></i>
+                        Username
+                    </label>
+                    <input type="text" id="username" name="username" required
+                           placeholder="Choose a username"
+                           autocomplete="username"
+                           minlength="3"
+                           pattern="^[a-zA-Z0-9_-]{3,20}$">
+                    <small class="form-hint">3-20 characters, letters, numbers, - and _ only</small>
+                    <div class="form-validation-icon"></div>
+                </div>
 
                 <div class="form-group">
                     <label for="fullName">
@@ -160,57 +151,7 @@
         </div>
     </main>
 
-    <footer>
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3>Quick Links</h3>
-                <div class="footer-links">
-                    <a href="./index.html">Home</a>
-                    <a href="./events.html">Events</a>
-                    <a href="./gallery.html">Gallery</a>
-                    <a href="./contact.html">Contact</a>
-                </div>
-            </div>
-            
-            <div class="footer-section">
-                <h3>Member Area</h3>
-                <div class="footer-links">
-                    <a href="./login.html">Login</a>
-                    <a href="./register.html">Register</a>
-                    <a href="./sponsors.html">Our Sponsors</a>
-                    <a href="./index.html#member-benefits">Member Benefits</a>
-                </div>
-            </div>
-            
-            <div class="footer-section">
-                <h3>Legal</h3>
-                <div class="footer-links">
-                    <a href="./privacy.html">Privacy Policy</a>
-                    <a href="./terms.html">Terms of Service</a>
-                    <a href="./about.html">About Us</a>
-                </div>
-            </div>
-
-            <div class="footer-section">
-                <h3>Connect With Us</h3>
-                <div class="footer-social">
-                    <a href="https://x.com/BlitzTClub" target="_blank" aria-label="Follow us on X">
-                        <i class="fa-brands fa-square-x-twitter"></i>
-                    </a>
-                    <a href="https://www.instagram.com/blitztclub/" target="_blank" aria-label="Follow us on Instagram">
-                        <i class="fab fa-instagram"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="footer-bottom">
-            <p>© 2024 Blitz Tesla Club. All rights reserved.</p>
-            <p class="powered-by">
-                Website powered by <a href="http://www.summitpixels.com" target="_blank">SummitPixels</a>
-            </p>
-        </div>
-    </footer>
+    <footer></footer>
 
     <script>
         // Helper function to get API URL
@@ -314,28 +255,36 @@
                         throw new Error('Passwords do not match');
                     }
 
-                    // Generate verification token using UUID v4
+                    // Generate verification token
                     const verificationToken = crypto.randomUUID();
-                    console.log('Generated verification token:', verificationToken);
 
                     // Generate member ID first
                     const apiUrl = window.location.hostname === 'localhost' 
                         ? 'http://localhost:3000/api/generate-member-id'
-                        : 'https://www.blitztclub.com/api/generate-member-id';
+                        : '/api/generate-member-id';
                     
+                    console.log('Making request to:', apiUrl);
                     const response = await fetch(apiUrl, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json'
                         },
-                        body: JSON.stringify({ membership_type: 'standard' })
+                        body: JSON.stringify({ membership_type: 'standard' }),
+                        credentials: 'include',
+                        mode: 'cors'
                     });
 
                     const responseData = await response.json();
+                    console.log('Server response:', responseData);
+
+                    if (!response.ok) {
+                        throw new Error(responseData.error || responseData.message || 'Failed to generate member ID');
+                    }
+
                     memberId = responseData.member_id;
 
-                    // Create auth user with verification token
+                    // Create auth user
                     const { data, error: authError } = await supabaseClient.auth.signUp({
                         email,
                         password,
@@ -344,16 +293,31 @@
                                 full_name: fullName,
                                 member_id: memberId,
                                 membership_type: 'standard',
-                                membership_status: 'pending',
-                                verification_token: verificationToken
-                            }
+                                membership_status: 'pending'
+                            },
+                            emailRedirectTo: `${window.location.origin}/verify-email`,
+                            autoConfirm: false
                         }
                     });
 
-                    if (authError) throw authError;
+                    if (authError) {
+                        console.error('Auth error:', authError);
+                        if (authError.message.includes('already registered')) {
+                            throw new Error('An account with this email already exists');
+                        }
+                        throw new Error(authError.message);
+                    }
+
                     authData = data;
 
-                    // Create profile with verification token
+                    if (!authData?.user?.id) {
+                        throw new Error('Failed to create user account');
+                    }
+
+                    // Wait a moment for auth to complete
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+
+                    // Create profile through server endpoint
                     const profileResponse = await fetch('/api/create-profile', {
                         method: 'POST',
                         headers: {
@@ -368,29 +332,32 @@
                         })
                     });
 
+                    const profileData = await profileResponse.json();
+
+                    if (!profileResponse.ok || (profileData.error && !profileData.message?.includes('already exists'))) {
+                        console.error('Profile error:', profileData);
+                        throw new Error('Failed to create user profile');
+                    }
+
                     // Send verification email using FormSubmit
-                    const verificationUrl = `verify-email.html?token=${verificationToken}`;
+                    const verificationUrl = `https://www.blitztclub.com/verify-email?token=${verificationToken}`;
                     const formData = new FormData();
                     formData.append('email', email);
                     formData.append('_captcha', 'false');
                     formData.append('_template', 'box');
                     formData.append('_subject', 'Verify Your Blitz Tesla Club Membership');
                     formData.append('_cc', 'info@blitztclub.com');
-                    formData.append('message', `
-Welcome to Blitz Tesla Club!
+                    formData.append('message', `Welcome to Blitz Tesla Club!
 
 Your Member ID: ${memberId}
 
 Please click the link below to verify your email:
 ${verificationUrl}
 
-This verification link will expire in 24 hours.
-Please complete the verification on the same device you registered from.
-
 Best regards,
 Blitz Tesla Club Team`);
 
-                    const emailResponse = await fetch('https://formsubmit.co/ajax/info@blitztclub.com', {
+                    const emailResponse = await fetch(`https://formsubmit.co/ajax/${email}`, {
                         method: 'POST',
                         body: formData
                     });
@@ -399,7 +366,7 @@ Blitz Tesla Club Team`);
                         throw new Error('Failed to send verification email');
                     }
 
-                    // Store verification data in localStorage
+                    // Store email and verification token for resend functionality
                     localStorage.setItem('pendingVerificationEmail', email);
                     localStorage.setItem('verificationToken', verificationToken);
                     localStorage.setItem('pendingMemberId', memberId);
@@ -410,7 +377,38 @@ Blitz Tesla Club Team`);
 
                 } catch (error) {
                     console.error('Registration error:', error);
-                    alert(error.message || 'Registration failed. Please try again.');
+                    let errorMessage = 'Registration failed. Please try again.';
+
+                    if (error.message.includes('already exists')) {
+                        errorMessage = 'An account with this email already exists. Please login instead.';
+                    } else if (error.message.includes('Invalid email')) {
+                        errorMessage = 'Please enter a valid email address.';
+                    } else if (error.message.includes('password')) {
+                        errorMessage = 'Password must be at least 6 characters long.';
+                    } else if (error.message.includes('Database error')) {
+                        errorMessage = 'Server error. Please try again in a few minutes.';
+                    }
+
+                    // If we have an auth user but profile creation failed
+                    if (authData?.user?.id) {
+                        try {
+                            // Call cleanup endpoint
+                            const cleanupResponse = await fetch('/api/cleanup-orphaned-users', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ user_id: authData.user.id })
+                            });
+
+                            if (!cleanupResponse.ok) {
+                                console.error('Failed to clean up user:', await cleanupResponse.text());
+                            }
+                        } catch (cleanupError) {
+                            console.error('Failed to clean up auth user:', cleanupError);
+                        }
+                    }
+                    alert(errorMessage);
                 }
             });
 

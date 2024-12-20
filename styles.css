@@ -2264,94 +2264,111 @@ footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin: 3rem auto;
-    padding: 0 40px;
-    max-width: 600px;
-    width: 100%;
+    margin: 2rem 0 3rem;
+    padding: 0 1rem;
     position: relative;
 }
 
 .progress-step {
-    flex: 1;
-    text-align: center;
-    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
-    z-index: 2;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    flex: 1;
 }
 
-/* Step Icon */
-.progress-step .step-icon {
-    width: 60px;
-    height: 60px;
-    background: rgba(23, 26, 32, 0.05);
+.step-icon {
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
+    background: #f5f5f5;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 1rem;
     position: relative;
+    margin-bottom: 0.75rem;
+    transition: all 0.3s ease;
 }
 
-.progress-step .step-icon i {
-    font-size: 24px;
-    color: #171a20;
+.step-icon i {
+    font-size: 1.2rem;
+    color: #666;
+    transition: all 0.3s ease;
 }
 
-/* Active Step */
-.progress-step.active .step-icon {
-    background: #171a20;
-    animation: pulse 2s infinite;
-}
-
-.progress-step.active .step-icon i {
-    color: #ffffff;
-}
-
-/* Step Number */
-.progress-step .step-number {
+.step-number {
     position: absolute;
-    top: -5px;
-    right: -5px;
+    top: -8px;
+    right: -8px;
     width: 24px;
     height: 24px;
     background: #171a20;
+    color: white;
     border-radius: 50%;
+    font-size: 0.8rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
-    color: white;
-    border: 2px solid #fff;
+    border: 2px solid white;
 }
 
-/* Arrow between steps */
-.progress-step:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    top: 30px;
-    left: 100%;
-    transform: translate(-50%, 0) rotate(45deg);
-    width: 10px;
-    height: 10px;
-    border-top: 2px solid #171a20;
-    border-right: 2px solid #171a20;
-    z-index: 1;
-}
-
-/* Step Text */
-.progress-step .step-text {
-    font-weight: 500;
+.step-text {
+    font-weight: 600;
     color: #171a20;
-    margin-top: 0.5rem;
+    margin-bottom: 0.25rem;
     font-size: 0.9rem;
+    transition: all 0.3s ease;
 }
 
-.progress-step .step-description {
+.step-description {
     font-size: 0.8rem;
     color: #666;
-    margin-top: 0.25rem;
+    max-width: 120px;
+}
+
+.progress-line {
+    flex: 1;
+    height: 3px;
+    background: #eee;
+    margin: 0 -20px;
+    margin-bottom: 37px;
+    position: relative;
+    z-index: 0;
+}
+
+/* Active step styles */
+.progress-step.active .step-icon {
+    background: #171a20;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(23, 26, 32, 0.15);
+}
+
+.progress-step.active .step-icon i {
+    color: white;
+}
+
+.progress-step.active .step-text {
+    color: #171a20;
+}
+
+/* Completed step styles */
+.progress-step.completed .step-icon {
+    background: #16a34a;
+}
+
+.progress-step.completed .step-icon i {
+    color: white;
+}
+
+.progress-step.completed + .progress-line {
+    background: #16a34a;
+}
+
+/* Current step highlight */
+.progress-step.current .step-icon {
+    animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
@@ -2366,21 +2383,36 @@ footer {
     }
 }
 
-/* Mobile Adjustments */
+/* Mobile Responsive */
 @media (max-width: 768px) {
     .registration-progress {
-        padding: 0 20px;
+        margin: 1.5rem 0 2rem;
+        padding: 0;
     }
 
-    .progress-step .step-icon {
-        width: 50px;
-        height: 50px;
+    .step-icon {
+        width: 40px;
+        height: 40px;
     }
 
-    .progress-step:not(:last-child)::after {
-        top: 25px;
-        width: 8px;
-        height: 8px;
+    .step-number {
+        width: 20px;
+        height: 20px;
+        font-size: 0.7rem;
+    }
+
+    .step-text {
+        font-size: 0.8rem;
+    }
+
+    .step-description {
+        font-size: 0.7rem;
+        max-width: 80px;
+    }
+
+    .progress-line {
+        margin: 0 -10px;
+        margin-bottom: 32px;
     }
 }
 
@@ -3150,252 +3182,5 @@ canvas.qr-code {
     .verification-steps .step i {
         margin-bottom: 0;
     }
-}
-
-/* Registration Container */
-.register-container {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    background: #f5f5f5;
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.register-box {
-    background: #ffffff;
-    border-radius: 20px;
-    padding: 3rem;
-    width: 100%;
-    max-width: 600px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin: 0 auto;
-    position: relative;
-}
-
-/* Progress Steps Container */
-.registration-progress {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin: 3rem auto;
-    padding: 0 40px;
-    max-width: 600px;
-    width: 100%;
-    position: relative;
-}
-
-.progress-step {
-    flex: 1;
-    text-align: center;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    z-index: 2;
-}
-
-/* Step Icon */
-.progress-step .step-icon {
-    width: 60px;
-    height: 60px;
-    background: rgba(23, 26, 32, 0.05);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1rem;
-    position: relative;
-}
-
-.progress-step .step-icon i {
-    font-size: 24px;
-    color: #171a20;
-}
-
-/* Active Step */
-.progress-step.active .step-icon {
-    background: #171a20;
-    animation: pulse 2s infinite;
-}
-
-.progress-step.active .step-icon i {
-    color: #ffffff;
-}
-
-/* Step Number */
-.progress-step .step-number {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    width: 24px;
-    height: 24px;
-    background: #171a20;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    color: white;
-    border: 2px solid #fff;
-}
-
-/* Arrow between steps */
-.progress-step:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    top: 30px;
-    left: 100%;
-    transform: translate(-50%, 0) rotate(45deg);
-    width: 10px;
-    height: 10px;
-    border-top: 2px solid #171a20;
-    border-right: 2px solid #171a20;
-    z-index: 1;
-}
-
-/* Step Text */
-.progress-step .step-text {
-    font-weight: 500;
-    color: #171a20;
-    margin-top: 0.5rem;
-    font-size: 0.9rem;
-}
-
-.progress-step .step-description {
-    font-size: 0.8rem;
-    color: #666;
-    margin-top: 0.25rem;
-}
-
-@keyframes pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(23, 26, 32, 0.4);
-    }
-    70% {
-        box-shadow: 0 0 0 10px rgba(23, 26, 32, 0);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(23, 26, 32, 0);
-    }
-}
-
-/* Mobile Adjustments */
-@media (max-width: 768px) {
-    .registration-progress {
-        padding: 0 20px;
-    }
-
-    .progress-step .step-icon {
-        width: 50px;
-        height: 50px;
-    }
-
-    .progress-step:not(:last-child)::after {
-        top: 25px;
-        width: 8px;
-        height: 8px;
-    }
-}
-
-/* Form Content */
-.register-form {
-    max-width: 500px;
-    margin: 0 auto;
-    width: 100%;
-}
-
-/* Mobile Responsiveness */
-@media (max-width: 768px) {
-    .register-container {
-        padding: 1rem;
-    }
-
-    .register-box {
-        padding: 2rem;
-        margin: 1rem;
-    }
-
-    .progress-step:not(:last-child)::after {
-        top: 20px;
-        right: -10px;
-        width: 10px;
-        height: 10px;
-    }
-
-    .progress-step .step-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-    }
-}
-
-/* Registration Header Styles */
-.register-header {
-    text-align: center;
-    margin-bottom: 2.5rem;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.register-logo {
-    width: 150px;
-    height: auto;
-    margin: 0 auto 1.5rem;
-    display: block;
-}
-
-.register-header h2 {
-    color: #171a20;
-    font-size: 2rem;
-    margin: 1rem 0 0.5rem;
-    font-weight: 600;
-    text-align: center;
-    width: 100%;
-}
-
-.register-header p {
-    color: #666;
-    font-size: 1.1rem;
-    margin-top: 0.5rem;
-    text-align: center;
-    width: 100%;
-}
-
-/* Base styles for registration page */
-body.login-page {
-    background: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.9) 100%);
-    min-height: 100vh;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-}
-
-.register-container {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.register-box {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border-radius: 20px;
-    padding: 2.5rem;
-    width: 100%;
-    max-width: 600px;
-    margin: 0 auto;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
   

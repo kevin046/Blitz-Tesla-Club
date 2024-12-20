@@ -41,6 +41,6 @@ async function handleLogout(event) {
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
     const { error } = await supabaseClient.auth.signOut();
     if (!error) {
-        window.location.href = '/';
+        window.location.href = './index.html';
     }
 } 

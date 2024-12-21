@@ -8,7 +8,7 @@ function createNavigation() {
             </a>
         </div>
         <button class="menu-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
-            <i class="fas fa-bars"></i>
+            <span>Menu</span>
         </button>
         <div class="nav-overlay"></div>
         <ul class="nav-links">
@@ -86,10 +86,9 @@ function createNavigation() {
         navLinks.classList.toggle('active');
         navOverlay.classList.toggle('active');
         
-        // Update ARIA attributes and icon
+        // Update ARIA attributes and text
         menuToggle.setAttribute('aria-expanded', isMenuOpen);
-        const menuIcon = menuToggle.querySelector('i');
-        menuIcon.className = isMenuOpen ? 'fas fa-times' : 'fas fa-bars';
+        menuToggle.innerHTML = isMenuOpen ? '<span>Close</span>' : '<span>Menu</span>';
         
         // Toggle body scroll
         document.body.classList.toggle('menu-open');
@@ -98,7 +97,7 @@ function createNavigation() {
         const navItems = navLinks.querySelectorAll('li');
         navItems.forEach((item, index) => {
             if (isMenuOpen) {
-                item.style.transitionDelay = `${index * 0.1}s`;
+                item.style.transitionDelay = `${index * 0.05}s`;
                 item.classList.add('show');
             } else {
                 item.style.transitionDelay = '0s';

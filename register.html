@@ -288,33 +288,45 @@
 
                     // Send verification email using FormSubmit
                     const verificationUrl = `${window.location.origin}/verify-email.html?token=${verificationToken}`;
-                    const formData = {
-                        email: email,
-                        _captcha: 'false',
-                        _template: 'box',
-                        _subject: 'Verify Your Blitz Tesla Club Membership',
-                        _next: verificationUrl,
-                        _url: verificationUrl,
-                        message: `
-                            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                                <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" style="width: 150px; margin: 20px auto; display: block;">
-                                <h1 style="color: #171a20; text-align: center;">Welcome to Blitz Tesla Club!</h1>
-                                <p>Your Member ID: ${member_id}</p>
-                                <p>Please click the button below to verify your email:</p>
-                                <div style="text-align: center; margin: 30px 0;">
-                                    <a href="${verificationUrl}" 
-                                       style="background: #171a20; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
-                                        Verify Email Address
-                                    </a>
-                                </div>
-                                <p style="color: #666; font-size: 14px;">
-                                    If you can't click the button, copy and paste this URL into your browser:
-                                    <br>
-                                    ${verificationUrl}
-                                </p>
+                    const formData = new FormData();
+                    formData.append('email', email);
+                    formData.append('_captcha', 'false');
+                    formData.append('_template', 'box');
+                    formData.append('_subject', 'Verify Your Blitz Tesla Club Membership');
+                    formData.append('_next', verificationUrl);
+                    formData.append('_url', verificationUrl);
+                    formData.append('message', `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                            <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" style="width: 150px; margin: 20px auto; display: block;">
+                            <h1 style="color: #171a20; text-align: center;">Welcome to Blitz Tesla Club!</h1>
+                            <p>Your Member ID: ${member_id}</p>
+                            <p>Please click the button below to verify your email:</p>
+                            <div style="text-align: center; margin: 30px 0;">
+                                <a href="${verificationUrl}" 
+                                   style="background: #171a20; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                                    Verify Email Address
+                                </a>
                             </div>
-                        `
-                    };
+                            <p style="color: #666; font-size: 14px;">
+                                If you can't click the button, copy and paste this URL into your browser:
+                                <br>
+                                ${verificationUrl}
+                            </p>
+                        </div>
+                    `);
+
+                    console.log('Sending verification email...');
+                    const emailResponse = await fetch('https://formsubmit.co/ajax/info@blitztclub.com', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(Object.fromEntries(formData))
+                    });
+
+                    if (!emailResponse.ok) {
+                        throw new Error('Failed to send verification email');
+                    }
 
                     // Store token in Supabase profile
                     const { error: profileError } = await supabaseClient
@@ -327,19 +339,6 @@
 
                     if (profileError) {
                         throw new Error('Failed to store verification token');
-                    }
-
-                    console.log('Sending verification email...');
-                    const emailResponse = await fetch('https://formsubmit.co/ajax/info@blitztclub.com', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(formData)
-                    });
-
-                    if (!emailResponse.ok) {
-                        throw new Error('Failed to send verification email');
                     }
 
                     // Store verification data

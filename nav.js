@@ -55,9 +55,6 @@ function createNavigation() {
                 item.classList.remove('show');
             }
         });
-
-        // Update nav background based on scroll position
-        updateNavBackground();
     }
 
     // Handle menu toggle click
@@ -92,26 +89,6 @@ function createNavigation() {
             }
         });
     });
-
-    // Update nav background based on scroll position
-    function updateNavBackground() {
-        const nav = document.querySelector('nav');
-        const scrollPosition = window.scrollY;
-        
-        if (isMenuOpen || scrollPosition > 10) {
-            nav.style.background = 'rgba(255, 255, 255, 0.95)';
-            menuToggle.style.color = '#171a20';
-        } else {
-            nav.style.background = 'transparent';
-            menuToggle.style.color = window.matchMedia('(prefers-color-scheme: dark)').matches ? '#fff' : '#171a20';
-        }
-    }
-
-    // Listen for scroll events
-    window.addEventListener('scroll', updateNavBackground);
-
-    // Initial background check
-    updateNavBackground();
 }
 
 // Initialize navigation when DOM is loaded

@@ -221,28 +221,77 @@
                 }
             });
 
+            // Function to generate sequential member ID
+            async function generateSequentialMemberId() {
+                console.log('Generating sequential member ID...');
+                const { data: existingMembers, error: fetchError } = await supabaseClient
+                    .from('profiles')
+                    .select('member_id')
+                    .not('member_id', 'is', null)
+                    .order('member_id', { ascending: true });
+
+                if (fetchError) {
+                    console.error('Error fetching last member ID:', fetchError);
+                    throw new Error('Failed to generate member ID');
+                }
+
+                let nextNumber = 1;
+                if (existingMembers && existingMembers.length > 0) {
+                    const usedNumbers = existingMembers
+                        .map(member => {
+                            const matches = member.member_id.match(/BTC(\d+)/);
+                            return matches ? parseInt(matches[1]) : 0;
+                        })
+                        .filter(num => num > 0)
+                        .sort((a, b) => a - b);
+
+                    // Find the first available number
+                    for (let i = 0; i < usedNumbers.length; i++) {
+                        if (usedNumbers[i] !== i + 1) {
+                            nextNumber = i + 1;
+                            break;
+                        }
+                    }
+                    // If no gaps found, use next number after the last one
+                    if (nextNumber === 1) {
+                        nextNumber = usedNumbers.length + 1;
+                    }
+                }
+
+                const memberId = `BTC${nextNumber.toString().padStart(3, '0')}`;
+                console.log('Generated Member ID:', memberId);
+                return memberId;
+            }
+
             // Function to handle form submission
             registerForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
+                const submitButton = document.querySelector('.login-btn');
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
                 
                 try {
-                    console.log('Starting registration process...');
-                    
                     // Get form values
-                    const email = document.getElementById('email').value;
+                    const fullName = document.getElementById('fullName').value.trim();
+                    const email = document.getElementById('email').value.trim();
                     const password = document.getElementById('password').value;
-                    const fullName = document.getElementById('fullName').value;
-                    const phone = document.getElementById('phone').value;
-                    const carModel = document.getElementById('carModel').value;
-                    const carYear = document.getElementById('carYear').value;
-                    
-                    // Generate member ID
-                    console.log('Generating sequential member ID...');
-                    const memberId = await generateSequentialMemberId();
-                    console.log('Generated Member ID:', memberId);
+                    const confirmPassword = document.getElementById('confirmPassword').value;
+                    const terms = document.getElementById('terms').checked;
 
-                    // First, create the user with minimal data
-                    const { data: { user }, error: signUpError } = await supabase.auth.signUp({
+                    // Basic validation
+                    if (!fullName || !email || !password || !confirmPassword || !terms) {
+                        throw new Error('Please fill in all fields and accept the terms');
+                    }
+
+                    if (password !== confirmPassword) {
+                        throw new Error('Passwords do not match');
+                    }
+
+                    // Generate verification token
+                    const verificationToken = crypto.randomUUID();
+                    
+                    // First create the auth user
+                    const { data: authData, error: authError } = await supabaseClient.auth.signUp({
                         email,
                         password,
                         options: {
@@ -252,24 +301,35 @@
                         }
                     });
 
-                    if (signUpError) throw signUpError;
+                    if (authError) throw authError;
 
-                    // Wait a moment for the user to be fully created
+                    // Wait for user creation
                     await new Promise(resolve => setTimeout(resolve, 1000));
 
-                    // Then update the user's profile with additional data
-                    const { error: updateError } = await supabase
+                    // Generate member ID
+                    const memberId = await generateSequentialMemberId();
+
+                    // Update profile with member ID and verification token
+                    const { error: profileError } = await supabaseClient
                         .from('profiles')
                         .update({
+                            full_name: fullName,
                             member_id: memberId,
-                            phone: phone,
-                            car_model: carModel,
-                            car_year: carYear,
-                            verification_token: generateVerificationToken()
+                            membership_status: 'pending',
+                            verification_token: verificationToken
                         })
-                        .eq('id', user.id);
+                        .eq('id', authData.user.id);
 
-                    if (updateError) throw updateError;
+                    if (profileError) {
+                        console.error('Profile update error:', profileError);
+                        throw new Error('Failed to create user profile');
+                    }
+
+                    // Store verification data
+                    localStorage.setItem('pendingVerificationEmail', email);
+                    localStorage.setItem('verificationToken', verificationToken);
+                    localStorage.setItem('pendingMemberId', memberId);
+                    localStorage.setItem('registrationTime', new Date().toISOString());
 
                     // Show success message and redirect
                     showMessage('Registration successful! Please check your email to verify your account.', 'success');
@@ -279,7 +339,9 @@
 
                 } catch (error) {
                     console.error('Registration error:', error);
-                    showMessage('Registration failed. Please try again.', 'error');
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+                    showMessage(error.message || 'Registration failed. Please try again.', 'error');
                 }
             });
 

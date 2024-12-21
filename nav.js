@@ -7,7 +7,7 @@ function createNavigation() {
                 <span>BLITZ TESLA CLUB</span>
             </a>
         </div>
-        <div class="menu-toggle">
+        <div class="menu-toggle" aria-label="Toggle navigation menu">
             <i class="fas fa-bars"></i>
         </div>
         <ul class="nav-links">
@@ -67,9 +67,89 @@ function createNavigation() {
         </div>
     </footer>`;
 
-    // Insert navigation
+    // Insert navigation and footer
     document.querySelector('nav').outerHTML = nav;
     document.querySelector('footer').outerHTML = footer;
+
+    // Mobile navigation functionality
+    const menuToggle = document.querySelector('.menu-toggle');
+    const navLinks = document.querySelector('.nav-links');
+    let isMenuOpen = false;
+
+    function toggleMenu() {
+        isMenuOpen = !isMenuOpen;
+        navLinks.style.transform = isMenuOpen ? 'translateX(0)' : 'translateX(100%)';
+        navLinks.style.opacity = isMenuOpen ? '1' : '0';
+        
+        // Update aria-expanded for accessibility
+        menuToggle.setAttribute('aria-expanded', isMenuOpen);
+        
+        // Prevent body scrolling when menu is open
+        document.body.style.overflow = isMenuOpen ? 'hidden' : '';
+        
+        // Update menu icon
+        const menuIcon = menuToggle.querySelector('i');
+        menuIcon.className = isMenuOpen ? 'fas fa-times' : 'fas fa-bars';
+    }
+
+    // Handle menu toggle click
+    menuToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleMenu();
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (isMenuOpen && !navLinks.contains(e.target) && !menuToggle.contains(e.target)) {
+            toggleMenu();
+        }
+    });
+
+    // Close menu when pressing escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isMenuOpen) {
+            toggleMenu();
+        }
+    });
+
+    // Handle window resize
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            if (window.innerWidth > 768 && isMenuOpen) {
+                toggleMenu();
+            }
+        }, 250);
+    });
+
+    // Add touch event handling for iOS
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    document.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, false);
+
+    document.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, false);
+
+    function handleSwipe() {
+        const swipeThreshold = 50;
+        const swipeDistance = touchEndX - touchStartX;
+
+        if (Math.abs(swipeDistance) > swipeThreshold) {
+            if (swipeDistance > 0 && !isMenuOpen) {
+                // Swipe right, open menu
+                toggleMenu();
+            } else if (swipeDistance < 0 && isMenuOpen) {
+                // Swipe left, close menu
+                toggleMenu();
+            }
+        }
+    }
 }
 
 document.addEventListener('DOMContentLoaded', createNavigation); 

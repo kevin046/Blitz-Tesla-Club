@@ -251,8 +251,8 @@
                         .from('profiles')
                         .select('member_id')
                         .not('member_id', 'is', null)
-                        .order('member_id', { ascending: false })
-                        .limit(1);
+                        .order('member_id', { ascending: true })
+                        .limit(100); // Get more members to check for gaps
 
                     if (fetchError) {
                         console.error('Error fetching last member ID:', fetchError);
@@ -261,11 +261,25 @@
 
                     let nextNumber = 1; // Start from 1 if no existing members
                     if (existingMembers && existingMembers.length > 0) {
-                        const lastMemberId = existingMembers[0].member_id;
-                        // Extract only the numeric part using regex
-                        const matches = lastMemberId.match(/BTC(\d+)/);
-                        if (matches && matches[1]) {
-                            nextNumber = parseInt(matches[1]) + 1;
+                        // Sort member IDs numerically
+                        const usedNumbers = existingMembers
+                            .map(member => {
+                                const matches = member.member_id.match(/BTC(\d+)/);
+                                return matches ? parseInt(matches[1]) : 0;
+                            })
+                            .filter(num => num > 0)
+                            .sort((a, b) => a - b);
+
+                        // Find the first available number
+                        for (let i = 0; i < usedNumbers.length; i++) {
+                            if (usedNumbers[i] !== i + 1) {
+                                nextNumber = i + 1;
+                                break;
+                            }
+                        }
+                        // If no gaps found, use next number after the last one
+                        if (nextNumber === 1) {
+                            nextNumber = usedNumbers.length + 1;
                         }
                     }
 
@@ -296,16 +310,19 @@
                             member_id: member_id,
                             membership_type: 'standard',
                             membership_status: 'pending',
-                            verification_token: verificationToken,
-                            token_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
+                            verification_token: verificationToken
                         })
                         .eq('id', authData.user.id);
 
                     if (profileUpdateError) {
                         console.error('Profile update error:', profileUpdateError);
                         // If profile update fails, delete the auth user
-                        await supabaseClient.auth.admin.deleteUser(authData.user.id);
-                        throw new Error('Failed to create user profile');
+                        try {
+                            await supabaseClient.auth.signOut();
+                        } catch (error) {
+                            console.error('Error cleaning up failed registration:', error);
+                        }
+                        throw new Error('Failed to create user profile. Please try again.');
                     }
 
                     // Send verification email using FormSubmit

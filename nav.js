@@ -21,57 +21,8 @@ function createNavigation() {
         </ul>
     </nav>`;
 
-    const footer = `
-    <footer>
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3>Quick Links</h3>
-                <div class="footer-links">
-                    <a href="./index.html">Home</a>
-                    <a href="./events.html">Events</a>
-                    <a href="./gallery.html">Gallery</a>
-                    <a href="./news.html">News</a>
-                </div>
-            </div>
-            
-            <div class="footer-section">
-                <h3>Member Area</h3>
-                <div class="footer-links">
-                    <a href="./login.html">Login</a>
-                    <a href="./register.html">Register</a>
-                    <a href="./executive.html">Our Team</a>
-                    <a href="./index.html#member-benefits">Member Benefits</a>
-                </div>
-            </div>
-            
-            <div class="footer-section">
-                <h3>About</h3>
-                <div class="footer-links">
-                    <a href="./about.html">About Us</a>
-                    <a href="./contact.html">Contact</a>
-                    <a href="./sponsors.html">Our Sponsors</a>
-                    <a href="./privacy.html">Privacy Policy</a>
-                    <a href="./terms.html">Terms of Service</a>
-                </div>
-            </div>
-
-            <div class="footer-section">
-                <h3>Connect With Us</h3>
-                <div class="footer-social">
-                    <a href="https://x.com/BlitzTClub" target="_blank" aria-label="Follow us on X">
-                        <i class="fa-brands fa-square-x-twitter"></i>
-                    </a>
-                    <a href="https://www.instagram.com/blitztclub/" target="_blank" aria-label="Follow us on Instagram">
-                        <i class="fab fa-instagram"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </footer>`;
-
-    // Insert navigation and footer
+    // Insert navigation
     document.querySelector('nav').outerHTML = nav;
-    document.querySelector('footer').outerHTML = footer;
 
     // Mobile navigation functionality
     const menuToggle = document.querySelector('.menu-toggle');
@@ -93,7 +44,7 @@ function createNavigation() {
         // Toggle body scroll
         document.body.classList.toggle('menu-open');
         
-        // Add animation classes to nav items
+        // Add animation classes to nav items with staggered delay
         const navItems = navLinks.querySelectorAll('li');
         navItems.forEach((item, index) => {
             if (isMenuOpen) {
@@ -104,6 +55,9 @@ function createNavigation() {
                 item.classList.remove('show');
             }
         });
+
+        // Update nav background based on scroll position
+        updateNavBackground();
     }
 
     // Handle menu toggle click
@@ -138,6 +92,26 @@ function createNavigation() {
             }
         });
     });
+
+    // Update nav background based on scroll position
+    function updateNavBackground() {
+        const nav = document.querySelector('nav');
+        const scrollPosition = window.scrollY;
+        
+        if (isMenuOpen || scrollPosition > 10) {
+            nav.style.background = 'rgba(255, 255, 255, 0.95)';
+            menuToggle.style.color = '#171a20';
+        } else {
+            nav.style.background = 'transparent';
+            menuToggle.style.color = window.matchMedia('(prefers-color-scheme: dark)').matches ? '#fff' : '#171a20';
+        }
+    }
+
+    // Listen for scroll events
+    window.addEventListener('scroll', updateNavBackground);
+
+    // Initial background check
+    updateNavBackground();
 }
 
 // Initialize navigation when DOM is loaded

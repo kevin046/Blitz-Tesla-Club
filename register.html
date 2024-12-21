@@ -221,73 +221,28 @@
                 }
             });
 
-            // Form submission
+            // Function to handle form submission
             registerForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const submitButton = document.querySelector('.login-btn');
-                submitButton.disabled = true;
-                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
-
+                
                 try {
-                    // Get form values
-                    const fullName = document.getElementById('fullName').value.trim();
-                    const email = document.getElementById('email').value.trim();
-                    const password = passwordInput.value;
-                    const confirmPassword = document.getElementById('confirmPassword').value;
-                    const terms = document.getElementById('terms').checked;
-
-                    // Basic validation
-                    if (!fullName || !email || !password || !confirmPassword || !terms) {
-                        throw new Error('Please fill in all fields and accept the terms');
-                    }
-
-                    // Generate verification token
-                    const verificationToken = crypto.randomUUID();
                     console.log('Starting registration process...');
-
-                    // Generate sequential member ID
+                    
+                    // Get form values
+                    const email = document.getElementById('email').value;
+                    const password = document.getElementById('password').value;
+                    const fullName = document.getElementById('fullName').value;
+                    const phone = document.getElementById('phone').value;
+                    const carModel = document.getElementById('carModel').value;
+                    const carYear = document.getElementById('carYear').value;
+                    
+                    // Generate member ID
                     console.log('Generating sequential member ID...');
-                    const { data: existingMembers, error: fetchError } = await supabaseClient
-                        .from('profiles')
-                        .select('member_id')
-                        .not('member_id', 'is', null)
-                        .order('member_id', { ascending: true })
-                        .limit(100); // Get more members to check for gaps
+                    const memberId = await generateSequentialMemberId();
+                    console.log('Generated Member ID:', memberId);
 
-                    if (fetchError) {
-                        console.error('Error fetching last member ID:', fetchError);
-                        throw new Error('Failed to generate member ID');
-                    }
-
-                    let nextNumber = 1; // Start from 1 if no existing members
-                    if (existingMembers && existingMembers.length > 0) {
-                        // Sort member IDs numerically
-                        const usedNumbers = existingMembers
-                            .map(member => {
-                                const matches = member.member_id.match(/BTC(\d+)/);
-                                return matches ? parseInt(matches[1]) : 0;
-                            })
-                            .filter(num => num > 0)
-                            .sort((a, b) => a - b);
-
-                        // Find the first available number
-                        for (let i = 0; i < usedNumbers.length; i++) {
-                            if (usedNumbers[i] !== i + 1) {
-                                nextNumber = i + 1;
-                                break;
-                            }
-                        }
-                        // If no gaps found, use next number after the last one
-                        if (nextNumber === 1) {
-                            nextNumber = usedNumbers.length + 1;
-                        }
-                    }
-
-                    const member_id = `BTC${nextNumber.toString().padStart(3, '0')}`;
-                    console.log('Generated Member ID:', member_id);
-
-                    // Create auth user first with minimal data
-                    const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+                    // First, create the user with minimal data
+                    const { data: { user }, error: signUpError } = await supabase.auth.signUp({
                         email,
                         password,
                         options: {
@@ -297,91 +252,34 @@
                         }
                     });
 
-                    if (authError) throw authError;
+                    if (signUpError) throw signUpError;
 
-                    // Wait a moment for the user to be created
+                    // Wait a moment for the user to be fully created
                     await new Promise(resolve => setTimeout(resolve, 1000));
 
-                    // Now create/update the profile with all the additional data
-                    const { error: profileUpdateError } = await supabaseClient
+                    // Then update the user's profile with additional data
+                    const { error: updateError } = await supabase
                         .from('profiles')
-                        .update({ 
-                            full_name: fullName,
-                            member_id: member_id,
-                            membership_type: 'standard',
-                            membership_status: 'pending',
-                            verification_token: verificationToken
+                        .update({
+                            member_id: memberId,
+                            phone: phone,
+                            car_model: carModel,
+                            car_year: carYear,
+                            verification_token: generateVerificationToken()
                         })
-                        .eq('id', authData.user.id);
+                        .eq('id', user.id);
 
-                    if (profileUpdateError) {
-                        console.error('Profile update error:', profileUpdateError);
-                        // If profile update fails, delete the auth user
-                        try {
-                            await supabaseClient.auth.signOut();
-                        } catch (error) {
-                            console.error('Error cleaning up failed registration:', error);
-                        }
-                        throw new Error('Failed to create user profile. Please try again.');
-                    }
+                    if (updateError) throw updateError;
 
-                    // Send verification email using FormSubmit
-                    const verificationUrl = `${window.location.origin}/verify-email.html?token=${verificationToken}`;
-                    const formData = {
-                        email: email,
-                        _captcha: 'false',
-                        _template: 'box',
-                        _subject: 'Verify Your Blitz Tesla Club Membership',
-                        _next: verificationUrl,
-                        _url: verificationUrl,
-                        message: `
-                            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                                <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" style="width: 150px; margin: 20px auto; display: block;">
-                                <h1 style="color: #171a20; text-align: center;">Welcome to Blitz Tesla Club!</h1>
-                                <p>Your Member ID: ${member_id}</p>
-                                <p>Please click the button below to verify your email:</p>
-                                <div style="text-align: center; margin: 30px 0;">
-                                    <a href="${verificationUrl}" 
-                                       style="background: #171a20; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
-                                        Verify Email Address
-                                    </a>
-                                </div>
-                                <p style="color: #666; font-size: 14px;">
-                                    If you can't click the button, copy and paste this URL into your browser:
-                                    <br>
-                                    ${verificationUrl}
-                                </p>
-                            </div>
-                        `
-                    };
-
-                    console.log('Sending verification email...');
-                    const emailResponse = await fetch('https://formsubmit.co/ajax/info@blitztclub.com', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(formData)
-                    });
-
-                    if (!emailResponse.ok) {
-                        throw new Error('Failed to send verification email');
-                    }
-
-                    // Store verification data
-                    localStorage.setItem('pendingVerificationEmail', email);
-                    localStorage.setItem('verificationToken', verificationToken);
-                    localStorage.setItem('pendingMemberId', member_id);
-                    localStorage.setItem('registrationTime', new Date().toISOString());
-
-                    console.log('Registration successful, redirecting...');
-                    window.location.replace('./verification-sent.html');
+                    // Show success message and redirect
+                    showMessage('Registration successful! Please check your email to verify your account.', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'verify-email.html';
+                    }, 2000);
 
                 } catch (error) {
                     console.error('Registration error:', error);
-                    submitButton.disabled = false;
-                    submitButton.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
-                    alert(error.message || 'Registration failed. Please try again.');
+                    showMessage('Registration failed. Please try again.', 'error');
                 }
             });
 

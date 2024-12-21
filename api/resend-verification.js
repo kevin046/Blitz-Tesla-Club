@@ -46,41 +46,47 @@ export default async function handler(req, res) {
             const baseUrl = process.env.NODE_ENV === 'production' 
                 ? 'https://www.blitztclub.com' 
                 : 'http://192.168.2.86:8080';
-            const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
+            const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}`;
 
-            const formData = new URLSearchParams();
-            formData.append('email', email);
-            formData.append('_captcha', 'false');
-            formData.append('_template', 'box');
-            formData.append('_replyto', email);
-            formData.append('_from', 'Blitz Tesla Club <info@blitztclub.com>');
-            formData.append('_autoresponse', `Thank you for joining Blitz Tesla Club! Your Member ID is ${profile.member_id}. Please click the verification button to activate your membership.`);
-            formData.append('_subject', 'Verify Your Blitz Tesla Club Membership');
-            formData.append('_next', verificationUrl);
-            formData.append('message', `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" style="width: 150px; margin: 20px auto; display: block;">
-                    <h1 style="color: #171a20; text-align: center;">Verify Your Email</h1>
-                    <p>Please verify your email to activate your Blitz Tesla Club membership.</p>
-                    <p style="text-align: center; margin: 30px 0;">
-                        Click the button below to verify your email address and activate your membership.
-                    </p>
-                    <p style="text-align: center; color: #171a20;">
-                        <strong>Member ID:</strong> ${profile.member_id}
-                    </p>
-                    <p style="color: #666; font-size: 14px;">
-                        If you didn't request this email, please ignore it.
-                    </p>
-                </div>
-            `);
+            const formData = {
+                email: email,
+                _captcha: 'false',
+                _template: 'box',
+                _replyto: email,
+                _from: 'Blitz Tesla Club <info@blitztclub.com>',
+                _subject: 'Verify Your Blitz Tesla Club Membership',
+                _next: verificationUrl,
+                _url: verificationUrl,
+                message: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                        <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" style="width: 150px; margin: 20px auto; display: block;">
+                        <h1 style="color: #171a20; text-align: center;">Verify Your Email</h1>
+                        <p>Please verify your email to activate your Blitz Tesla Club membership.</p>
+                        <p style="text-align: center; color: #171a20;">
+                            <strong>Member ID:</strong> ${profile.member_id}
+                        </p>
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="${verificationUrl}" 
+                               style="background: #171a20; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                                Verify Email Address
+                            </a>
+                        </div>
+                        <p style="color: #666; font-size: 14px;">
+                            If you can't click the button, copy and paste this URL into your browser:
+                            <br>
+                            ${verificationUrl}
+                        </p>
+                    </div>
+                `
+            };
 
             // Send email using FormSubmit
-            const response = await fetch('https://formsubmit.co/info@blitztclub.com', {
+            const response = await fetch('https://formsubmit.co/ajax/info@blitztclub.com', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Type': 'application/json',
                 },
-                body: formData
+                body: JSON.stringify(formData)
             });
 
             if (!response.ok) {

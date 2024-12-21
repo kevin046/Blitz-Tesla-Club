@@ -7,14 +7,14 @@ function createNavigation() {
                 <span>BLITZ TESLA CLUB</span>
             </a>
         </div>
-        <div class="menu-toggle" aria-label="Toggle navigation menu">
+        <button class="menu-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
             <i class="fas fa-bars"></i>
-        </div>
+        </button>
+        <div class="nav-overlay"></div>
         <ul class="nav-links">
             <li><a href="./index.html">Home</a></li>
             <li><a href="./events.html">Events</a></li>
             <li><a href="./gallery.html">Gallery</a></li>
-            <li><a href="./executive.html">Executives</a></li>
             <li><a href="./news.html">News</a></li>
             <li><a href="./register.html">Join Us</a></li>
             <li><a href="./login.html">Login</a></li>
@@ -30,7 +30,7 @@ function createNavigation() {
                     <a href="./index.html">Home</a>
                     <a href="./events.html">Events</a>
                     <a href="./gallery.html">Gallery</a>
-                    <a href="./contact.html">Contact</a>
+                    <a href="./news.html">News</a>
                 </div>
             </div>
             
@@ -39,17 +39,19 @@ function createNavigation() {
                 <div class="footer-links">
                     <a href="./login.html">Login</a>
                     <a href="./register.html">Register</a>
-                    <a href="./sponsors.html">Our Sponsors</a>
+                    <a href="./executive.html">Our Team</a>
                     <a href="./index.html#member-benefits">Member Benefits</a>
                 </div>
             </div>
             
             <div class="footer-section">
-                <h3>Legal</h3>
+                <h3>About</h3>
                 <div class="footer-links">
+                    <a href="./about.html">About Us</a>
+                    <a href="./contact.html">Contact</a>
+                    <a href="./sponsors.html">Our Sponsors</a>
                     <a href="./privacy.html">Privacy Policy</a>
                     <a href="./terms.html">Terms of Service</a>
-                    <a href="./about.html">About Us</a>
                 </div>
             </div>
 
@@ -74,36 +76,46 @@ function createNavigation() {
     // Mobile navigation functionality
     const menuToggle = document.querySelector('.menu-toggle');
     const navLinks = document.querySelector('.nav-links');
+    const navOverlay = document.querySelector('.nav-overlay');
     let isMenuOpen = false;
 
     function toggleMenu() {
         isMenuOpen = !isMenuOpen;
-        navLinks.style.transform = isMenuOpen ? 'translateX(0)' : 'translateX(100%)';
-        navLinks.style.opacity = isMenuOpen ? '1' : '0';
         
-        // Update aria-expanded for accessibility
+        // Toggle menu visibility
+        navLinks.classList.toggle('active');
+        navOverlay.classList.toggle('active');
+        
+        // Update ARIA attributes and icon
         menuToggle.setAttribute('aria-expanded', isMenuOpen);
-        
-        // Prevent body scrolling when menu is open
-        document.body.style.overflow = isMenuOpen ? 'hidden' : '';
-        
-        // Update menu icon
         const menuIcon = menuToggle.querySelector('i');
         menuIcon.className = isMenuOpen ? 'fas fa-times' : 'fas fa-bars';
+        
+        // Toggle body scroll
+        document.body.classList.toggle('menu-open');
+        
+        // Add animation classes to nav items
+        const navItems = navLinks.querySelectorAll('li');
+        navItems.forEach((item, index) => {
+            if (isMenuOpen) {
+                item.style.transitionDelay = `${index * 0.1}s`;
+                item.classList.add('show');
+            } else {
+                item.style.transitionDelay = '0s';
+                item.classList.remove('show');
+            }
+        });
     }
 
     // Handle menu toggle click
     menuToggle.addEventListener('click', (e) => {
+        e.preventDefault();
         e.stopPropagation();
         toggleMenu();
     });
 
-    // Close menu when clicking outside
-    document.addEventListener('click', (e) => {
-        if (isMenuOpen && !navLinks.contains(e.target) && !menuToggle.contains(e.target)) {
-            toggleMenu();
-        }
-    });
+    // Close menu when clicking overlay
+    navOverlay.addEventListener('click', toggleMenu);
 
     // Close menu when pressing escape key
     document.addEventListener('keydown', (e) => {
@@ -113,43 +125,21 @@ function createNavigation() {
     });
 
     // Handle window resize
-    let resizeTimer;
     window.addEventListener('resize', () => {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => {
-            if (window.innerWidth > 768 && isMenuOpen) {
-                toggleMenu();
-            }
-        }, 250);
+        if (window.innerWidth > 768 && isMenuOpen) {
+            toggleMenu();
+        }
     });
 
-    // Add touch event handling for iOS
-    let touchStartX = 0;
-    let touchEndX = 0;
-
-    document.addEventListener('touchstart', (e) => {
-        touchStartX = e.changedTouches[0].screenX;
-    }, false);
-
-    document.addEventListener('touchend', (e) => {
-        touchEndX = e.changedTouches[0].screenX;
-        handleSwipe();
-    }, false);
-
-    function handleSwipe() {
-        const swipeThreshold = 50;
-        const swipeDistance = touchEndX - touchStartX;
-
-        if (Math.abs(swipeDistance) > swipeThreshold) {
-            if (swipeDistance > 0 && !isMenuOpen) {
-                // Swipe right, open menu
-                toggleMenu();
-            } else if (swipeDistance < 0 && isMenuOpen) {
-                // Swipe left, close menu
+    // Close menu when clicking a link
+    navLinks.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+            if (isMenuOpen) {
                 toggleMenu();
             }
-        }
-    }
+        });
+    });
 }
 
+// Initialize navigation when DOM is loaded
 document.addEventListener('DOMContentLoaded', createNavigation); 

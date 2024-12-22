@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, minimal-ui">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Our Sponsors - Blitz Tesla Club</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -10,14 +12,260 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="navigation.js"></script>
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/BvmtNLtB/logo.png">
+    <style>
+        /* iOS Optimizations */
+        @supports (-webkit-touch-callout: none) {
+            .sponsors-container {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+                padding-left: env(safe-area-inset-left);
+                padding-right: env(safe-area-inset-right);
+            }
+
+            nav {
+                padding-top: env(safe-area-inset-top);
+            }
+
+            footer {
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+
+            /* Prevent text size adjustment */
+            body {
+                -webkit-text-size-adjust: none;
+            }
+
+            /* Improve touch targets */
+            .nav-links a,
+            .sponsor-btn,
+            .sponsor-cta {
+                min-height: 44px;
+                padding: 12px;
+            }
+
+            /* Smooth scrolling */
+            .sponsors-container {
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* Prevent unwanted highlighting */
+            * {
+                -webkit-tap-highlight-color: transparent;
+            }
+        }
+
+        /* Sponsors Page Styles */
+        .sponsors-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .sponsors-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .sponsors-header h1 {
+            font-size: 2.5em;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .sponsors-header p {
+            color: #888;
+            font-size: 1.1em;
+        }
+
+        .sponsors-intro {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .sponsors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        .sponsor-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        .sponsor-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .sponsor-logo {
+            width: 100%;
+            height: 200px;
+            background: #171a20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sponsor-logo img {
+            max-width: 80%;
+            max-height: 80%;
+            object-fit: contain;
+        }
+
+        .sponsor-content {
+            padding: 20px;
+        }
+
+        .sponsor-content h2 {
+            margin: 0 0 10px 0;
+            color: #fff;
+        }
+
+        .sponsor-category {
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+
+        .sponsor-description {
+            color: #ccc;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .sponsor-benefits {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .sponsor-benefits h3 {
+            color: #4CAF50;
+            margin: 0 0 10px 0;
+            font-size: 1.1em;
+        }
+
+        .sponsor-contact {
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+
+        .sponsor-contact p {
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sponsor-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .sponsor-btn:hover {
+            background: #45a049;
+        }
+
+        .become-sponsor {
+            text-align: center;
+            padding: 40px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-top: 40px;
+        }
+
+        .become-sponsor h2 {
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .become-sponsor p {
+            color: #ccc;
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .sponsor-cta {
+            display: inline-block;
+            padding: 15px 30px;
+            background: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+            font-weight: 500;
+        }
+
+        .sponsor-cta:hover {
+            background: #45a049;
+        }
+
+        /* Responsive Design */
+        @media screen and (max-width: 768px) {
+            .sponsors-header h1 {
+                font-size: 2em;
+            }
+
+            .sponsors-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sponsor-card {
+                max-width: 100%;
+            }
+
+            .sponsor-logo {
+                height: 150px;
+            }
+
+            .sponsor-content {
+                padding: 15px;
+            }
+
+            .become-sponsor {
+                padding: 30px 15px;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .sponsors-header h1 {
+                font-size: 1.8em;
+            }
+
+            .sponsor-btn,
+            .sponsor-cta {
+                width: 100%;
+                padding: 12px 20px;
+            }
+        }
+    </style>
 </head>
 <body class="sponsors-page">
     <nav>
         <div class="logo">
             <a href="index.html">
-                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo">
+                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo" loading="lazy">
                 <span>BLITZ TESLA CLUB</span>
             </a>
         </div>
@@ -47,7 +295,7 @@
             <!-- Sponsor Card Template -->
             <div class="sponsor-card">
                 <div class="sponsor-logo">
-                    <img src="path_to_sponsor_logo.jpg" alt="Sponsor Name">
+                    <img src="path_to_sponsor_logo.jpg" alt="Sponsor Name" loading="lazy">
                 </div>
                 <div class="sponsor-content">
                     <h2>Sponsor Name</h2>
@@ -62,11 +310,9 @@
                         <p><i class="fas fa-phone"></i> Contact Number</p>
                         <p><i class="fas fa-envelope"></i> Email Address</p>
                     </div>
-                    <a href="#" class="btn sponsor-btn" target="_blank">Learn More</a>
+                    <a href="#" class="btn sponsor-btn" target="_blank" rel="noopener">Learn More</a>
                 </div>
             </div>
-
-            <!-- Add more sponsor cards as needed -->
         </div>
 
         <section class="become-sponsor">
@@ -109,10 +355,10 @@
             <div class="footer-section">
                 <h3>Connect With Us</h3>
                 <div class="footer-social">
-                    <a href="https://x.com/BlitzTClub" target="_blank" aria-label="Follow us on X">
+                    <a href="https://x.com/BlitzTClub" target="_blank" rel="noopener" aria-label="Follow us on X">
                         <i class="fa-brands fa-square-x-twitter"></i>
                     </a>
-                    <a href="https://www.instagram.com/blitztclub/" target="_blank" aria-label="Follow us on Instagram">
+                    <a href="https://www.instagram.com/blitztclub/" target="_blank" rel="noopener" aria-label="Follow us on Instagram">
                         <i class="fab fa-instagram"></i>
                     </a>
                 </div>
@@ -122,11 +368,9 @@
         <div class="footer-bottom">
             <p>© 2024 Blitz Tesla Club. All rights reserved.</p>
             <p class="powered-by">
-                Website powered by <a href="http://www.summitpixels.com" target="_blank">SummitPixels</a>
+                Website powered by <a href="http://www.summitpixels.com" target="_blank" rel="noopener">SummitPixels</a>
             </p>
         </div>
     </footer>
-
-    <script src="script.js"></script>
 </body>
 </html> 

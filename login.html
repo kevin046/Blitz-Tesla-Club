@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Member Login - Blitz Tesla Club</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
@@ -16,21 +19,22 @@
     <nav>
         <div class="logo">
             <a href="index.html">
-                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo">
+                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo" loading="lazy" width="50" height="50">
                 <span>BLITZ TESLA CLUB</span>
             </a>
         </div>
-        <div class="menu-toggle">
-            <i class="fas fa-bars"></i>
-        </div>
+        <button class="menu-toggle" aria-label="Toggle navigation menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
         <ul class="nav-links">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="events.html">Events</a></li>
-            <li><a href="gallery.html">Gallery</a></li>
-            <li><a href="executive.html">Executives</a></li>
-            <li><a href="news.html">News</a></li>
-            <li><a href="#join">Join Us</a></li>
-            <li><a href="login.html">Login</a></li>
+            <li><a href="index.html"><i class="fas fa-home"></i>Home</a></li>
+            <li><a href="events.html"><i class="fas fa-calendar"></i>Events</a></li>
+            <li><a href="gallery.html"><i class="fas fa-images"></i>Gallery</a></li>
+            <li><a href="news.html"><i class="fas fa-newspaper"></i>News</a></li>
+            <li><a href="register.html"><i class="fas fa-user-plus"></i>Join Us</a></li>
+            <li><a href="login.html" class="active"><i class="fas fa-sign-in-alt"></i>Login</a></li>
         </ul>
     </nav>
 
@@ -255,13 +259,105 @@
             }
         });
 
-        // Password toggle functionality
+        // Password visibility toggle
         document.querySelector('.toggle-password').addEventListener('click', function() {
             const passwordInput = document.getElementById('password');
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-            this.querySelector('i').classList.toggle('fa-eye');
-            this.querySelector('i').classList.toggle('fa-eye-slash');
+            const icon = this.querySelector('i');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+
+        // Initialize navigation
+        document.addEventListener('DOMContentLoaded', () => {
+            // Handle mobile menu with improved touch interaction
+            const menuToggle = document.querySelector('.menu-toggle');
+            const navLinks = document.querySelector('.nav-links');
+            const body = document.body;
+
+            if (menuToggle && navLinks) {
+                menuToggle.addEventListener('click', () => {
+                    menuToggle.classList.toggle('active');
+                    navLinks.classList.toggle('active');
+                    body.classList.toggle('nav-open');
+                    
+                    // Prevent scrolling when menu is open
+                    if (body.classList.contains('nav-open')) {
+                        body.style.overflow = 'hidden';
+                        // Add touch event listener to prevent scrolling
+                        document.addEventListener('touchmove', preventScroll, { passive: false });
+                    } else {
+                        body.style.overflow = '';
+                        // Remove touch event listener when menu is closed
+                        document.removeEventListener('touchmove', preventScroll);
+                    }
+                });
+
+                // Close menu when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (navLinks.classList.contains('active') && 
+                        !navLinks.contains(e.target) && 
+                        !menuToggle.contains(e.target)) {
+                        menuToggle.classList.remove('active');
+                        navLinks.classList.remove('active');
+                        body.classList.remove('nav-open');
+                        body.style.overflow = '';
+                        document.removeEventListener('touchmove', preventScroll);
+                    }
+                });
+
+                // Close menu when clicking a link
+                navLinks.querySelectorAll('a').forEach(link => {
+                    link.addEventListener('click', () => {
+                        menuToggle.classList.remove('active');
+                        navLinks.classList.remove('active');
+                        body.classList.remove('nav-open');
+                        body.style.overflow = '';
+                        document.removeEventListener('touchmove', preventScroll);
+                    });
+                });
+
+                // Prevent scrolling on iOS
+                function preventScroll(e) {
+                    e.preventDefault();
+                }
+
+                // Handle escape key to close menu
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && navLinks.classList.contains('active')) {
+                        menuToggle.classList.remove('active');
+                        navLinks.classList.remove('active');
+                        body.classList.remove('nav-open');
+                        body.style.overflow = '';
+                        document.removeEventListener('touchmove', preventScroll);
+                    }
+                });
+            }
+
+            // Add iOS-specific optimizations
+            if (CSS.supports('-webkit-touch-callout', 'none')) {
+                document.body.style.webkitTextSizeAdjust = 'none';
+                document.body.style.webkitTapHighlightColor = 'transparent';
+                document.documentElement.style.webkitOverflowScrolling = 'touch';
+                
+                // Add safe area insets
+                const nav = document.querySelector('nav');
+                if (nav) {
+                    nav.style.paddingTop = 'env(safe-area-inset-top)';
+                }
+                
+                const footer = document.querySelector('footer');
+                if (footer) {
+                    footer.style.paddingBottom = 'env(safe-area-inset-bottom)';
+                }
+            }
         });
     </script>
 </body>

@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, minimal-ui">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Dashboard - Blitz Tesla Club</title>
@@ -306,14 +307,16 @@
     <!-- Standard Navigation -->
     <nav>
         <div class="logo">
-            <a href="/">
-                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo">
+            <a href="index.html">
+                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo" loading="lazy" width="50" height="50">
                 <span>BLITZ TESLA CLUB</span>
             </a>
         </div>
-        <div class="menu-toggle">
-            <i class="fas fa-bars"></i>
-        </div>
+        <button class="menu-toggle" aria-label="Toggle navigation menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
         <ul class="nav-links">
             <!-- Navigation will be populated by navigation.js -->
         </ul>

@@ -181,25 +181,60 @@ Blitz Tesla Club Team`);
                 try {
                     console.log('Starting verification with token:', token);
 
-                    // Check token from localStorage
+                    // Check token from localStorage first
                     const storedToken = localStorage.getItem('verificationToken');
                     const tokenExpiry = localStorage.getItem('tokenExpiry');
                     const email = localStorage.getItem('pendingVerificationEmail');
 
-                    if (!storedToken || !tokenExpiry || !email) {
-                        throw new Error('Verification session expired or invalid. Please request a new verification email.');
+                    // If localStorage token doesn't match, check database
+                    if (!storedToken || token !== storedToken) {
+                        console.log('Token not found in localStorage, checking database...');
+                        const { data: profile, error: profileError } = await supabaseClient
+                            .from('profiles')
+                            .select('*')
+                            .eq('verification_token', token)
+                            .single();
+
+                        if (profileError || !profile) {
+                            throw new Error('Invalid verification token. Please request a new verification email.');
+                        }
+
+                        if (profile.token_expires_at && new Date(profile.token_expires_at) < new Date()) {
+                            throw new Error('Verification token has expired. Please request a new verification email.');
+                        }
+
+                        // Update profile status and clear token
+                        const { error: updateError } = await supabaseClient
+                            .from('profiles')
+                            .update({
+                                membership_status: 'active',
+                                verification_token: null,
+                                token_expires_at: null
+                            })
+                            .eq('id', profile.id);
+
+                        if (updateError) {
+                            throw new Error('Failed to activate your membership. Please try again.');
+                        }
+
+                        // Clear localStorage
+                        localStorage.removeItem('verificationToken');
+                        localStorage.removeItem('tokenExpiry');
+                        localStorage.removeItem('pendingVerificationEmail');
+                        localStorage.removeItem('pendingMemberId');
+                        localStorage.removeItem('registrationTime');
+
+                        // Redirect to success page
+                        window.location.href = `verification-success.html?verified=true&id=${profile.id}`;
+                        return;
                     }
 
-                    if (token !== storedToken) {
-                        throw new Error('Invalid verification token. Please request a new verification email.');
-                    }
-
+                    // If localStorage token matches, proceed with localStorage verification
                     if (new Date(tokenExpiry) < new Date()) {
                         throw new Error('Verification token has expired. Please request a new verification email.');
                     }
 
                     // Get profile by email
-                    console.log('Fetching profile for email:', email);
                     const { data: profile, error: profileError } = await supabaseClient
                         .from('profiles')
                         .select('*')
@@ -207,38 +242,35 @@ Blitz Tesla Club Team`);
                         .single();
 
                     if (profileError) {
-                        console.error('Profile fetch error:', profileError);
                         throw new Error('Could not find your profile. Please try registering again.');
                     }
 
-                    // Update profile status
-                    console.log('Updating profile status...');
+                    // Update profile status and clear token
                     const { error: updateError } = await supabaseClient
                         .from('profiles')
                         .update({
-                            membership_status: 'active'
+                            membership_status: 'active',
+                            verification_token: null,
+                            token_expires_at: null
                         })
                         .eq('id', profile.id);
 
                     if (updateError) {
-                        console.error('Update error:', updateError);
                         throw new Error('Failed to activate your membership. Please try again.');
                     }
 
-                    // Clear verification data from localStorage
+                    // Clear localStorage
                     localStorage.removeItem('verificationToken');
                     localStorage.removeItem('tokenExpiry');
                     localStorage.removeItem('pendingVerificationEmail');
                     localStorage.removeItem('pendingMemberId');
                     localStorage.removeItem('registrationTime');
 
-                    console.log('Verification successful, redirecting...');
                     // Redirect to success page
                     window.location.href = `verification-success.html?verified=true&id=${profile.id}`;
 
                 } catch (error) {
                     console.error('Verification error:', error);
-                    // Store the actual error message for display
                     localStorage.setItem('verificationError', error.message || 'Verification process failed. Please try again.');
                     window.location.href = 'verification-failed.html';
                 }

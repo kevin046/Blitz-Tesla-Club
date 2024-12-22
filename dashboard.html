@@ -14,6 +14,7 @@
     <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script src="navigation.js"></script>
     <style>
         /* iOS Optimizations */
         @supports (-webkit-touch-callout: none) {
@@ -145,6 +146,160 @@
             gap: 10px;
             margin-top: 20px;
         }
+
+        /* Modern Settings Modal Styles */
+        .settings-modal {
+            max-width: 600px;
+            width: 90%;
+            background: #1a1a1a;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .settings-modal .modal-header {
+            background: #222;
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .settings-modal .modal-header h2 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+            color: #fff;
+        }
+
+        .settings-modal .modal-body {
+            padding: 20px;
+        }
+
+        .settings-section {
+            background: #222;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .settings-section h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 0 15px 0;
+            color: #fff;
+            font-size: 1.1em;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .info-label {
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        .info-value {
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .modern-input {
+            width: 100%;
+            padding: 12px;
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.95em;
+            transition: border-color 0.3s ease;
+        }
+
+        .modern-input:focus {
+            border-color: #666;
+            outline: none;
+        }
+
+        .danger-zone {
+            border: 1px solid #dc3545;
+            background: rgba(220, 53, 69, 0.1);
+        }
+
+        .danger-text {
+            color: #dc3545;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .primary-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .primary-btn:hover {
+            background: #0056b3;
+        }
+
+        .danger-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .danger-btn:hover {
+            background: #c82333;
+        }
+
+        .password-input-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .toggle-password:hover {
+            color: #888;
+        }
     </style>
 </head>
 <body class="dashboard-page">
@@ -160,16 +315,7 @@
             <i class="fas fa-bars"></i>
         </div>
         <ul class="nav-links">
-            <li><a href="dashboard.html" class="active">
-                <i class="fas fa-home"></i>Dashboard
-            </a></li>
-            <li><a href="events.html">Events</a></li>
-            <li><a href="gallery.html">Gallery</a></li>
-            <li><a href="executive.html">Executives</a></li>
-            <li><a href="news.html">News</a></li>
-            <li><a href="#" id="logoutBtn">
-                <i class="fas fa-sign-out-alt"></i>Logout
-            </a></li>
+            <!-- Navigation will be populated by navigation.js -->
         </ul>
     </nav>
 
@@ -186,10 +332,6 @@
                 </div>
             </div>
             <div class="quick-actions">
-                <button class="btn primary-btn" id="editProfileBtn">
-                    <i class="fas fa-user-edit"></i>
-                    Edit Profile
-                </button>
                 <button class="btn primary-btn" id="membershipCardBtn">
                     <i class="fas fa-id-card"></i>
                     View Membership Card
@@ -250,50 +392,12 @@
                             <i class="fas fa-file-invoice"></i>
                             <span>View Invoices</span>
                         </a>
-                        <a href="#" class="quick-link-item">
+                        <a href="#" class="quick-link-item" id="accountSettingsBtn">
                             <i class="fas fa-cog"></i>
                             <span>Account Settings</span>
                         </a>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Add Edit Profile Section -->
-        <div class="dashboard-section">
-            <h2>Profile Settings</h2>
-            <div class="profile-settings">
-                <form id="editProfileForm" class="settings-form">
-                    <div class="form-group">
-                        <label for="fullName">Full Name</label>
-                        <input type="text" id="fullName" name="fullName" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="settingsNewPassword">New Password</label>
-                        <div class="password-input-container">
-                            <input type="password" id="settingsNewPassword" name="newPassword" autocomplete="new-password">
-                            <button type="button" class="toggle-password">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="settingsConfirmPassword">Confirm New Password</label>
-                        <div class="password-input-container">
-                            <input type="password" id="settingsConfirmPassword" name="confirmNewPassword" autocomplete="new-password">
-                            <button type="button" class="toggle-password">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="button-group">
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                        <button type="button" id="deleteAccount" class="btn btn-danger">Delete Account</button>
-                    </div>
-                </form>
             </div>
         </div>
     </main>
@@ -358,13 +462,11 @@
             crypto.getRandomValues(array);
             return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
         }
-        
-        // Initialize Supabase client
-        const supabaseUrl = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
-        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
         document.addEventListener('DOMContentLoaded', async () => {
+            // Initialize navigation first
+            await initializeNavigation();
+
             // Check if user is logged in
             const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
             
@@ -560,7 +662,6 @@
             // Add this after profile data is loaded
             const membershipCardBtn = document.getElementById('membershipCardBtn');
             const modal = document.getElementById('membershipCardModal');
-            const closeModal = document.querySelector('.close-modal');
 
             membershipCardBtn.addEventListener('click', () => {
                 // Format date for card display
@@ -615,14 +716,28 @@
                 }
             });
 
-            // In your existing profile update code
-            const editProfileBtn = document.getElementById('editProfileBtn');
+            // Handle account settings
+            const accountSettingsBtn = document.getElementById('accountSettingsBtn');
             const editProfileModal = document.getElementById('editProfileModal');
-            const editProfileForm = document.getElementById('editProfileForm');
+            const modalEditProfileForm = document.getElementById('modalEditProfileForm');
             const deleteAccountBtn = document.getElementById('deleteAccountBtn');
             
-            // Show modal when Edit Profile button is clicked
-            editProfileBtn.addEventListener('click', () => {
+            // Show modal when Account Settings link is clicked
+            accountSettingsBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Populate account information
+                document.getElementById('modalUserEmail').textContent = profile.email;
+                document.getElementById('modalMemberId').textContent = profile.member_id;
+                document.getElementById('modalMemberSince').textContent = profile.created_at ? 
+                    new Date(profile.created_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    }) : 'Not Available';
+                document.getElementById('modalMembershipStatus').textContent = 
+                    profile.membership_status.charAt(0).toUpperCase() + profile.membership_status.slice(1);
+                
                 editProfileModal.style.display = 'block';
             });
             
@@ -639,11 +754,11 @@
             });
             
             // Handle password update
-            editProfileForm.addEventListener('submit', async (e) => {
+            modalEditProfileForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
-                const newPassword = document.getElementById('settingsNewPassword').value;
-                const confirmPassword = document.getElementById('settingsConfirmPassword').value;
+                const newPassword = document.getElementById('modalNewPassword').value;
+                const confirmPassword = document.getElementById('modalConfirmPassword').value;
                 
                 if (newPassword !== confirmPassword) {
                     alert('Passwords do not match');
@@ -659,7 +774,7 @@
                     
                     alert('Password updated successfully');
                     editProfileModal.style.display = 'none';
-                    editProfileForm.reset();
+                    modalEditProfileForm.reset();
                 } catch (error) {
                     console.error('Error updating password:', error);
                     alert('Failed to update password');
@@ -875,41 +990,82 @@ Blitz Tesla Club Team`);
         </div>
     </div>
 
-    <!-- Edit Profile Modal -->
+    <!-- Account Settings Modal -->
     <div id="editProfileModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content settings-modal">
             <div class="modal-header">
-                <h2>Edit Profile</h2>
+                <h2><i class="fas fa-user-cog"></i> Account Settings</h2>
                 <button class="close-modal">&times;</button>
             </div>
-            <form id="modalEditProfileForm" class="modal-body">
-                <div class="form-group">
-                    <label for="modalNewPassword">New Password</label>
-                    <div class="password-input-container">
-                        <input type="password" id="modalNewPassword" name="newPassword" 
-                            placeholder="Enter new password" autocomplete="new-password">
-                        <button type="button" class="toggle-password">
-                            <i class="fas fa-eye"></i>
-                        </button>
+            <div class="modal-body">
+                <!-- Account Info Section -->
+                <div class="settings-section">
+                    <h3><i class="fas fa-info-circle"></i> Account Information</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Email</span>
+                            <span class="info-value" id="modalUserEmail"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Member ID</span>
+                            <span class="info-value" id="modalMemberId"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Member Since</span>
+                            <span class="info-value" id="modalMemberSince"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Membership Status</span>
+                            <span class="info-value" id="modalMembershipStatus"></span>
+                        </div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="modalConfirmPassword">Confirm Password</label>
-                    <div class="password-input-container">
-                        <input type="password" id="modalConfirmPassword" name="confirmPassword" 
-                            placeholder="Confirm new password" autocomplete="new-password">
-                        <button type="button" class="toggle-password">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
+
+                <!-- Password Change Section -->
+                <div class="settings-section">
+                    <h3><i class="fas fa-key"></i> Change Password</h3>
+                    <form id="modalEditProfileForm">
+                        <!-- Add hidden username field for accessibility -->
+                        <input type="hidden" id="modalUsername" name="username" autocomplete="username">
+                        <div class="form-group">
+                            <label for="modalNewPassword">New Password</label>
+                            <div class="password-input-container">
+                                <input type="password" id="modalNewPassword" name="newPassword" 
+                                    placeholder="Enter new password" autocomplete="new-password"
+                                    class="modern-input">
+                                <button type="button" class="toggle-password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="modalConfirmPassword">Confirm Password</label>
+                            <div class="password-input-container">
+                                <input type="password" id="modalConfirmPassword" name="confirmPassword" 
+                                    placeholder="Confirm new password" autocomplete="new-password"
+                                    class="modern-input">
+                                <button type="button" class="toggle-password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="button-group">
+                            <button type="submit" class="btn primary-btn">
+                                <i class="fas fa-save"></i> Update Password
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                <div class="button-group">
-                    <button type="submit" class="btn primary-btn">Update Password</button>
+
+                <!-- Danger Zone Section -->
+                <div class="settings-section danger-zone">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Danger Zone</h3>
+                    <p class="danger-text">Once you delete your account, there is no going back. Please be certain.</p>
                     <button type="button" class="btn danger-btn" id="deleteAccountBtn">
-                        Delete Account
+                        <i class="fas fa-trash-alt"></i> Delete Account
                     </button>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </body>

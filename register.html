@@ -245,115 +245,67 @@
                     const verificationToken = crypto.randomUUID();
                     console.log('Starting registration process...');
 
-                    // Generate sequential member ID
-                    console.log('Generating sequential member ID...');
-                    const { data: existingMembers, error: fetchError } = await supabaseClient
-                        .from('profiles')
-                        .select('member_id')
-                        .not('member_id', 'is', null)
-                        .order('member_id', { ascending: true })
-                        .limit(100); // Get more members to check for gaps
+                    // Generate member ID
+                    const response = await fetch('https://www.blitztclub.com/api/generate-member-id', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ membership_type: 'standard' })
+                    });
 
-                    if (fetchError) {
-                        console.error('Error fetching last member ID:', fetchError);
+                    if (!response.ok) {
                         throw new Error('Failed to generate member ID');
                     }
 
-                    let nextNumber = 1; // Start from 1 if no existing members
-                    if (existingMembers && existingMembers.length > 0) {
-                        // Sort member IDs numerically
-                        const usedNumbers = existingMembers
-                            .map(member => {
-                                const matches = member.member_id.match(/BTC(\d+)/);
-                                return matches ? parseInt(matches[1]) : 0;
-                            })
-                            .filter(num => num > 0)
-                            .sort((a, b) => a - b);
-
-                        // Find the first available number
-                        for (let i = 0; i < usedNumbers.length; i++) {
-                            if (usedNumbers[i] !== i + 1) {
-                                nextNumber = i + 1;
-                                break;
-                            }
-                        }
-                        // If no gaps found, use next number after the last one
-                        if (nextNumber === 1) {
-                            nextNumber = usedNumbers.length + 1;
-                        }
-                    }
-
-                    const member_id = `BTC${nextNumber.toString().padStart(3, '0')}`;
+                    const { member_id } = await response.json();
                     console.log('Generated Member ID:', member_id);
 
-                    // Create auth user first with minimal data
+                    // Create auth user
                     const { data: authData, error: authError } = await supabaseClient.auth.signUp({
                         email,
                         password,
                         options: {
                             data: {
-                                full_name: fullName
+                                full_name: fullName,
+                                member_id: member_id,
+                                membership_type: 'standard',
+                                membership_status: 'pending',
+                                verification_token: verificationToken
                             }
                         }
                     });
 
                     if (authError) throw authError;
 
-                    // Wait a moment for the user to be created
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-
-                    // Now create/update the profile with all the additional data
-                    const { error: profileUpdateError } = await supabaseClient
-                        .from('profiles')
-                        .update({ 
-                            full_name: fullName,
-                            member_id: member_id,
-                            membership_type: 'standard',
-                            membership_status: 'pending',
-                            verification_token: verificationToken
-                        })
-                        .eq('id', authData.user.id);
-
-                    if (profileUpdateError) {
-                        console.error('Profile update error:', profileUpdateError);
-                        // If profile update fails, delete the auth user
-                        try {
-                            await supabaseClient.auth.signOut();
-                        } catch (error) {
-                            console.error('Error cleaning up failed registration:', error);
-                        }
-                        throw new Error('Failed to create user profile. Please try again.');
-                    }
-
                     // Send verification email using FormSubmit
                     const verificationUrl = `${window.location.origin}/verify-email.html?token=${verificationToken}`;
-                    const formData = {
-                        email: email,
-                        _captcha: 'false',
-                        _template: 'box',
-                        _subject: 'Verify Your Blitz Tesla Club Membership',
-                        _next: verificationUrl,
-                        _url: verificationUrl,
-                        message: `
-                            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                                <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" style="width: 150px; margin: 20px auto; display: block;">
-                                <h1 style="color: #171a20; text-align: center;">Welcome to Blitz Tesla Club!</h1>
-                                <p>Your Member ID: ${member_id}</p>
-                                <p>Please click the button below to verify your email:</p>
-                                <div style="text-align: center; margin: 30px 0;">
-                                    <a href="${verificationUrl}" 
-                                       style="background: #171a20; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
-                                        Verify Email Address
-                                    </a>
-                                </div>
-                                <p style="color: #666; font-size: 14px;">
-                                    If you can't click the button, copy and paste this URL into your browser:
-                                    <br>
-                                    ${verificationUrl}
-                                </p>
+                    const formData = new FormData();
+                    formData.append('email', email);
+                    formData.append('_captcha', 'false');
+                    formData.append('_template', 'box');
+                    formData.append('_subject', 'Verify Your Blitz Tesla Club Membership');
+                    formData.append('_next', verificationUrl);
+                    formData.append('_url', verificationUrl);
+                    formData.append('message', `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                            <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" style="width: 150px; margin: 20px auto; display: block;">
+                            <h1 style="color: #171a20; text-align: center;">Welcome to Blitz Tesla Club!</h1>
+                            <p>Your Member ID: ${member_id}</p>
+                            <p>Please click the button below to verify your email:</p>
+                            <div style="text-align: center; margin: 30px 0;">
+                                <a href="${verificationUrl}" 
+                                   style="background: #171a20; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                                    Verify Email Address
+                                </a>
                             </div>
-                        `
-                    };
+                            <p style="color: #666; font-size: 14px;">
+                                If you can't click the button, copy and paste this URL into your browser:
+                                <br>
+                                ${verificationUrl}
+                            </p>
+                        </div>
+                    `);
 
                     console.log('Sending verification email...');
                     const emailResponse = await fetch('https://formsubmit.co/ajax/info@blitztclub.com', {
@@ -361,11 +313,24 @@
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify(formData)
+                        body: JSON.stringify(Object.fromEntries(formData))
                     });
 
                     if (!emailResponse.ok) {
                         throw new Error('Failed to send verification email');
+                    }
+
+                    // Store token in Supabase profile
+                    const { error: profileError } = await supabaseClient
+                        .from('profiles')
+                        .update({ 
+                            verification_token: verificationToken,
+                            token_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
+                        })
+                        .eq('id', authData.user.id);
+
+                    if (profileError) {
+                        throw new Error('Failed to store verification token');
                     }
 
                     // Store verification data

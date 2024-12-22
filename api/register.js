@@ -1,32 +1,44 @@
-import { createClient } from '@supabase/supabase-js';
+const { createClient } = require('@supabase/supabase-js');
+const crypto = require('crypto');
 
-export default async function handler(req, res) {
+// Initialize Supabase with service role key
+const supabase = createClient(
+    'https://qhkcrrphsjpytdfqfamq.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczNDMyNDg3OCwiZXhwIjoyMDQ5OTAwODc4fQ.A6ltvW5H0Hr8mnTAlesPHyCa6STI9IoSg9ZVgzsSzdw'
+);
+
+module.exports = async (req, res) => {
+    // Enable CORS
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    // Handle preflight request
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+
+    // Only allow POST requests
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
     try {
-        const { email, password, fullName, username } = req.body;
+        const { email, password, fullName, memberId } = req.body;
 
         // Validate input
-        if (!email || !password || !fullName || !username) {
+        if (!email || !password || !fullName || !memberId) {
             return res.status(400).json({ error: 'All fields are required' });
         }
 
-        // Initialize Supabase
-        const supabaseUrl = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
-        const supabaseClient = createClient(supabaseUrl, supabaseKey);
-
-        // Create auth user
-        const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+        // Step 1: Create auth user with admin API
+        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
             email,
             password,
-            options: {
-                data: {
-                    full_name: fullName,
-                    username: username
-                }
+            email_confirm: true,
+            user_metadata: {
+                full_name: fullName,
+                member_id: memberId
             }
         });
 
@@ -35,101 +47,92 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: authError.message });
         }
 
-        if (!authData || !authData.user) {
-            console.error('No user data returned from auth signup');
-            return res.status(400).json({ error: 'Failed to create user account' });
-        }
-
-        console.log('Auth user created:', authData.user);
-
-        // Generate member ID
-        const memberId = 'BTC' + Date.now().toString().slice(-6);
-
-        // Create profile
-        const profileData = {
-            id: authData.user.id,
-            full_name: fullName,
-            username: username,
-            email: email,
-            member_id: memberId,
-            membership_status: 'pending',
-            membership_type: 'standard',
-        };
-
-        console.log('Creating profile with data:', profileData);
-
-        // Wait for profile creation
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        const { data: profile, error: profileError } = await supabaseClient
+        // Step 2: Create profile
+        const verificationToken = crypto.randomUUID();
+        const { error: profileError } = await supabase
             .from('profiles')
-            .upsert([profileData], {
-                onConflict: 'id',
-                returning: 'minimal'
+            .insert({
+                id: authData.user.id,
+                email: email,
+                full_name: fullName,
+                member_id: memberId,
+                membership_status: 'pending',
+                membership_type: 'standard',
+                created_at: new Date().toISOString(),
+                verification_token: verificationToken
             });
 
         if (profileError) {
-            console.error('Profile creation error:', profileError);
-            console.error('Profile data:', profileData);
-            return res.status(400).json({ error: 'Database error saving new user' });
+            console.error('Profile error:', profileError);
+            // Try to clean up the auth user if profile creation fails
+            await supabase.auth.admin.deleteUser(authData.user.id);
+            return res.status(500).json({ error: 'Failed to create profile' });
         }
 
-        // Generate verification token
-        const verificationToken = crypto.randomBytes(32).toString('hex');
+        // Step 3: Send verification email
+        const verificationUrl = `${req.headers.origin}/verify-email.html?token=${verificationToken}`;
+        const formData = {
+            email: email,
+            _captcha: 'false',
+            _template: 'box',
+            _subject: 'Verify Your Blitz Tesla Club Membership',
+            _replyto: email,
+            message: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" style="width: 150px; margin: 20px auto; display: block;">
+                    <h1 style="color: #171a20; text-align: center;">Welcome to Blitz Tesla Club!</h1>
+                    <p style="text-align: center; color: #666;">Thank you for joining Blitz Tesla Club!</p>
+                    <p style="text-align: center; margin: 20px 0;">
+                        <strong>Your Member ID:</strong> ${memberId}
+                    </p>
+                    <p style="text-align: center; color: #666;">Please verify your email address to activate your membership:</p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="${verificationUrl}" 
+                           style="background: #171a20; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                            Verify Email Address
+                        </a>
+                    </div>
+                    <p style="color: #666; font-size: 14px; text-align: center;">
+                        If you can't click the button, copy and paste this URL into your browser:
+                        <br>
+                        <span style="color: #171a20;">${verificationUrl}</span>
+                    </p>
+                    <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+                        <p style="color: #666; font-size: 14px;">
+                            This email was sent by Blitz Tesla Club
+                            <br>
+                            If you didn't register for an account, please ignore this email.
+                        </p>
+                    </div>
+                </div>
+            `
+        };
 
-        // Update profile with verification token
-        const { error: tokenError } = await supabaseClient
-            .from('profiles')
-            .update({ verification_token: verificationToken })
-            .eq('id', authData.user.id);
-
-        if (tokenError) {
-            console.error('Token update error:', tokenError);
-            return res.status(400).json({ error: tokenError.message });
-        }
-
-        // Send verification email using FormSubmit
-        const verificationUrl = `https://www.blitztclub.com/verify-email?token=${verificationToken}`;
-        const formData = new FormData();
-        formData.append('email', email);
-        formData.append('_captcha', 'false');
-        formData.append('_template', 'box');
-        formData.append('_subject', 'Verify Your Blitz Tesla Club Membership');
-        formData.append('message', `Welcome to Blitz Tesla Club!
-
-Your Member ID: ${memberId}
-
-Please click the link below to verify your email and activate your membership:
-${verificationUrl}
-
-Next Steps:
-1. Click the verification link above
-2. Your membership will be activated instantly
-3. Access your digital membership card
-4. Start enjoying member benefits
-
-If you didn't request this email, please ignore it.
-
-Best regards,
-Blitz Tesla Club Team`);
-
-        const emailResponse = await fetch(`https://formsubmit.co/ajax/${email}`, {
+        const emailResponse = await fetch('https://formsubmit.co/ajax/info@blitztclub.com', {
             method: 'POST',
-            body: formData
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
         });
 
         if (!emailResponse.ok) {
-            console.error('Email sending error');
+            console.error('Failed to send verification email:', await emailResponse.text());
             return res.status(500).json({ error: 'Failed to send verification email' });
         }
 
-        return res.status(200).json({ 
-            success: true, 
-            message: 'Registration successful. Please check your email to verify your account.' 
+        // Success
+        res.status(200).json({
+            message: 'Registration successful',
+            user: {
+                id: authData.user.id,
+                email: email,
+                memberId: memberId
+            }
         });
 
     } catch (error) {
-        console.error('Registration error:', error);
-        return res.status(500).json({ error: 'Internal server error' });
+        console.error('Server error:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
-} 
+}; 

@@ -675,41 +675,39 @@
                 try {
                     console.log('Deleting account for user:', profile.id);
 
-                    // Delete profile and auth user
-                    const cleanupResponse = await fetch('/api/cleanup-orphaned-users', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({ user_id: profile.id })
+                    // First delete the profile
+                    const { error: profileError } = await supabaseClient
+                        .from('profiles')
+                        .delete()
+                        .eq('id', profile.id);
+
+                    if (profileError) {
+                        console.error('Error deleting profile:', profileError);
+                        throw new Error('Failed to delete profile');
+                    }
+
+                    // Delete the user's own account
+                    const { error: userError } = await supabaseClient.auth.updateUser({
+                        data: { deleted: true }
                     });
-                    
-                    let responseData;
-                    try {
-                        const contentType = cleanupResponse.headers.get("content-type");
-                        if (contentType && contentType.indexOf("application/json") !== -1) {
-                            responseData = await cleanupResponse.json();
-                        } else {
-                            const text = await cleanupResponse.text();
-                            console.error('Non-JSON response:', text);
-                            throw new Error('Server returned non-JSON response');
-                        }
-                    } catch (parseError) {
-                        console.error('Error parsing response:', parseError);
-                        throw new Error('Failed to parse server response');
+
+                    if (userError) {
+                        console.error('Error marking user as deleted:', userError);
+                        throw new Error('Failed to update user account');
                     }
-                    
-                    if (!cleanupResponse.ok) {
-                        console.error('Cleanup response:', responseData);
-                        throw new Error(responseData.details || 'Failed to delete account');
-                    }
-                    
+
+                    // Sign out and clear storage
                     await supabaseClient.auth.signOut();
+                    localStorage.clear();
+                    sessionStorage.clear();
+
+                    // Show success message and redirect
+                    alert('Your account has been successfully deleted.');
                     window.location.href = '/';
+                    
                 } catch (error) {
                     console.error('Error deleting account:', error);
-                    alert(error.message || 'Failed to delete account. Please try again.');
+                    alert('Failed to delete account. Please try again or contact support.');
                 }
             });
             

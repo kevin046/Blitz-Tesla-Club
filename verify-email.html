@@ -71,76 +71,177 @@
     <script src="verify-email.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
+            // Initialize Supabase client
+            const supabaseClient = supabase.createClient(
+                'https://qhkcrrphsjpytdfqfamq.supabase.co',
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI'
+            );
+
+            // Display user's email
+            const userEmail = localStorage.getItem('pendingVerificationEmail');
+            if (userEmail) {
+                document.getElementById('userEmail').textContent = userEmail;
+            }
+
+            // Handle resend button click
+            const resendButton = document.getElementById('resendButton');
+            resendButton.addEventListener('click', async () => {
+                try {
+                    // Generate verification token
+                    const verificationToken = crypto.randomUUID();
+                    console.log('Generated token:', verificationToken);
+
+                    // Store token temporarily in localStorage
+                    localStorage.setItem('verificationToken', verificationToken);
+                    localStorage.setItem('tokenExpiry', new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString());
+
+                    // Get base URL for verification link
+                    const baseUrl = window.location.hostname === 'localhost' 
+                        ? 'http://localhost:3000' 
+                        : 'https://www.blitztclub.com';
+                    const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}`;
+
+                    // Send verification email using FormSubmit
+                    const formData = new FormData();
+                    formData.append('email', userEmail);
+                    formData.append('_captcha', 'false');
+                    formData.append('_template', 'box');
+                    formData.append('_subject', 'Verify Your Blitz Tesla Club Membership');
+                    formData.append('_autoresponse', 'Thank you for verifying your email. Your Blitz Tesla Club membership will be activated shortly.');
+                    formData.append('message', `Welcome to Blitz Tesla Club!
+
+Member ID: ${localStorage.getItem('pendingMemberId')}
+
+Please click the link below to verify your email and activate your membership:
+${verificationUrl}
+
+Important Notes:
+- This verification link will expire in 24 hours
+- Please verify on the same device you're currently using
+- After verification, your membership will be activated instantly
+
+Next Steps:
+1. Click the verification link above
+2. Your membership will be activated instantly
+3. Access your digital membership card
+4. Start enjoying member benefits
+
+If you can't click the link, copy and paste this URL into your browser:
+${verificationUrl}
+
+If you didn't request this email, please ignore it.
+
+Best regards,
+Blitz Tesla Club Team`);
+
+                    // Send the verification email
+                    const emailResponse = await fetch(`https://formsubmit.co/ajax/${userEmail}`, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    });
+
+                    if (!emailResponse.ok) {
+                        const responseText = await emailResponse.text();
+                        console.error('FormSubmit response:', responseText);
+                        throw new Error('Failed to send verification email');
+                    }
+
+                    // Update button state
+                    resendButton.disabled = true;
+                    resendButton.innerHTML = '<i class="fas fa-check"></i> Email Sent';
+                    
+                    // Start countdown timer
+                    let timeLeft = 60;
+                    const timerElement = document.getElementById('resendTimer');
+                    const timer = setInterval(() => {
+                        timeLeft--;
+                        timerElement.textContent = `Resend available in ${timeLeft}s`;
+                        if (timeLeft <= 0) {
+                            clearInterval(timer);
+                            resendButton.disabled = false;
+                            resendButton.innerHTML = '<i class="fas fa-redo"></i> Resend Email';
+                            timerElement.textContent = '';
+                        }
+                    }, 1000);
+
+                } catch (error) {
+                    console.error('Error sending verification:', error);
+                    alert('Failed to send verification email. Please try again.');
+                }
+            });
+
+            // Handle verification token from URL
             const urlParams = new URLSearchParams(window.location.search);
             const token = urlParams.get('token');
 
-            if (!token) {
-                console.error('No token provided in URL');
-                localStorage.setItem('verificationError', 'No verification token provided');
-                window.location.href = 'verification-failed.html';
-                return;
-            }
+            if (token) {
+                try {
+                    console.log('Starting verification with token:', token);
 
-            try {
-                console.log('Starting verification with token:', token);
-                
-                // Initialize Supabase client
-                const supabaseClient = supabase.createClient(
-                    'https://qhkcrrphsjpytdfqfamq.supabase.co',
-                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI'
-                );
+                    // Check token from localStorage
+                    const storedToken = localStorage.getItem('verificationToken');
+                    const tokenExpiry = localStorage.getItem('tokenExpiry');
+                    const email = localStorage.getItem('pendingVerificationEmail');
 
-                // Get profile by verification token
-                console.log('Fetching profile for token...');
-                const { data: profiles, error: profileError } = await supabaseClient
-                    .from('profiles')
-                    .select('*')
-                    .eq('verification_token', token);
+                    if (!storedToken || !tokenExpiry || !email) {
+                        throw new Error('Verification session expired or invalid. Please request a new verification email.');
+                    }
 
-                if (profileError) {
-                    console.error('Profile fetch error:', profileError);
-                    throw new Error(`Failed to fetch profile: ${profileError.message}`);
+                    if (token !== storedToken) {
+                        throw new Error('Invalid verification token. Please request a new verification email.');
+                    }
+
+                    if (new Date(tokenExpiry) < new Date()) {
+                        throw new Error('Verification token has expired. Please request a new verification email.');
+                    }
+
+                    // Get profile by email
+                    console.log('Fetching profile for email:', email);
+                    const { data: profile, error: profileError } = await supabaseClient
+                        .from('profiles')
+                        .select('*')
+                        .eq('email', email)
+                        .single();
+
+                    if (profileError) {
+                        console.error('Profile fetch error:', profileError);
+                        throw new Error('Could not find your profile. Please try registering again.');
+                    }
+
+                    // Update profile status
+                    console.log('Updating profile status...');
+                    const { error: updateError } = await supabaseClient
+                        .from('profiles')
+                        .update({
+                            membership_status: 'active'
+                        })
+                        .eq('id', profile.id);
+
+                    if (updateError) {
+                        console.error('Update error:', updateError);
+                        throw new Error('Failed to activate your membership. Please try again.');
+                    }
+
+                    // Clear verification data from localStorage
+                    localStorage.removeItem('verificationToken');
+                    localStorage.removeItem('tokenExpiry');
+                    localStorage.removeItem('pendingVerificationEmail');
+                    localStorage.removeItem('pendingMemberId');
+                    localStorage.removeItem('registrationTime');
+
+                    console.log('Verification successful, redirecting...');
+                    // Redirect to success page
+                    window.location.href = `verification-success.html?verified=true&id=${profile.id}`;
+
+                } catch (error) {
+                    console.error('Verification error:', error);
+                    // Store the actual error message for display
+                    localStorage.setItem('verificationError', error.message || 'Verification process failed. Please try again.');
+                    window.location.href = 'verification-failed.html';
                 }
-
-                console.log('Profiles found:', profiles ? profiles.length : 0);
-
-                if (!profiles || profiles.length === 0) {
-                    console.error('No profile found for token');
-                    throw new Error('Invalid or expired verification token. Please request a new verification email.');
-                }
-
-                if (profiles.length > 1) {
-                    console.error('Multiple profiles found for token');
-                    throw new Error('Invalid verification state. Please contact support.');
-                }
-
-                const profile = profiles[0];
-                console.log('Profile found:', { id: profile.id, status: profile.membership_status });
-
-                // Update profile status
-                console.log('Updating profile status...');
-                const { error: updateError } = await supabaseClient
-                    .from('profiles')
-                    .update({
-                        membership_status: 'active',
-                        verification_token: null
-                    })
-                    .eq('id', profile.id);
-
-                if (updateError) {
-                    console.error('Update error:', updateError);
-                    throw new Error(`Failed to update profile: ${updateError.message}`);
-                }
-
-                console.log('Verification successful, redirecting...');
-                // Redirect to success page
-                window.location.href = `verification-success.html?verified=true&id=${profile.id}`;
-
-            } catch (error) {
-                console.error('Verification error:', error);
-                // Store the actual error message for display
-                localStorage.setItem('verificationError', error.message || 'Verification process failed. Please try again.');
-                window.location.href = 'verification-failed.html';
             }
         });
     </script>

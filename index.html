@@ -129,13 +129,20 @@
             }
 
             .hero-logo {
-                max-width: 220px;
-                margin-bottom: 25px;
+                max-width: 280px;
+                margin-bottom: 35px;
             }
 
             .hero-tagline {
-                font-size: 2rem;
-                margin-bottom: 25px;
+                font-size: 2.5rem;
+                margin-bottom: 35px;
+                font-weight: 800;
+                line-height: 1.2;
+                text-shadow: 
+                    2px 2px 0 rgba(255, 255, 255, 0.9),
+                    -2px -2px 0 rgba(255, 255, 255, 0.9),
+                    2px -2px 0 rgba(255, 255, 255, 0.9),
+                    -2px 2px 0 rgba(255, 255, 255, 0.9);
             }
 
             .cta-buttons {
@@ -153,138 +160,36 @@
             }
 
             .hero-logo {
-                max-width: 180px;
-                margin-bottom: 20px;
+                max-width: 250px;
+                margin-bottom: 30px;
             }
 
             .hero-tagline {
-                font-size: 1.75rem;
-                margin-bottom: 20px;
-                padding: 0 10px;
+                font-size: 2.2rem;
+                margin-bottom: 30px;
+                padding: 0 15px;
+                letter-spacing: 1.2px;
             }
         }
 
-        /* Remove duplicate mobile styles */
-        @media (max-width: 768px) {
-            .hero .section-content {
-                display: none;
-            }
-            
-            .hero-logo img {
-                max-width: 100%;
-                height: auto;
-                margin: 0 auto;
-            }
-        }
-
-        /* Additional safeguards for extreme text scaling */
+        /* Remove the duplicate mobile styles that were limiting the logo size */
         @media (max-width: 480px) {
             .hero .hero-tagline {
-                font-size: max(16px, 3.5vw) !important;
+                font-size: 2.2rem !important;
                 padding: 8px 16px;
                 width: auto;
-                max-width: 90%;
+                max-width: 100%;
             }
             
             .hero-logo img {
-                max-width: min(40%, 180px);
-            }
-
-            /* Mobile video optimization */
-            .gallery-item iframe {
-                width: 100%;
-                height: 100%;
-                aspect-ratio: 16/9;
-                border: none;
-                position: relative;
-                z-index: 2;
-            }
-
-            .gallery-item {
-                position: relative;
-                width: 100%;
-                height: auto;
-                overflow: hidden;
-            }
-
-            .gallery-item-overlay {
-                position: absolute;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                padding: 15px;
-                background: linear-gradient(transparent, rgba(0,0,0,0.8));
-                color: white;
-                z-index: 3;
-            }
-
-            .play-btn {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: rgba(0,0,0,0.6);
-                border: none;
-                color: white;
-                font-size: 2rem;
-                padding: 15px;
-                border-radius: 50%;
-                cursor: pointer;
-                z-index: 4;
-                width: 60px;
-                height: 60px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.3s ease;
-            }
-
-            .play-btn:hover {
-                background: rgba(0,0,0,0.8);
-                transform: translate(-50%, -50%) scale(1.1);
-            }
-
-            /* Video lightbox for mobile */
-            .video-lightbox {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0,0,0,0.9);
-                display: none;
-                justify-content: center;
-                align-items: center;
-                z-index: 1000;
-            }
-
-            .video-lightbox.active {
-                display: flex;
-            }
-
-            .video-container {
-                width: 90%;
                 max-width: 100%;
-                position: relative;
-            }
-
-            .close-video {
-                position: absolute;
-                top: -40px;
-                right: 0;
-                color: white;
-                background: none;
-                border: none;
-                font-size: 24px;
-                cursor: pointer;
-                padding: 10px;
             }
         }
-               
+        
         .hero-logo {
             width: 100%;
-            max-width: 250px;
-            margin: 0 auto 20px;
+            max-width: 300px;
+            margin: 0 auto 30px;
             position: relative;
             z-index: 2;
             background: transparent;
@@ -296,6 +201,7 @@
             display: block;
             margin: 0 auto;
             opacity: 1;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
         }
 
         @media (max-width: 768px) {

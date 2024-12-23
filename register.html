@@ -2,11 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Register - Blitz Tesla Club</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Register - Blitz T Club</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,12 +12,12 @@
     <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="login-page register-page">
+<body class="login-page">
     <nav>
         <div class="logo">
             <a href="index.html">
                 <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo" loading="lazy" width="50" height="50">
-                <span>BLITZ TESLA CLUB</span>
+                <span>BLITZ T CLUB</span>
             </a>
         </div>
         <button class="menu-toggle" aria-label="Toggle navigation menu">
@@ -42,7 +39,7 @@
         <div class="login-box register-box">
             <div class="login-header">
                 <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" class="login-logo">
-                <h2>Join Blitz Tesla Club</h2>
+                <h2>Join Blitz T Club</h2>
                 <p>Create your account to become a member</p>
             </div>
 
@@ -166,6 +163,7 @@
     <!-- Standard Footer -->
     <footer>
         <div class="footer-content">
+                      
             <div class="footer-section">
                 <h3>Quick Links</h3>
                 <div class="footer-links">
@@ -181,7 +179,7 @@
                 <div class="footer-links">
                     <a href="sponsors.html">Our Sponsors</a>
                     <a href="#member-benefits">Member Benefits</a>
-                    <a href="login.html">Login</a>
+                    <a href="#" id="footerLogoutBtn">Logout</a>
                 </div>
             </div>
             
@@ -208,7 +206,7 @@
         </div>
 
         <div class="footer-bottom">
-            <p>© 2024 Blitz Tesla Club. All rights reserved.</p>
+            <p>© 2024 Blitz T Club. All rights reserved.</p>
             <p class="powered-by">
                 Website powered by <a href="http://www.summitpixels.com" target="_blank">SummitPixels</a>
             </p>
@@ -462,9 +460,9 @@
                     formData.append('email', email);
                     formData.append('_captcha', 'false');
                     formData.append('_template', 'box');
-                    formData.append('_subject', 'Verify Your Blitz Tesla Club Membership');
-                    formData.append('_autoresponse', 'Thank you for verifying your email. Your Blitz Tesla Club membership will be activated shortly.');
-                    formData.append('message', `Welcome to Blitz Tesla Club!
+                    formData.append('_subject', 'Verify Your Blitz T Club Membership');
+                    formData.append('_autoresponse', 'Thank you for verifying your email. Your Blitz T Club membership will be activated shortly.');
+                    formData.append('message', `Welcome to Blitz T Club!
 
 Member ID: ${memberId}
 

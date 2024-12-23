@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Blitz Tesla Club - Home</title>
+    <title>Blitz T Club - Home</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,36 +19,146 @@
     <style>
         /* Hero backgrounds */
         .hero {
-            background-image: url('https://i.ibb.co/S6n9HKj/Group-76.jpg') !important;
+            background-image: url('https://i.ibb.co/S6n9HKj/Group-76.jpg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            background-attachment: scroll;
-            min-height: 100vh;
+            background-attachment: fixed;
             position: relative;
+            min-height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            text-size-adjust: 100%;
-            -webkit-text-size-adjust: 100%;
+            text-align: center;
+            padding: 60px 20px;
+            overflow: hidden;
         }
-        
-        .hero .hero-tagline {
-            color: #333 !important;
-            text-shadow: none;
-            font-weight: 600 !important;
-            font-size: clamp(1rem, 2.5vw, 1.4em) !important;
+
+        .hero-logo {
+            position: relative;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+            margin-bottom: 30px;
+            transition: transform 0.3s ease;
+            z-index: 2;
+        }
+
+        .hero-logo img {
+            width: 100%;
+            height: auto;
+            display: block;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+            transition: transform 0.3s ease, filter 0.3s ease;
+        }
+
+        .hero-logo:hover img {
+            transform: scale(1.02);
+            filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.2));
+        }
+
+        .hero-tagline {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0 0 30px 0;
+            color: #1a1a1a;
+            text-shadow: 
+                2px 2px 0 #ffffff,
+                -2px -2px 0 #ffffff,
+                2px -2px 0 #ffffff,
+                -2px 2px 0 #ffffff;
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
             letter-spacing: 1px;
-            background: linear-gradient(120deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.6));
-            backdrop-filter: blur(5px);
-            padding: 10px 20px;
-            border-radius: 8px;
-            display: inline-block;
-            margin: 15px 0;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.3);
         }
-        
+
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+            margin-top: 0;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 24px;
+            animation: bounce 2s infinite;
+            z-index: 2;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-20px);
+            }
+            60% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                padding: 40px 20px;
+            }
+
+            .hero-logo {
+                max-width: 220px;
+                margin-bottom: 25px;
+            }
+
+            .hero-tagline {
+                font-size: 2rem;
+                margin-bottom: 25px;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                gap: 15px;
+                align-items: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero {
+                padding: 30px 15px;
+            }
+
+            .hero-logo {
+                max-width: 180px;
+                margin-bottom: 20px;
+            }
+
+            .hero-tagline {
+                font-size: 1.75rem;
+                margin-bottom: 20px;
+            }
+        }
+
         /* Mobile optimization for hero background */
         @media (max-width: 768px) {
             .hero {
@@ -200,20 +310,29 @@
                 padding: 10px;
             }
         }
-        
-        #events .section-background {
-            background-image: url('https://www.vehiclesuggest.com/wp-content/uploads/2024/10/Tesla-Might-Reveal-Robotaxi-and-Two-New-Models-at-Upcoming-Event.jpg') !important;
-        }
-        
-        #gallery .section-background {
-            background-image: url('https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&w=1920&q=80') !important;
+               
+        .hero-logo {
+            width: 100%;
+            max-width: 250px;
+            margin: 0 auto 20px;
+            position: relative;
+            z-index: 2;
+            background: transparent;
         }
 
         .hero-logo img {
-            max-width: min(45%, 250px);
+            width: 100%;
             height: auto;
+            display: block;
             margin: 0 auto;
-            transition: transform 0.3s ease;
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .hero-logo {
+                max-width: 180px;
+                margin-bottom: 15px;
+            }
         }
     </style>
 </head>
@@ -222,7 +341,7 @@
         <div class="logo">
             <a href="index.html">
                 <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo" loading="lazy" width="50" height="50">
-                <span>BLITZ TESLA CLUB</span>
+                <span>BLITZ T CLUB</span>
             </a>
         </div>
         <div class="menu-toggle">
@@ -235,15 +354,13 @@
 
     <main>
         <section class="hero" id="home">
-            <div class="section-content">
-                <div class="hero-logo">
-                    <img src="https://i.postimg.cc/852KY6h6/logo.png" alt="Blitz Tesla Club Logo">
-                </div>
-                <p class="hero-tagline">Experience the Future of Driving</p>
-                <div class="cta-buttons">
-                    <a href="register.html" class="btn">Join Now</a>
-                    <a href="events.html" class="btn btn-outline">Upcoming Events</a>
-                </div>
+            <div class="hero-logo">
+                <img src="https://i.ibb.co/HNvLHFj/logo.png" alt="Blitz Tesla Club Logo" width="300" height="300">
+            </div>
+            <h1 class="hero-tagline">Experience the Future of Driving</h1>
+            <div class="cta-buttons">
+                <a href="register.html" class="btn">Join Now</a>
+                <a href="events.html" class="btn btn-outline">Upcoming Events</a>
             </div>
             <div class="scroll-indicator">
                 <i class="fas fa-chevron-down"></i>
@@ -295,7 +412,7 @@
         </div>
 
         <div class="footer-bottom">
-            <p>© 2024 Blitz Tesla Club. All rights reserved.</p>
+            <p>© 2024 Blitz T Club. All rights reserved.</p>
             <p class="powered-by">
                 Website powered by <a href="http://www.summitpixels.com" target="_blank" rel="noopener">SummitPixels</a>
             </p>

@@ -3,20 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Terms of Service - Blitz Tesla Club</title>
+    <title>Terms of Service - Blitz T Club</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="navigation.js" defer></script>
 </head>
 <body class="terms-page">
     <nav>
         <div class="logo">
             <a href="index.html">
-                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo">
-                <span>BLITZ TESLA CLUB</span>
+                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo" loading="lazy" width="50" height="50">
+                <span>BLITZ T CLUB</span>
             </a>
         </div>
         <div class="menu-toggle">
@@ -42,12 +44,12 @@
         <div class="terms-content">
             <section class="terms-section">
                 <h2>1. Acceptance of Terms</h2>
-                <p>By accessing and using the Blitz Tesla Club website and services, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.</p>
+                <p>By accessing and using the Blitz T Club website and services, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.</p>
             </section>
 
             <section class="terms-section">
                 <h2>2. Membership</h2>
-                <p>Membership in Blitz Tesla Club is open to Tesla owners and enthusiasts. Members must:</p>
+                <p>Membership in Blitz T Club is open to Tesla owners and enthusiasts. Members must:</p>
                 <ul>
                     <li>Be at least 18 years of age</li>
                     <li>Provide accurate and complete registration information</li>
@@ -85,7 +87,7 @@
 
             <section class="terms-section">
                 <h2>6. Liability</h2>
-                <p>Blitz Tesla Club is not liable for:</p>
+                <p>Blitz T Club is not liable for:</p>
                 <ul>
                     <li>Personal injury or property damage during events</li>
                     <li>Loss or theft of personal belongings</li>
@@ -109,6 +111,7 @@
 
     <footer>
         <div class="footer-content">
+                      
             <div class="footer-section">
                 <h3>Quick Links</h3>
                 <div class="footer-links">
@@ -122,17 +125,16 @@
             <div class="footer-section">
                 <h3>Member Area</h3>
                 <div class="footer-links">
-                    <a href="login.html">Login</a>
-                    <a href="register.html">Register</a>
                     <a href="sponsors.html">Our Sponsors</a>
                     <a href="#member-benefits">Member Benefits</a>
+                    <a href="#" id="footerLogoutBtn">Logout</a>
                 </div>
             </div>
             
             <div class="footer-section">
                 <h3>Legal</h3>
                 <div class="footer-links">
-                    <a href="#privacy">Privacy Policy</a>
+                    <a href="privacy.html">Privacy Policy</a>
                     <a href="terms.html">Terms of Service</a>
                     <a href="about.html">About Us</a>
                 </div>
@@ -152,13 +154,11 @@
         </div>
 
         <div class="footer-bottom">
-            <p>© 2024 Blitz Tesla Club. All rights reserved.</p>
+            <p>© 2024 Blitz T Club. All rights reserved.</p>
             <p class="powered-by">
                 Website powered by <a href="http://www.summitpixels.com" target="_blank">SummitPixels</a>
             </p>
         </div>
     </footer>
-
-    <script src="script.js"></script>
 </body>
 </html> 

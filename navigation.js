@@ -12,6 +12,19 @@ async function initializeNavigation() {
     const navLinks = document.querySelector('.nav-links');
     if (!navLinks) return;
 
+    // Update logo text if it exists
+    const logoSpan = document.querySelector('.logo span');
+    if (logoSpan) {
+        logoSpan.textContent = 'BLITZ T CLUB';
+    }
+
+    // Update logo image if it exists
+    const logoImg = document.querySelector('.logo img');
+    if (logoImg) {
+        logoImg.src = 'https://i.ibb.co/fkrdXZK/Logo4-white.png';
+        logoImg.alt = 'Blitz Tesla Club Logo';
+    }
+
     // Get current page path
     const currentPath = window.location.pathname.split('/').pop() || 'index.html';
 
@@ -66,30 +79,43 @@ async function initializeNavigation() {
         }
     }
 
+    // Add iOS-specific optimizations
+    if (CSS.supports('-webkit-touch-callout', 'none')) {
+        document.body.style.webkitTextSizeAdjust = 'none';
+        document.body.style.webkitTapHighlightColor = 'transparent';
+        document.documentElement.style.webkitOverflowScrolling = 'touch';
+        
+        // Add safe area insets
+        const nav = document.querySelector('nav');
+        if (nav) {
+            nav.style.paddingTop = 'env(safe-area-inset-top)';
+        }
+        
+        const footer = document.querySelector('footer');
+        if (footer) {
+            footer.style.paddingBottom = 'env(safe-area-inset-bottom)';
+        }
+    }
+
     // Handle mobile menu with improved touch interaction
     const menuToggle = document.querySelector('.menu-toggle');
     const body = document.body;
-    let scrollPosition = 0;
     
     if (menuToggle && navLinks) {
         menuToggle.addEventListener('click', () => {
             menuToggle.classList.toggle('active');
             navLinks.classList.toggle('active');
+            body.classList.toggle('nav-open');
             
-            if (navLinks.classList.contains('active')) {
-                // Store current scroll position and disable scroll
-                scrollPosition = window.pageYOffset;
+            // Prevent scrolling when menu is open
+            if (body.classList.contains('nav-open')) {
                 body.style.overflow = 'hidden';
-                body.style.position = 'fixed';
-                body.style.top = `-${scrollPosition}px`;
-                body.style.width = '100%';
+                // Add touch event listener to prevent scrolling
+                document.addEventListener('touchmove', preventScroll, { passive: false });
             } else {
-                // Restore scroll position and enable scroll
-                body.style.removeProperty('overflow');
-                body.style.removeProperty('position');
-                body.style.removeProperty('top');
-                body.style.removeProperty('width');
-                window.scrollTo(0, scrollPosition);
+                body.style.overflow = '';
+                // Remove touch event listener when menu is closed
+                document.removeEventListener('touchmove', preventScroll);
             }
         });
 
@@ -100,12 +126,9 @@ async function initializeNavigation() {
                 !menuToggle.contains(e.target)) {
                 menuToggle.classList.remove('active');
                 navLinks.classList.remove('active');
-                // Restore scroll position and enable scroll
-                body.style.removeProperty('overflow');
-                body.style.removeProperty('position');
-                body.style.removeProperty('top');
-                body.style.removeProperty('width');
-                window.scrollTo(0, scrollPosition);
+                body.classList.remove('nav-open');
+                body.style.overflow = '';
+                document.removeEventListener('touchmove', preventScroll);
             }
         });
 
@@ -114,26 +137,25 @@ async function initializeNavigation() {
             link.addEventListener('click', () => {
                 menuToggle.classList.remove('active');
                 navLinks.classList.remove('active');
-                // Restore scroll position and enable scroll
-                body.style.removeProperty('overflow');
-                body.style.removeProperty('position');
-                body.style.removeProperty('top');
-                body.style.removeProperty('width');
-                window.scrollTo(0, scrollPosition);
+                body.classList.remove('nav-open');
+                body.style.overflow = '';
+                document.removeEventListener('touchmove', preventScroll);
             });
         });
+
+        // Prevent scrolling on iOS
+        function preventScroll(e) {
+            e.preventDefault();
+        }
 
         // Handle escape key to close menu
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && navLinks.classList.contains('active')) {
                 menuToggle.classList.remove('active');
                 navLinks.classList.remove('active');
-                // Restore scroll position and enable scroll
-                body.style.removeProperty('overflow');
-                body.style.removeProperty('position');
-                body.style.removeProperty('top');
-                body.style.removeProperty('width');
-                window.scrollTo(0, scrollPosition);
+                body.classList.remove('nav-open');
+                body.style.overflow = '';
+                document.removeEventListener('touchmove', preventScroll);
             }
         });
     }

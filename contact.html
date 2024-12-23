@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact Support - Blitz Tesla Club</title>
+    <title>Contact Support - Blitz T Club</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
@@ -13,7 +13,25 @@
 </head>
 <body class="contact-page">
     <nav>
-        <!-- Navigation will be loaded by nav.js -->
+        <div class="logo">
+            <a href="index.html">
+                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo" loading="lazy" width="50" height="50">
+                <span>BLITZ T CLUB</span>
+            </a>
+        </div>
+        <button class="menu-toggle" aria-label="Toggle navigation menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <ul class="nav-links">
+            <li><a href="index.html"><i class="fas fa-home"></i>Home</a></li>
+            <li><a href="events.html"><i class="fas fa-calendar"></i>Events</a></li>
+            <li><a href="gallery.html"><i class="fas fa-images"></i>Gallery</a></li>
+            <li><a href="news.html"><i class="fas fa-newspaper"></i>News</a></li>
+            <li><a href="register.html"><i class="fas fa-user-plus"></i>Join Us</a></li>
+            <li><a href="login.html" class="active"><i class="fas fa-sign-in-alt"></i>Login</a></li>
+        </ul>
     </nav>
 
     <main class="contact-container">
@@ -27,7 +45,7 @@
             <form class="contact-form" action="https://formsubmit.co/info@blitztclub.com" method="POST">
                 <input type="hidden" name="_captcha" value="false">
                 <input type="hidden" name="_template" value="box">
-                <input type="hidden" name="_subject" value="Support Request - Blitz Tesla Club">
+                <input type="hidden" name="_subject" value="Support Request - Blitz T Club">
                 <input type="hidden" name="_next" value="https://blitztclub.com/contact-success.html">
 
                 <div class="form-group">
@@ -70,10 +88,58 @@
     </main>
 
     <footer>
-        <!-- Footer content -->
+        <div class="footer-content">
+                      
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <div class="footer-links">
+                    <a href="index.html">Home</a>
+                    <a href="events.html">Events</a>
+                    <a href="gallery.html">Gallery</a>
+                    <a href="contact.html">Contact</a>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Member Area</h3>
+                <div class="footer-links">
+                    <a href="sponsors.html">Our Sponsors</a>
+                    <a href="#member-benefits">Member Benefits</a>
+                    <a href="#" id="footerLogoutBtn">Logout</a>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Legal</h3>
+                <div class="footer-links">
+                    <a href="privacy.html">Privacy Policy</a>
+                    <a href="terms.html">Terms of Service</a>
+                    <a href="about.html">About Us</a>
+                </div>
+            </div>
+
+            <div class="footer-section">
+                <h3>Connect With Us</h3>
+                <div class="footer-social">
+                    <a href="https://x.com/BlitzTClub" target="_blank" aria-label="Follow us on X">
+                        <i class="fa-brands fa-square-x-twitter"></i>
+                    </a>
+                    <a href="https://www.instagram.com/blitztclub/" target="_blank" aria-label="Follow us on Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>© 2024 Blitz T Club. All rights reserved.</p>
+            <p class="powered-by">
+                Website powered by <a href="http://www.summitpixels.com" target="_blank">SummitPixels</a>
+            </p>
+        </div>
     </footer>
 
-    <script src="nav.js"></script>
+   
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();

@@ -16,8 +16,8 @@
     <nav>
         <div class="logo">
             <a href="/">
-                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo">
-                <span>BLITZ TESLA CLUB</span>
+                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo" loading="lazy" width="50" height="50">
+                <span>BLITZ T CLUB</span>
             </a>
         </div>
         <div class="menu-toggle">
@@ -29,7 +29,7 @@
             <li><a href="gallery.html">Gallery</a></li>
             <li><a href="executive.html">Executives</a></li>
             <li><a href="news.html">News</a></li>
-            <li><a href="#join">Join Us</a></li>
+            <li><a href="register.html">Join Us</a></li>
             <li><a href="login.html">Login</a></li>
         </ul>
     </nav>
@@ -114,7 +114,7 @@
         </div>
 
         <div class="footer-bottom">
-            <p>© 2024 Blitz Tesla Club. All rights reserved.</p>
+            <p>© 2024 Blitz T Club. All rights reserved.</p>
             <p class="powered-by">
                 Website powered by <a href="http://www.summitpixels.com" target="_blank">SummitPixels</a>
             </p>
@@ -320,9 +320,9 @@
                     formData.append('email', userEmail);
                     formData.append('_captcha', 'false');
                     formData.append('_template', 'box');
-                    formData.append('_subject', 'Verify Your Blitz Tesla Club Membership');
-                    formData.append('_autoresponse', 'Thank you for verifying your email. Your Blitz Tesla Club membership will be activated shortly.');
-                    formData.append('message', `Welcome to Blitz Tesla Club!
+                    formData.append('_subject', 'Verify Your Blitz T Club Membership');
+                    formData.append('_autoresponse', 'Thank you for verifying your email. Your Blitz T Club membership will be activated shortly.');
+                    formData.append('message', `Welcome to Blitz T Club!
 
 Member ID: ${localStorage.getItem('pendingMemberId')}
 
@@ -346,7 +346,7 @@ ${verificationUrl}
 If you didn't request this email, please ignore it.
 
 Best regards,
-Blitz Tesla Club Team`);
+Blitz T Club Team`);
 
                     // Send the verification email
                     const emailResponse = await fetch(`https://formsubmit.co/ajax/${userEmail}`, {

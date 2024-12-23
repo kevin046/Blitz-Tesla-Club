@@ -64,10 +64,7 @@
             margin: 0 0 30px 0;
             color: #1a1a1a;
             text-shadow: 
-                2px 2px 0 #ffffff,
-                -2px -2px 0 #ffffff,
-                2px -2px 0 #ffffff,
-                -2px 2px 0 #ffffff;
+                2px 2px 0 #ffffff;
             position: relative;
             z-index: 2;
             max-width: 800px;
@@ -124,7 +121,8 @@
         @media (max-width: 768px) {
             .hero {
                 background-attachment: scroll;
-                background-position: 65% center;
+                background-position: 50% center;
+                background-size: auto 100vh;
                 height: 100vh;
                 min-height: -webkit-fill-available;
                 padding: 40px 20px;
@@ -149,7 +147,8 @@
 
         @media (max-width: 480px) {
             .hero {
-                background-position: 68% center;
+                background-position: 50% center;
+                background-size: cover;
                 padding: 30px 15px;
             }
 

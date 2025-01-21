@@ -209,4 +209,26 @@ document.addEventListener('click', (e) => {
             document.body.style.width = '';
         }
     }
+});
+
+// Add this to your navigation.js file
+document.addEventListener('DOMContentLoaded', function() {
+    const links = document.querySelectorAll('a');
+    const pages = ['crypto', 'index', 'events', 'gallery', 'executive', 'news', 'login'];
+    
+    links.forEach(link => {
+        link.addEventListener('click', function(e) {
+            const href = this.getAttribute('href');
+            if (href) {
+                // Check for any page variation
+                pages.forEach(page => {
+                    const regex = new RegExp(`${page}\\.html$`, 'i');
+                    if (regex.test(href)) {
+                        e.preventDefault();
+                        window.location.href = `${page.toLowerCase()}.html`;
+                    }
+                });
+            }
+        });
+    });
 }); 

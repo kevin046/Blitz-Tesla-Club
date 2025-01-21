@@ -778,6 +778,27 @@
     </footer>
 
     <script>
+        // Add this at the beginning of your existing script section
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get all links in the navigation
+            const links = document.querySelectorAll('a');
+            
+            links.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href');
+                    if (href) {
+                        // Check if the link ends with variations of crypto.html
+                        const match = href.match(/[Cc]rypto\.html$/);
+                        if (match) {
+                            e.preventDefault();
+                            // Redirect to the correct lowercase version
+                            window.location.href = 'crypto.html';
+                        }
+                    }
+                });
+            });
+        });
+
         // PumpFun Data Integration
         async function fetchTokenData() {
             try {

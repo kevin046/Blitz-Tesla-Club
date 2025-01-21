@@ -36,6 +36,7 @@ async function initializeNavigation() {
         { href: 'events.html', icon: 'fas fa-calendar', text: 'Events' },
         { href: 'gallery.html', icon: 'fas fa-images', text: 'Gallery' },
         { href: 'news.html', icon: 'fas fa-newspaper', text: 'News' },
+        { href: 'crypto.html', icon: 'fas fa-dollar-sign', text: '$BLITZTCLUB' },
         { href: '#', icon: 'fas fa-sign-out-alt', text: 'Logout', id: 'logoutBtn' }
     ] : [
         // Navigation items for non-logged-in users
@@ -43,6 +44,7 @@ async function initializeNavigation() {
         { href: 'events.html', icon: 'fas fa-calendar', text: 'Events' },
         { href: 'gallery.html', icon: 'fas fa-images', text: 'Gallery' },
         { href: 'news.html', icon: 'fas fa-newspaper', text: 'News' },
+        { href: 'crypto.html', icon: 'fas fa-dollar-sign', text: '$BLITZTCLUB' },
         { href: 'login.html', icon: 'fas fa-sign-in-alt', text: 'Login' }
     ];
 
@@ -167,3 +169,44 @@ document.addEventListener('DOMContentLoaded', initializeNavigation);
 // Export for use in other files
 window.initializeNavigation = initializeNavigation;
 window.supabaseClient = supabaseClient; 
+
+function toggleMobileMenu() {
+    const navLinks = document.querySelector('.nav-links');
+    const menuToggle = document.querySelector('.menu-toggle');
+    navLinks.classList.toggle('active');
+    
+    // Toggle body scroll lock
+    if (navLinks.classList.contains('active')) {
+        document.body.classList.add('nav-open');
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+    } else {
+        document.body.classList.remove('nav-open');
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+    }
+}
+
+// Add event listener to menu toggle
+const menuToggle = document.querySelector('.menu-toggle');
+if (menuToggle) {
+    menuToggle.addEventListener('click', toggleMobileMenu);
+}
+
+// Close mobile menu when clicking outside
+document.addEventListener('click', (e) => {
+    const navLinks = document.querySelector('.nav-links');
+    const menuToggle = document.querySelector('.menu-toggle');
+    
+    if (navLinks && navLinks.classList.contains('active')) {
+        if (!navLinks.contains(e.target) && !menuToggle.contains(e.target)) {
+            navLinks.classList.remove('active');
+            document.body.classList.remove('nav-open');
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
+        }
+    }
+}); 

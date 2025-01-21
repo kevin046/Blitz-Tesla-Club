@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Crypto Terms - Blitz T Club</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="navigation.js" defer></script>
+    <style>
+        .crypto-terms-page {
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .terms-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            flex: 1;
+        }
+
+        .terms-header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .terms-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            color: #4CAF50;
+        }
+
+        .terms-header p {
+            color: #888;
+            font-size: 1em;
+        }
+
+        .terms-content {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .terms-section {
+            margin-bottom: 40px;
+        }
+
+        .terms-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .terms-section h2 {
+            color: #4CAF50;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .terms-section p {
+            color: #ccc;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .terms-section ul {
+            list-style: none;
+            padding-left: 20px;
+            margin: 15px 0;
+        }
+
+        .terms-section ul li {
+            color: #ccc;
+            margin-bottom: 10px;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .terms-section ul li::before {
+            content: "•";
+            color: #4CAF50;
+            position: absolute;
+            left: -20px;
+        }
+
+        .terms-section a {
+            color: #4CAF50;
+            text-decoration: none;
+            border-bottom: 1px dotted #4CAF50;
+        }
+
+        .terms-section a:hover {
+            color: #45a049;
+            border-bottom-style: solid;
+        }
+
+        @media (max-width: 768px) {
+            .terms-container {
+                padding: 20px;
+            }
+
+            .terms-header {
+                padding: 20px;
+                margin-bottom: 30px;
+            }
+
+            .terms-content {
+                padding: 20px;
+            }
+
+            .terms-section {
+                margin-bottom: 30px;
+            }
+        }
+    </style>
+</head>
+<body class="crypto-terms-page">
+    <nav>
+        <div class="logo">
+            <a href="index.html">
+                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo" loading="lazy" width="50" height="50">
+                <span>BLITZ T CLUB</span>
+            </a>
+        </div>
+        <div class="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </div>
+        <ul class="nav-links">
+            <!-- Navigation items will be dynamically inserted by navigation.js -->
+        </ul>
+    </nav>
+
+    <main class="terms-container">
+        <header class="terms-header">
+            <h1>Cryptocurrency Terms</h1>
+            <p>Last Updated: March 2024</p>
+        </header>
+
+        <div class="terms-content">
+            <section class="terms-section">
+                <h2>1. Introduction</h2>
+                <p>These Terms and Conditions govern your access to and use of the BLITZTCLUB cryptocurrency and related services. By accessing or using our services, you agree to be bound by these terms.</p>
+            </section>
+
+            <section class="terms-section">
+                <h2>2. Nature of BLITZTCLUB</h2>
+                <p>BLITZTCLUB memes are digital collectibles intended to function as an expression of support for and engagement with the values embodied by the symbol BLITZTCLUB and the associated artwork. They are not intended to be, or to be the subject of, an investment opportunity, investment contract, or security of any type.</p>
+            </section>
+
+            <section class="terms-section">
+                <h2>3. Non-Political Nature</h2>
+                <p>BlitzTClub Inc. is not political and has nothing to do with any political campaign or any political office or governmental agency.</p>
+            </section>
+
+            <section class="terms-section">
+                <h2>4. Risk Disclosure</h2>
+                <ul>
+                    <li>Cryptocurrency trading involves substantial risk of loss and is not suitable for all investors</li>
+                    <li>The value of cryptocurrencies can be highly volatile</li>
+                    <li>Past performance is not indicative of future results</li>
+                    <li>You should never invest more than you can afford to lose</li>
+                </ul>
+            </section>
+
+            <section class="terms-section">
+                <h2>5. Trading Rules</h2>
+                <ul>
+                    <li>Users must be at least 18 years old to trade BLITZTCLUB</li>
+                    <li>Users are responsible for maintaining the security of their wallets and private keys</li>
+                    <li>Trading must comply with all applicable laws and regulations</li>
+                    <li>Market manipulation and fraudulent activities are strictly prohibited</li>
+                </ul>
+            </section>
+
+            <section class="terms-section">
+                <h2>6. Intellectual Property</h2>
+                <p>All intellectual property rights in BLITZTCLUB, including but not limited to logos, designs, and artwork, are owned by BlitzTClub Inc. No rights or licenses are granted except as explicitly stated in these terms.</p>
+            </section>
+
+            <section class="terms-section">
+                <h2>7. Disclaimer of Warranties</h2>
+                <p>BLITZTCLUB is provided "as is" without any warranties of any kind, either express or implied. BlitzTClub Inc. does not guarantee the value, functionality, or availability of BLITZTCLUB tokens.</p>
+            </section>
+
+            <section class="terms-section">
+                <h2>8. Limitation of Liability</h2>
+                <p>BlitzTClub Inc. shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including loss of profits, arising out of or in connection with these terms or the use of BLITZTCLUB.</p>
+            </section>
+
+            <section class="terms-section">
+                <h2>9. Changes to Terms</h2>
+                <p>We reserve the right to modify these terms at any time. Users will be notified of significant changes through our website or email.</p>
+            </section>
+
+            <section class="terms-section">
+                <h2>10. Contact Information</h2>
+                <p>For questions about these terms or BLITZTCLUB in general, please contact us at:</p>
+                <p>Email: crypto@blitztclub.com</p>
+            </section>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <div class="footer-links">
+                    <a href="index.html">Home</a>
+                    <a href="events.html">Events</a>
+                    <a href="gallery.html">Gallery</a>
+                    <a href="contact.html">Contact</a>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Member Area</h3>
+                <div class="footer-links">
+                    <a href="sponsors.html">Our Sponsors</a>
+                    <a href="#member-benefits">Member Benefits</a>
+                    <a href="#" id="footerLogoutBtn">Logout</a>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Legal</h3>
+                <div class="footer-links">
+                    <a href="privacy.html">Privacy Policy</a>
+                    <a href="terms.html">Terms of Service</a>
+                    <a href="about.html">About Us</a>
+                </div>
+            </div>
+
+            <div class="footer-section">
+                <h3>Connect With Us</h3>
+                <div class="footer-social">
+                    <a href="https://x.com/BlitzTClub" target="_blank" aria-label="Follow us on X">
+                        <i class="fa-brands fa-square-x-twitter"></i>
+                    </a>
+                    <a href="https://www.instagram.com/blitztclub/" target="_blank" aria-label="Follow us on Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>© 2024 Blitz T Club. All rights reserved.</p>
+            <p class="powered-by">
+                Website powered by <a href="http://www.summitpixels.com" target="_blank">SummitPixels</a>
+            </p>
+        </div>
+    </footer>
+</body>
+</html> 

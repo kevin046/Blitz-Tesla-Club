@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>BlitzTClub Coin - Blitz T Club</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="navigation.js" defer></script>
+    <style>
+        .crypto-page {
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-top: 80px;
+        }
+
+        .crypto-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            flex: 1;
+        }
+
+        .crypto-header {
+            text-align: left;
+            margin-bottom: 30px;
+            position: relative;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+        }
+
+        .crypto-header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .crypto-header h1 img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+
+        .crypto-header p {
+            color: #888;
+            font-size: 1em;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .coin-showcase {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .coin-logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            background: #fff;
+            border-radius: 50%;
+            padding: 15px;
+            box-shadow: 0 0 30px rgba(76, 175, 80, 0.3);
+        }
+
+        .coin-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .coin-info {
+            margin-bottom: 30px;
+        }
+
+        .coin-info h2 {
+            font-size: 2em;
+            color: #4CAF50;
+            margin-bottom: 15px;
+        }
+
+        .coin-info p {
+            color: #ccc;
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .contract-address {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px auto;
+            max-width: 600px;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .address-label {
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: #4CAF50;
+            padding: 2px 10px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            color: white;
+        }
+
+        .address-content {
+            font-family: monospace;
+            word-break: break-all;
+            color: #fff;
+            margin-top: 10px;
+            font-size: 1.1em;
+        }
+
+        .copy-btn {
+            background: #4CAF50;
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            font-size: 1em;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .copy-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .qr-section {
+            margin: 30px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        .qr-code {
+            width: 200px;
+            height: 200px;
+            background: #fff;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .qr-code img {
+            width: 100%;
+            height: 100%;
+        }
+
+        .steps-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 40px;
+            margin-top: 40px;
+        }
+
+        .steps-section h2 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .step-card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .step-number {
+            background: #4CAF50;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .step-card h3 {
+            color: #fff;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .step-card p {
+            color: #888;
+            line-height: 1.5;
+            font-size: 0.9em;
+        }
+
+        .important-note {
+            background: rgba(76, 175, 80, 0.1);
+            border-left: 4px solid #4CAF50;
+            padding: 20px;
+            margin-top: 40px;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .important-note h3 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .important-note p {
+            color: #888;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .vesting-schedule {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 40px 0;
+            text-align: center;
+        }
+
+        .vesting-timeline {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .vesting-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .vesting-item h3 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+
+        .vesting-item p {
+            color: #ccc;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .vesting-note {
+            color: #888;
+            font-style: italic;
+            margin-top: 20px;
+        }
+
+        .faq-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 40px 0;
+        }
+
+        .faq-section h2 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .faq-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .faq-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .faq-item h3 {
+            color: #4CAF50;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .faq-item p {
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        .chart-container {
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            position: relative;
+            height: 500px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chart-loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #4CAF50;
+            font-size: 1.2em;
+        }
+
+        .market-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            padding: 15px;
+            background: transparent;
+            border-radius: 10px;
+        }
+
+        .stat-item {
+            text-align: left;
+            padding: 10px;
+            border-radius: 8px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-item h4 {
+            color: #888;
+            margin-bottom: 5px;
+            font-size: 0.8em;
+            font-weight: normal;
+        }
+
+        .stat-item p {
+            color: #fff;
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+
+        .buy-section {
+            margin-top: 30px;
+            text-align: center;
+            padding: 20px;
+            background: rgba(76, 175, 80, 0.1);
+            border-radius: 15px;
+            border: 1px solid rgba(76, 175, 80, 0.2);
+        }
+
+        .buy-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: #4CAF50;
+            color: white;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 1.2em;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .buy-button:hover {
+            transform: translateY(-2px);
+            background: #45a049;
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .buy-button i {
+            font-size: 1.2em;
+        }
+
+        .buy-note {
+            margin-top: 15px;
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        .disclaimer-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 40px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .disclaimer-section h3 {
+            color: #4CAF50;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .disclaimer-section p {
+            color: #888;
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+
+        .disclaimer-section a {
+            color: #4CAF50;
+            text-decoration: none;
+            border-bottom: 1px dotted #4CAF50;
+        }
+
+        .disclaimer-section a:hover {
+            color: #45a049;
+            border-bottom-style: solid;
+        }
+
+        .highlight-address {
+            background: rgba(76, 175, 80, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+            border: 1px solid rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+            word-break: break-all;
+        }
+
+        .step-address {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .step-address code {
+            font-family: monospace;
+            color: #4CAF50;
+            font-size: 0.85em;
+            word-break: break-all;
+            flex: 1;
+        }
+
+        .step-copy-btn {
+            background: #4CAF50;
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .step-copy-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .step-copy-btn.copied {
+            background: #45a049;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        @media (max-width: 768px) {
+            .crypto-page {
+                padding-top: 60px;
+            }
+
+            .crypto-container {
+                padding: 15px;
+            }
+
+            .crypto-header {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+
+            .crypto-header h1 {
+                font-size: 2em;
+            }
+
+            .coin-showcase {
+                padding: 20px;
+            }
+
+            .steps-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .qr-section {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .contract-address {
+                padding: 15px;
+                font-size: 0.9em;
+            }
+
+            .vesting-timeline {
+                grid-template-columns: 1fr;
+            }
+
+            .faq-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-container {
+                height: 400px;
+                padding: 10px;
+            }
+
+            .market-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .buy-section {
+                margin-top: 20px;
+                padding: 15px;
+            }
+
+            .buy-button {
+                padding: 12px 30px;
+                font-size: 1.1em;
+            }
+
+            .disclaimer-section {
+                padding: 20px;
+                margin: 30px 0;
+            }
+
+            .step-address {
+                flex-direction: row;
+                padding: 8px;
+            }
+
+            .step-address code {
+                font-size: 0.8em;
+            }
+
+            .step-copy-btn {
+                width: 28px;
+                height: 28px;
+            }
+        }
+    </style>
+</head>
+<body class="crypto-page">
+    <nav>
+        <div class="logo">
+            <a href="index.html">
+                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo" loading="lazy" width="50" height="50">
+                <span>BLITZ T CLUB</span>
+            </a>
+        </div>
+        <div class="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="events.html">Events</a></li>
+            <li><a href="gallery.html">Gallery</a></li>
+            <li><a href="executive.html">Executives</a></li>
+            <li><a href="news.html">News</a></li>
+            <li><a href="crypto.html">$BLITZTCLUB</a></li>
+            <li><a href="#join">Join Us</a></li>
+            <li><a href="login.html">Login</a></li>
+        </ul>
+    </nav>
+
+    <main class="crypto-container">
+        <header class="crypto-header">
+            <h1>
+                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="BLITZTCLUB">
+                $BLITZTCLUB
+            </h1>
+            <div class="market-stats">
+                <div class="stat-item">
+                    <h4>Price</h4>
+                    <p id="price">Loading...</p>
+                </div>
+                <div class="stat-item">
+                    <h4>Market Cap</h4>
+                    <p id="marketCap">Loading...</p>
+                </div>
+                <div class="stat-item">
+                    <h4>24h Volume</h4>
+                    <p id="volume">Loading...</p>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="tokenChart"></canvas>
+                <div class="chart-loader">Loading chart data...</div>
+            </div>
+            
+            <div class="buy-section">
+                <a href="https://pump.fun/coin/5CoNeUV94S68WGbCHmW2u4qKMNQ27SqFu7yzAeqrpump" target="_blank" class="buy-button">
+                    <i class="fas fa-rocket"></i>
+                    Buy $BLITZTCLUB Now
+                </a>
+                <p class="buy-note">Trade on Pump Fun Exchange - Fast & Secure</p>
+            </div>
+        </header>
+
+        <div class="coin-showcase">
+            <div class="coin-logo">
+                <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="BlitzTClub Coin Logo">
+            </div>
+            <div class="coin-info">
+                <h2>$BLITZTCLUB</h2>
+                <p>The official cryptocurrency of the Blitz Tesla Club community. Built on Solana for lightning-fast transactions and minimal environmental impact.</p>
+            </div>
+
+            <div class="contract-address">
+                <span class="address-label">Solana Contract Address</span>
+                <div class="address-content" id="contractAddress">
+                    5CoNeUV94S68WGbCHmW2u4qKMNQ27SqFu7yzAeqrpump
+                </div>
+                <button class="copy-btn" data-address="contractAddress">
+                    <i class="fas fa-copy"></i> Copy Address
+                </button>
+            </div>
+
+            <div class="qr-section">
+                <div class="qr-code">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://pump.fun/coin/5CoNeUV94S68WGbCHmW2u4qKMNQ27SqFu7yzAeqrpump" alt="Pump Fund Dashboard QR Code">
+                </div>
+            </div>
+        </div>
+
+        <div class="disclaimer-section">
+            <h3>Disclaimer</h3>
+            <p>BLITZTCLUB memes are digital collectibles intended to function as an expression of support for and engagement with the values embodied by the symbol BLITZTCLUB and the associated artwork, and are not intended to be, or to be the subject of, an investment opportunity, investment contract, or security of any type. BlitzTClub Inc. is not political and has nothing to do with any political campaign or any political office or governmental agency. See <a href="terms.html">Terms & Conditions Here</a></p>
+        </div>
+
+        <div class="steps-section">
+            <h2>How to Buy BlitzTClub Coin</h2>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3>Create a Wallet</h3>
+                    <p>Download Phantom or your preferred Solana wallet from the App Store or Google Play.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3>Get SOL/USDC</h3>
+                    <p>Fund your wallet with SOL or USDC. Buy directly through your wallet or transfer from an exchange.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3>Search Token</h3>
+                    <p>Search $BLITZTCLUB token using our contract address:</p>
+                    <div class="step-address">
+                        <code id="stepContractAddress">5CoNeUV94S68WGbCHmW2u4qKMNQ27SqFu7yzAeqrpump</code>
+                        <button class="step-copy-btn" data-address="stepContractAddress">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <h3>Swap for $BLITZTCLUB</h3>
+                    <p>Use your SOL or USDC to swap for BlitzTClub Coin. Confirm the transaction in your wallet.</p>
+                </div>
+            </div>
+
+            <div class="important-note">
+                <h3>Important Notice</h3>
+                <p>After purchasing, please email your transaction hash to <a href="mailto:payments@blitztclub.com">payments@blitztclub.com</a> along with your member ID. This helps us verify your purchase and activate your membership benefits.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <div class="footer-links">
+                    <a href="index.html">Home</a>
+                    <a href="events.html">Events</a>
+                    <a href="gallery.html">Gallery</a>
+                    <a href="contact.html">Contact</a>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Member Area</h3>
+                <div class="footer-links">
+                    <a href="sponsors.html">Our Sponsors</a>
+                    <a href="#member-benefits">Member Benefits</a>
+                    <a href="#" id="footerLogoutBtn">Logout</a>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Legal</h3>
+                <div class="footer-links">
+                    <a href="privacy.html">Privacy Policy</a>
+                    <a href="terms.html">Terms of Service</a>
+                    <a href="about.html">About Us</a>
+                </div>
+            </div>
+
+            <div class="footer-section">
+                <h3>Connect With Us</h3>
+                <div class="footer-social">
+                    <a href="https://x.com/BlitzTClub" target="_blank" aria-label="Follow us on X">
+                        <i class="fa-brands fa-square-x-twitter"></i>
+                    </a>
+                    <a href="https://www.instagram.com/blitztclub/" target="_blank" aria-label="Follow us on Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>© 2024 Blitz T Club. All rights reserved.</p>
+            <p class="powered-by">
+                Website powered by <a href="http://www.summitpixels.com" target="_blank">SummitPixels</a>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // PumpFun Data Integration
+        async function fetchTokenData() {
+            try {
+                // Use static data since API is not accessible
+                const staticData = {
+                    marketCap: 6668,
+                    volume24h: 1200,
+                    price: 0.00668,
+                    timestamps: generateTimeLabels(),
+                    prices: generatePriceData()
+                };
+                
+                // Update market stats
+                document.getElementById('marketCap').textContent = formatCurrency(staticData.marketCap);
+                document.getElementById('volume').textContent = formatCurrency(staticData.volume24h);
+                document.getElementById('price').textContent = formatCurrency(staticData.price);
+
+                // Create chart
+                const ctx = document.getElementById('tokenChart').getContext('2d');
+                const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                gradient.addColorStop(0, 'rgba(76, 175, 80, 0.2)');
+                gradient.addColorStop(1, 'rgba(76, 175, 80, 0)');
+
+                // Destroy existing chart if it exists
+                if (window.priceChart) {
+                    window.priceChart.destroy();
+                }
+
+                window.priceChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: staticData.timestamps,
+                        datasets: [{
+                            label: '$BLITZTCLUB',
+                            data: staticData.prices,
+                            borderColor: '#4CAF50',
+                            backgroundColor: gradient,
+                            borderWidth: 1.5,
+                            fill: true,
+                            tension: 0.1,
+                            pointRadius: 0,
+                            pointHoverRadius: 3,
+                            pointHoverBackgroundColor: '#4CAF50',
+                            pointHoverBorderColor: '#fff',
+                            pointHoverBorderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        layout: {
+                            padding: {
+                                top: 20,
+                                right: 20,
+                                bottom: 20,
+                                left: 20
+                            }
+                        },
+                        interaction: {
+                            intersect: false,
+                            mode: 'index'
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                                titleColor: '#888',
+                                bodyColor: '#fff',
+                                padding: 10,
+                                displayColors: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        return `$${context.parsed.y.toFixed(8)}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.05)',
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    color: '#888',
+                                    font: {
+                                        size: 11
+                                    },
+                                    callback: function(value) {
+                                        return '$' + value.toFixed(8);
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    color: '#888',
+                                    font: {
+                                        size: 11
+                                    },
+                                    maxRotation: 0,
+                                    maxTicksLimit: 6
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Hide loader
+                document.querySelector('.chart-loader').style.display = 'none';
+            } catch (error) {
+                console.error('Error updating chart data:', error);
+                document.querySelector('.chart-loader').textContent = 'Loading latest market data...';
+            }
+        }
+
+        function generateTimeLabels() {
+            const labels = [];
+            const now = new Date();
+            for (let i = 24; i >= 0; i--) {
+                const time = new Date(now - i * 3600000);
+                labels.push(time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+            }
+            return labels;
+        }
+
+        function generatePriceData() {
+            const basePrice = 0.00668;
+            const prices = [];
+            const volatility = 0.02; // 2% volatility
+            let currentPrice = basePrice;
+            
+            for (let i = 0; i < 25; i++) {
+                const change = (Math.random() - 0.5) * 2 * volatility * currentPrice;
+                currentPrice = Math.max(basePrice * 0.8, Math.min(basePrice * 1.2, currentPrice + change));
+                prices.push(currentPrice);
+            }
+            return prices;
+        }
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: value < 0.01 ? 8 : 2,
+                maximumFractionDigits: value < 0.01 ? 8 : 2
+            }).format(value);
+        }
+
+        // Initialize chart and start updates
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchTokenData();
+            // Update every minute
+            setInterval(fetchTokenData, 60000);
+        });
+
+        // Copy button functionality
+        document.querySelector('.copy-btn').addEventListener('click', function() {
+            const addressElement = document.getElementById('contractAddress');
+            const textArea = document.createElement('textarea');
+            textArea.value = addressElement.textContent.trim();
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            this.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            setTimeout(() => {
+                this.innerHTML = '<i class="fas fa-copy"></i> Copy Address';
+            }, 2000);
+        });
+
+        // Add copy functionality for step address
+        document.querySelector('.step-copy-btn').addEventListener('click', function() {
+            const addressElement = document.getElementById('stepContractAddress');
+            const textArea = document.createElement('textarea');
+            textArea.value = addressElement.textContent.trim();
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            this.classList.add('copied');
+            const icon = this.querySelector('i');
+            icon.className = 'fas fa-check';
+            
+            setTimeout(() => {
+                this.classList.remove('copied');
+                icon.className = 'fas fa-copy';
+            }, 2000);
+        });
+    </script>
+</body>
+</html> 

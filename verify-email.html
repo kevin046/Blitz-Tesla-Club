@@ -71,11 +71,11 @@
     <script src="verify-email.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            // Initialize Supabase client
-            const supabaseClient = supabase.createClient(
-                'https://qhkcrrphsjpytdfqfamq.supabase.co',
-                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI'
-            );
+                // Initialize Supabase client
+                const supabaseClient = supabase.createClient(
+                    'https://qhkcrrphsjpytdfqfamq.supabase.co',
+                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI'
+                );
 
             // Display user's email
             const userEmail = localStorage.getItem('pendingVerificationEmail');
@@ -246,16 +246,16 @@ Blitz T Club Team`);
                     }
 
                     // Update profile status and clear token
-                    const { error: updateError } = await supabaseClient
-                        .from('profiles')
-                        .update({
-                            membership_status: 'active',
+                const { error: updateError } = await supabaseClient
+                    .from('profiles')
+                    .update({
+                        membership_status: 'active',
                             verification_token: null,
                             token_expires_at: null
-                        })
-                        .eq('id', profile.id);
+                    })
+                    .eq('id', profile.id);
 
-                    if (updateError) {
+                if (updateError) {
                         throw new Error('Failed to activate your membership. Please try again.');
                     }
 
@@ -266,13 +266,13 @@ Blitz T Club Team`);
                     localStorage.removeItem('pendingMemberId');
                     localStorage.removeItem('registrationTime');
 
-                    // Redirect to success page
-                    window.location.href = `verification-success.html?verified=true&id=${profile.id}`;
+                // Redirect to success page
+                window.location.href = `verification-success.html?verified=true&id=${profile.id}`;
 
-                } catch (error) {
-                    console.error('Verification error:', error);
-                    localStorage.setItem('verificationError', error.message || 'Verification process failed. Please try again.');
-                    window.location.href = 'verification-failed.html';
+            } catch (error) {
+                console.error('Verification error:', error);
+                localStorage.setItem('verificationError', error.message || 'Verification process failed. Please try again.');
+                window.location.href = 'verification-failed.html';
                 }
             }
         });

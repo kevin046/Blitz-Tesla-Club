@@ -3,59 +3,297 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Email Verified - Blitz T Club</title>
+    <title>Verification Successful - Blitz T Club</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="verification-page">
-    <div class="verification-container">
-        <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" class="verification-logo">
-        <div class="verification-content success">
-            <i class="fas fa-check-circle"></i>
-            <h1>Email Verified Successfully!</h1>
-            <p>Your email has been verified and your membership is now active.</p>
-            <a href="dashboard.html" class="btn primary-btn" id="dashboardBtn">
-                <i class="fas fa-home"></i>
-                Go to Dashboard
+    <!-- Standard Navigation -->
+    <nav>
+        <div class="logo">
+            <a href="index.html">
+                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo" loading="lazy" width="50" height="50">
+                <span>BLITZ T CLUB</span>
             </a>
         </div>
-    </div>
+        <div class="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="events.html">Events</a></li>
+            <li><a href="gallery.html">Gallery</a></li>
+            <li><a href="executive.html">Executives</a></li>
+            <li><a href="news.html">News</a></li>
+            <li><a href="register.html">Join Us</a></li>
+            <li><a href="login.html">Login</a></li>
+        </ul>
+    </nav>
+
+    <main class="verification-container">
+        <div class="verification-box">
+            <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" class="verification-logo">
+            <div class="verification-content success">
+                <i class="fas fa-check-circle"></i>
+                <h1>Verification Successful!</h1>
+                <p>Your email has been verified and your Blitz T Club membership is now active.</p>
+                <p>Your Member ID: <span id="memberIdDisplay" class="highlight"></span></p>
+                <div class="next-steps">
+                    <h3>Next Steps:</h3>
+                    <div class="steps-grid">
+                        <div class="step">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <h4>Login to Your Account</h4>
+                            <p>Sign in using your email and password</p>
+                        </div>
+                        <div class="step">
+                            <i class="fas fa-id-card"></i>
+                            <h4>Access Your Member Card</h4>
+                            <p>View your digital membership card</p>
+                        </div>
+                        <div class="step">
+                            <i class="fas fa-calendar-alt"></i>
+                            <h4>Join Club Events</h4>
+                            <p>Discover and RSVP to upcoming events</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="verification-actions">
+                    <a href="login.html" class="btn primary-btn">
+                        <i class="fas fa-sign-in-alt"></i> Login Now
+                    </a>
+                    <a href="index.html" class="btn secondary-btn">
+                        <i class="fas fa-home"></i> Return to Homepage
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Standard Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <div class="footer-links">
+                    <a href="index.html">Home</a>
+                    <a href="events.html">Events</a>
+                    <a href="gallery.html">Gallery</a>
+                    <a href="contact.html">Contact</a>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Member Area</h3>
+                <div class="footer-links">
+                    <a href="login.html">Login</a>
+                    <a href="register.html">Register</a>
+                    <a href="sponsors.html">Our Sponsors</a>
+                    <a href="#member-benefits">Member Benefits</a>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Legal</h3>
+                <div class="footer-links">
+                    <a href="privacy.html">Privacy Policy</a>
+                    <a href="terms.html">Terms of Service</a>
+                    <a href="about.html">About Us</a>
+                </div>
+            </div>
+
+            <div class="footer-section">
+                <h3>Connect With Us</h3>
+                <div class="footer-social">
+                    <a href="https://x.com/BlitzTClub" target="_blank" aria-label="Follow us on X">
+                        <i class="fa-brands fa-square-x-twitter"></i>
+                    </a>
+                    <a href="https://www.instagram.com/blitztclub/" target="_blank" aria-label="Follow us on Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>© 2024 Blitz T Club. All rights reserved.</p>
+            <p class="powered-by">
+                Website powered by <a href="http://www.summitpixels.com" target="_blank">SummitPixels</a>
+            </p>
+        </div>
+    </footer>
+
+    <style>
+        .verification-content {
+            text-align: center;
+        }
+        
+        .verification-content i {
+            font-size: 4em;
+            margin-bottom: 20px;
+            color: #4CAF50;
+        }
+        
+        .verification-content h1 {
+            margin-bottom: 15px;
+            color: #fff;
+        }
+        
+        .verification-content p {
+            color: #ccc;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+        
+        .highlight {
+            color: #4CAF50;
+            font-weight: 600;
+            font-size: 1.1em;
+            background: rgba(76, 175, 80, 0.1);
+            padding: 3px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        
+        .next-steps {
+            margin: 30px 0;
+            text-align: left;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .next-steps h3 {
+            color: #4CAF50;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+        
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .step {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            transition: transform 0.3s, background 0.3s;
+        }
+        
+        .step:hover {
+            transform: translateY(-5px);
+            background: rgba(76, 175, 80, 0.1);
+        }
+        
+        .step i {
+            font-size: 2em;
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+        
+        .step h4 {
+            color: #fff;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+        
+        .step p {
+            color: #aaa;
+            font-size: 0.9em;
+            margin: 0;
+        }
+        
+        .verification-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .verification-actions .btn {
+            min-width: 150px;
+            padding: 12px 24px;
+        }
+        
+        @media (max-width: 768px) {
+            .steps-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .verification-actions {
+                flex-direction: column;
+            }
+            
+            .verification-actions .btn {
+                width: 100%;
+            }
+        }
+    </style>
 
     <script>
+        // Initialize Supabase client
+        const SUPABASE_URL = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
         document.addEventListener('DOMContentLoaded', async () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const verified = urlParams.get('verified');
-            const userId = urlParams.get('id');
-
-            if (verified === 'true' && userId) {
-                // Initialize Supabase
-                const supabaseUrl = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
-                const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
-                const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-
-                try {
-                    // Double-check and ensure status is updated
+            try {
+                // Get current user session
+                const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+                
+                if (sessionError) {
+                    console.error('Error getting session:', sessionError);
+                    throw sessionError;
+                }
+                
+                if (session) {
+                    // Update membership status if needed
+                    const userId = session.user.id;
+                    const memberId = session.user.user_metadata.member_id || localStorage.getItem('pendingMemberId');
+                    
+                    // Display member ID
+                    if (memberId) {
+                        document.getElementById('memberIdDisplay').textContent = memberId;
+                    }
+                    
+                    // Update profile in database to set status to active
                     const { error: updateError } = await supabaseClient
                         .from('profiles')
                         .update({ 
-                            membership_status: 'active',
-                            verification_token: null
+                            membership_status: 'active' 
                         })
                         .eq('id', userId);
-
+                    
                     if (updateError) {
-                        console.error('Error updating status:', updateError);
+                        console.error('Error updating profile:', updateError);
                     }
-
-                    // Update dashboard link to include verification success parameter
-                    const dashboardBtn = document.getElementById('dashboardBtn');
-                    dashboardBtn.href = 'dashboard.html?verified=true';
-                } catch (error) {
-                    console.error('Error:', error);
+                } else {
+                    // Try to get member ID from localStorage if no session
+                    const memberId = localStorage.getItem('pendingMemberId');
+                    if (memberId) {
+                        document.getElementById('memberIdDisplay').textContent = memberId;
+                    }
                 }
+                
+                // Clear any verification-related items from localStorage
+                localStorage.removeItem('pendingVerificationEmail');
+                localStorage.removeItem('pendingMemberId');
+                localStorage.removeItem('registrationTime');
+                
+            } catch (error) {
+                console.error('Error processing verification:', error);
             }
         });
     </script>

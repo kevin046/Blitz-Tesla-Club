@@ -390,8 +390,10 @@
                         password,
                         options: {
                             data: {
-                                full_name: fullName
-                            }
+                                full_name: fullName,
+                                member_id: memberId
+                            },
+                            emailRedirectTo: `${window.location.origin || window.location.href.split('/').slice(0, -1).join('/')}/verification-success.html`
                         }
                     });
 
@@ -423,83 +425,10 @@
                         throw profileError;
                     }
 
-                    // Generate verification token
-                    const verificationToken = crypto.randomUUID();
-                    console.log('Generated verification token');
-
-                    // Store token in database and localStorage
-                    const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 hours
-                    const { error: tokenError } = await supabaseClient
-                        .from('profiles')
-                        .update({
-                            verification_token: verificationToken,
-                            token_expires_at: tokenExpiry
-                        })
-                        .eq('id', data.user.id);
-
-                    if (tokenError) {
-                        console.error('Error storing verification token:', tokenError);
-                        throw tokenError;
-                    }
-
-                    // Store token in localStorage as backup
-                    localStorage.setItem('verificationToken', verificationToken);
-                    localStorage.setItem('tokenExpiry', tokenExpiry);
+                    // Store registration info in localStorage
                     localStorage.setItem('pendingVerificationEmail', email);
                     localStorage.setItem('pendingMemberId', memberId);
                     localStorage.setItem('registrationTime', new Date().toISOString());
-
-                    // Get base URL for verification link
-                    const baseUrl = window.location.href.split('/').slice(0, -1).join('/');
-                    const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}`;
-
-                    // Send verification email using FormSubmit
-                    const formData = new FormData();
-                    formData.append('email', email);
-                    formData.append('_captcha', 'false');
-                    formData.append('_template', 'box');
-                    formData.append('_subject', 'Verify Your Blitz T Club Membership');
-                    formData.append('_autoresponse', 'Thank you for verifying your email. Your Blitz T Club membership will be activated shortly.');
-                    formData.append('message', `Welcome to Blitz T Club!
-
-Member ID: ${memberId}
-
-Please click the link below to verify your email and activate your membership:
-${verificationUrl}
-
-Important Notes:
-- This verification link will expire in 24 hours
-- Please verify on the same device you're currently using
-- After verification, your membership will be activated instantly
-
-Next Steps:
-1. Click the verification link above
-2. Your membership will be activated instantly
-3. Access your digital membership card
-4. Start enjoying member benefits
-
-If you can't click the link, copy and paste this URL into your browser:
-${verificationUrl}
-
-If you didn't request this email, please ignore it.
-
-Best regards,
-Blitz Tesla Club Team`);
-
-                    // Send the verification email
-                    const emailResponse = await fetch(`https://formsubmit.co/ajax/${email}`, {
-                        method: 'POST',
-                        headers: {
-                            'Accept': 'application/json'
-                        },
-                        body: formData
-                    });
-
-                    if (!emailResponse.ok) {
-                        const responseText = await emailResponse.text();
-                        console.error('FormSubmit response:', responseText);
-                        throw new Error('Failed to send verification email');
-                    }
 
                     // Redirect to verification sent page
                     window.location.href = 'verification-sent.html';

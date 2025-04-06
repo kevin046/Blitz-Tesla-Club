@@ -41,22 +41,19 @@
             <p>We've sent a verification email to your inbox. Please check your email and click the verification link to activate your account.</p>
             <p class="user-email" id="userEmail"></p>
             <div class="email-note">
-                <p><strong>Important Note:</strong></p>
-                <p>You will receive two emails:</p>
+                <p><strong>Important Instructions:</strong></p>
                 <ol>
-                    <li>First email: Click to activate FormSubmit (our email service)</li>
-                    <li>Second email: Contains your verification link to activate your account</li>
+                    <li>Check your email inbox for a message from <strong>noreply@supabase.co</strong></li>
+                    <li>Open the email with subject line <strong>"Confirm your signup"</strong></li>
+                    <li>Click the verification link in the email</li>
+                    <li>You'll be redirected back to our site after verification</li>
                 </ol>
-                <p>Please complete both steps to activate your account.</p>
+                <p>Once verified, your account will be automatically activated.</p>
             </div>
             <div class="verification-info">
-                <p><i class="fas fa-laptop"></i> Please confirm verification on the same device you registered from.</p>
                 <p><i class="fas fa-info-circle"></i> If you don't see the email, please check your spam folder.</p>
                 <p><i class="fas fa-clock"></i> The verification link will expire in 24 hours.</p>
-                <p class="device-warning">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span>Important: Opening the verification link on a different device may cause verification to fail.</span>
-                </p>
+                <p><i class="fas fa-exclamation-triangle"></i> If the verification link expires, you'll need to register again.</p>
             </div>
             <div class="verification-actions">
                 <a href="login.html" class="btn primary-btn">Return to Login</a>
@@ -290,6 +287,11 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        // Initialize Supabase client
+        const SUPABASE_URL = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         document.addEventListener('DOMContentLoaded', async () => {
             // Display user's email
             const userEmail = localStorage.getItem('pendingVerificationEmail');
@@ -301,64 +303,28 @@
             const resendButton = document.getElementById('resendButton');
             resendButton.addEventListener('click', async () => {
                 try {
-                    // Generate verification token
-                    const verificationToken = crypto.randomUUID();
-                    console.log('Generated token:', verificationToken);
+                    const email = localStorage.getItem('pendingVerificationEmail');
+                    if (!email) {
+                        alert('No email found to resend verification. Please register again.');
+                        window.location.href = 'register.html';
+                        return;
+                    }
 
-                    // Store token temporarily in localStorage
-                    localStorage.setItem('verificationToken', verificationToken);
-                    localStorage.setItem('tokenExpiry', new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString());
-
-                    // Get base URL for verification link
-                    const baseUrl = window.location.href.split('/').slice(0, -1).join('/');
-                    const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}`;
-
-                    // Send verification email using FormSubmit
-                    const formData = new FormData();
-                    formData.append('email', userEmail);
-                    formData.append('_captcha', 'false');
-                    formData.append('_template', 'box');
-                    formData.append('_subject', 'Verify Your Blitz T Club Membership');
-                    formData.append('_autoresponse', 'Thank you for verifying your email. Your Blitz T Club membership will be activated shortly.');
-                    formData.append('message', `Welcome to Blitz T Club!
-
-Member ID: ${localStorage.getItem('pendingMemberId')}
-
-Please click the link below to verify your email and activate your membership:
-${verificationUrl}
-
-Important Notes:
-- This verification link will expire in 24 hours
-- Please verify on the same device you're currently using
-- After verification, your membership will be activated instantly
-
-Next Steps:
-1. Click the verification link above
-2. Your membership will be activated instantly
-3. Access your digital membership card
-4. Start enjoying member benefits
-
-If you can't click the link, copy and paste this URL into your browser:
-${verificationUrl}
-
-If you didn't request this email, please ignore it.
-
-Best regards,
-Blitz T Club Team`);
-
-                    // Send the verification email
-                    const emailResponse = await fetch(`https://formsubmit.co/ajax/${userEmail}`, {
-                        method: 'POST',
-                        headers: {
-                            'Accept': 'application/json'
-                        },
-                        body: formData
+                    // Get redirect URL
+                    const redirectTo = `${window.location.origin || window.location.href.split('/').slice(0, -1).join('/')}/verification-success.html`;
+                    
+                    // Resend email verification using Supabase
+                    const { error } = await supabaseClient.auth.resend({
+                        type: 'signup',
+                        email: email,
+                        options: {
+                            emailRedirectTo: redirectTo
+                        }
                     });
 
-                    if (!emailResponse.ok) {
-                        const responseText = await emailResponse.text();
-                        console.error('FormSubmit response:', responseText);
-                        throw new Error('Failed to send verification email');
+                    if (error) {
+                        console.error('Error resending verification email:', error);
+                        throw error;
                     }
 
                     // Update button state
@@ -381,7 +347,7 @@ Blitz T Club Team`);
 
                 } catch (error) {
                     console.error('Error sending verification:', error);
-                    alert('Failed to send verification email. Please try again.');
+                    alert('Failed to resend verification email. Please try again or contact support.');
                 }
             });
         });

@@ -235,43 +235,90 @@
         // Function to generate sequential member ID
         async function generateSequentialMemberId() {
             try {
-                // Query to get the latest Member ID from profiles
+                console.log('Starting sequential Member ID generation...');
+                
+                // Query to get all Member IDs from profiles to find the highest one
                 const { data, error } = await supabaseClient
                     .from('profiles')
                     .select('member_id')
-                    .order('created_at', { ascending: false })
-                    .limit(10);
+                    .not('member_id', 'is', null)  // Only select records with a member_id
+                    .order('created_at', { ascending: false });
                 
                 if (error) {
-                    console.error('Error fetching latest Member ID:', error);
+                    console.error('Error fetching Member IDs:', error);
                     throw error;
                 }
                 
-                // Default starting number if no existing IDs
-                let highestNumber = 10000;
+                // Default starting number
+                let highestNumber = 0;
                 
-                // Find the highest member ID number
+                console.log('Retrieved profiles count:', data ? data.length : 0);
+                
+                // Find the highest Member ID number
                 if (data && data.length > 0) {
+                    // Loop through all profiles and extract the numeric part of the Member ID
                     data.forEach(profile => {
                         if (profile.member_id && profile.member_id.startsWith('BTC')) {
-                            const numberPart = parseInt(profile.member_id.replace('BTC', ''), 10);
-                            if (!isNaN(numberPart) && numberPart > highestNumber) {
-                                highestNumber = numberPart;
+                            try {
+                                // Extract just the numeric part by removing 'BTC' prefix
+                                const numberString = profile.member_id.replace('BTC', '');
+                                // Parse to integer, removing any leading zeros
+                                const numberPart = parseInt(numberString, 10);
+                                
+                                if (!isNaN(numberPart)) {
+                                    console.log(`Found Member ID: ${profile.member_id}, Number part: ${numberPart}`);
+                                    // Keep track of the highest number found
+                                    if (numberPart > highestNumber) {
+                                        highestNumber = numberPart;
+                                        console.log(`New highest number: ${highestNumber}`);
+                                    }
+                                }
+                            } catch (parseError) {
+                                console.error('Error parsing Member ID:', profile.member_id, parseError);
                             }
                         }
                     });
                 }
                 
-                // Generate the next Member ID
+                // Double-check with a specific query for the highest Member ID
+                if (highestNumber === 0) {
+                    console.log('No valid Member IDs found in first pass, trying direct ordering...');
+                    
+                    // Alternative approach: Sort by member_id in descending order
+                    const { data: orderedData, error: orderedError } = await supabaseClient
+                        .from('profiles')
+                        .select('member_id')
+                        .not('member_id', 'is', null)
+                        .order('member_id', { ascending: false })
+                        .limit(1);
+                    
+                    if (!orderedError && orderedData && orderedData.length > 0) {
+                        const highestId = orderedData[0].member_id;
+                        if (highestId && highestId.startsWith('BTC')) {
+                            const numberPart = parseInt(highestId.replace('BTC', ''), 10);
+                            if (!isNaN(numberPart)) {
+                                highestNumber = numberPart;
+                                console.log(`Found highest member_id by direct ordering: ${highestId}, Number part: ${highestNumber}`);
+                            }
+                        }
+                    }
+                }
+                
+                // Generate the next Member ID (increment from the highest found)
                 const nextNumber = highestNumber + 1;
+                console.log(`Highest Member ID number found: ${highestNumber}, Next number: ${nextNumber}`);
+                
+                // Format with leading zeros (5 digits)
                 const memberId = `BTC${nextNumber.toString().padStart(5, '0')}`;
                 
-                console.log('Generated Member ID:', memberId);
+                console.log(`Generated sequential Member ID: ${memberId}`);
                 return memberId;
             } catch (error) {
                 console.error('Error generating Member ID:', error);
-                // Fallback to a random Member ID
-                return `BTC${Math.floor(Math.random() * 100000).toString().padStart(5, '0')}`;
+                // Generate a fallback ID - make sure it's higher than the known highest ID (22)
+                const fallbackId = `BTC${(23).toString().padStart(5, '0')}`;
+                console.log('Using fallback ID:', fallbackId);
+                return fallbackId;
             }
         }
 
@@ -407,9 +454,10 @@
                         throw new Error('Password must be at least 6 characters long.');
                     }
 
-                    // Generate sequential Member ID
+                    // Generate sequential Member ID - ensure this runs before signup
+                    console.log('Generating sequential Member ID...');
                     const memberId = await generateSequentialMemberId();
-                    console.log('Generated Member ID:', memberId);
+                    console.log('Successfully generated Member ID:', memberId);
 
                     // Store email and memberId for verification page
                     localStorage.setItem('pendingVerificationEmail', email);
@@ -440,12 +488,22 @@
                     }
 
                     console.log('Signup response:', data);
+                    console.log('User metadata:', data.user?.user_metadata);
 
                     // Save memberId to localStorage for later use
                     localStorage.setItem('userMemberId', memberId);
 
-                    // Navigate to verification sent page
-                    window.location.href = 'verification-sent.html';
+                    // Show success message before redirecting
+                    alertContainer.innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> Account created successfully! Your Member ID is: <strong>${memberId}</strong>. Redirecting to verification page...
+                        </div>
+                    `;
+                    
+                    // Navigate to verification sent page after a short delay
+                    setTimeout(() => {
+                        window.location.href = 'verification-sent.html';
+                    }, 1500);
                     
                 } catch (error) {
                     console.error('Registration error:', error);

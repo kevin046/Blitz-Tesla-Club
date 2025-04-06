@@ -378,6 +378,7 @@
                     if (error) throw error;
                     
                     console.log('User registered successfully:', data);
+                    console.log('User metadata:', data.user.user_metadata);
                     
                     // Try to create user profile, but don't throw error if it fails due to RLS
                     try {
@@ -411,6 +412,12 @@
                     localStorage.setItem('pendingUserId', data.user.id);
                     localStorage.setItem('pendingFullName', fullName);
                     localStorage.setItem('registrationTime', new Date().toISOString());
+                    
+                    // Double-check metadata was stored properly
+                    const { data: metadataCheck, error: metadataError } = await supabaseClient.auth.getUser();
+                    if (!metadataError && metadataCheck) {
+                        console.log('Metadata check after registration:', metadataCheck.user.user_metadata);
+                    }
                     
                     // Redirect to verification sent page
                     window.location.href = 'verification-sent.html';

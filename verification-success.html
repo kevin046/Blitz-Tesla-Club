@@ -405,12 +405,27 @@
                     const pendingEmail = localStorage.getItem('pendingVerificationEmail') || session.user.email;
                     const pendingFullName = localStorage.getItem('pendingFullName') || 
                                            (session.user.user_metadata ? session.user.user_metadata.full_name : '');
-                    const memberId = (session.user.user_metadata && session.user.user_metadata.member_id) ? 
-                                     session.user.user_metadata.member_id : 
-                                     localStorage.getItem('pendingMemberId');
                     
-                    console.log('Member ID:', memberId);
-                    console.log('Email:', pendingEmail);
+                    // Check for member ID in multiple places
+                    let memberId = null;
+                    
+                    // 1. First check user metadata
+                    if (session.user.user_metadata && session.user.user_metadata.member_id) {
+                        memberId = session.user.user_metadata.member_id;
+                        console.log('Found member ID in user metadata:', memberId);
+                    } 
+                    // 2. If not in metadata, check localStorage
+                    else if (localStorage.getItem('pendingMemberId')) {
+                        memberId = localStorage.getItem('pendingMemberId');
+                        console.log('Found member ID in localStorage:', memberId);
+                    } 
+                    // 3. If still not found, generate a new one
+                    else {
+                        memberId = `BTC${Math.floor(Math.random() * 100000).toString().padStart(5, '0')}`;
+                        console.log('Generated new member ID:', memberId);
+                    }
+                    
+                    console.log('Final member ID to use:', memberId);
                     
                     // Display member ID
                     if (memberId) {
@@ -420,19 +435,47 @@
                     }
                     
                     try {
-                        // First try to update the profile status if it exists
-                        console.log('Attempting to update existing profile...');
-                        const { data: updateData, error: updateError } = await client
+                        // First check if profile exists
+                        const { data: existingProfile, error: checkError } = await client
                             .from('profiles')
-                            .update({ 
-                                membership_status: 'active' 
-                            })
-                            .eq('id', session.user.id);
+                            .select('id, member_id, membership_status')
+                            .eq('id', session.user.id)
+                            .single();
                         
-                        if (updateError) {
-                            console.log('Profile update failed, attempting to create profile...', updateError);
+                        if (checkError && checkError.code !== 'PGRST116') {
+                            // Error other than "not found"
+                            console.error('Error checking for existing profile:', checkError);
+                        }
+                        
+                        if (existingProfile) {
+                            console.log('Found existing profile:', existingProfile);
                             
-                            // Try to create the profile
+                            // Update membership status to active
+                            const { error: updateError } = await client
+                                .from('profiles')
+                                .update({ 
+                                    membership_status: 'active',
+                                    // Update member_id if it's not set but we have one
+                                    ...((!existingProfile.member_id && memberId) ? { member_id: memberId } : {})
+                                })
+                                .eq('id', session.user.id);
+                            
+                            if (updateError) {
+                                console.error('Error updating profile:', updateError);
+                            } else {
+                                console.log('Profile updated successfully');
+                            }
+                            
+                            // Use the existing member ID from the profile if available
+                            if (existingProfile.member_id) {
+                                memberId = existingProfile.member_id;
+                                document.getElementById('memberIdDisplay').textContent = memberId;
+                                console.log('Using member ID from existing profile:', memberId);
+                            }
+                        } else {
+                            console.log('No existing profile found, creating new one');
+                            
+                            // Create new profile
                             const { error: createProfileError } = await client
                                 .from('profiles')
                                 .upsert([
@@ -441,7 +484,7 @@
                                         email: pendingEmail,
                                         full_name: pendingFullName || '',
                                         username: pendingEmail.split('@')[0],
-                                        member_id: memberId || `BTC${Math.floor(Math.random() * 100000).toString().padStart(5, '0')}`,
+                                        member_id: memberId,
                                         membership_status: 'active',
                                         membership_type: 'standard',
                                         created_at: new Date().toISOString()
@@ -453,13 +496,25 @@
                             
                             if (createProfileError) {
                                 console.error('Error creating profile:', createProfileError);
-                                // Continue despite error
                             } else {
                                 console.log('Profile created successfully');
                             }
-                        } else {
-                            console.log('Profile updated successfully');
                         }
+                        
+                        // Update user metadata with member ID if needed
+                        if (memberId && (!session.user.user_metadata || !session.user.user_metadata.member_id)) {
+                            console.log('Updating user metadata with member ID');
+                            const { error: metadataError } = await client.auth.updateUser({
+                                data: { member_id: memberId }
+                            });
+                            
+                            if (metadataError) {
+                                console.error('Error updating user metadata:', metadataError);
+                            } else {
+                                console.log('User metadata updated with member ID');
+                            }
+                        }
+                        
                     } catch (profileError) {
                         console.error('Error handling profile:', profileError);
                     }

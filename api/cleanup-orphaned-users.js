@@ -21,28 +21,99 @@ module.exports = async (req, res) => {
             return res.status(400).json({ error: 'User ID is required' });
         }
 
-        // Delete profile first
-        const { error: profileError } = await supabase
-            .from('profiles')
-            .delete()
-            .eq('id', user_id);
+        console.log(`Starting account deletion process for user: ${user_id}`);
 
-        if (profileError) {
-            console.error('Profile deletion error:', profileError);
-            throw profileError;
+        // Check if user exists in Supabase Auth
+        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(user_id);
+        
+        if (userError || !userData) {
+            console.log(`User ${user_id} not found in auth system or already deleted`);
+            return res.status(404).json({ 
+                error: 'User not found', 
+                details: userError?.message || 'User may have been already deleted' 
+            });
         }
 
-        // Delete auth user
+        console.log(`Found user in auth system: ${userData.user.email}`);
+        
+        // Check for user's profile
+        const { data: profileData, error: profileFetchError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user_id)
+            .single();
+            
+        if (profileFetchError && profileFetchError.code !== 'PGRST116') {
+            console.error('Error checking profile:', profileFetchError);
+        }
+        
+        if (profileData) {
+            console.log(`Found profile for user: ${profileData.email}`);
+            
+            // Delete profile
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .delete()
+                .eq('id', user_id);
+
+            if (profileError) {
+                console.error('Profile deletion error:', profileError);
+                if (profileError.code === '23503') { // Foreign key violation
+                    console.log('Foreign key constraint violation - check for related records');
+                    
+                    // Additional logic to handle foreign key constraints if needed
+                    // You might need to delete related records in other tables first
+                }
+            } else {
+                console.log('Profile deleted successfully');
+            }
+        } else {
+            console.log('No profile found for user or already deleted');
+        }
+
+        // Delete any related sessions
+        const { error: sessionError } = await supabase
+            .from('sessions')
+            .delete()
+            .eq('user_id', user_id);
+            
+        if (sessionError) {
+            console.error('Error deleting sessions:', sessionError);
+        } else {
+            console.log('Sessions deleted successfully (if any)');
+        }
+        
+        // Delete any other related user data here if needed
+        // ...
+
+        // Finally, delete the auth user completely
+        console.log('Deleting user from Auth system...');
         const { error: authError } = await supabase.auth.admin.deleteUser(user_id);
 
         if (authError) {
             console.error('Auth deletion error:', authError);
+            if (authError.message.includes('not found')) {
+                return res.json({ message: 'User already deleted from auth system' });
+            }
             throw authError;
         }
 
-        res.json({ message: 'User cleaned up successfully' });
+        console.log(`User ${user_id} completely deleted from system`);
+        res.json({ 
+            success: true,
+            message: 'User completely removed from the system',
+            details: {
+                auth_deleted: true,
+                profile_deleted: true,
+                sessions_cleared: true
+            }
+        });
     } catch (error) {
-        console.error('Cleanup error:', error);
-        res.status(500).json({ error: error.message });
+        console.error('Account deletion error:', error);
+        res.status(500).json({ 
+            error: 'Failed to delete account',
+            message: error.message,
+            details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 }; 

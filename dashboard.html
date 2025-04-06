@@ -891,7 +891,29 @@
                     return;
                 }
                 
+                // Double confirmation with password for security
+                const confirmPassword = prompt("Please enter your password to confirm account deletion:");
+                if (!confirmPassword) {
+                    return; // User canceled the password prompt
+                }
+                
                 try {
+                    // Verify password before proceeding
+                    const { error: signInError } = await supabaseClient.auth.signInWithPassword({
+                        email: profile.email,
+                        password: confirmPassword
+                    });
+                    
+                    if (signInError) {
+                        console.error('Password verification failed:', signInError);
+                        alert('Incorrect password. Account deletion canceled.');
+                        return;
+                    }
+                    
+                    // Show loading state
+                    deleteAccountBtn.disabled = true;
+                    deleteAccountBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+                    
                     console.log('Deleting account for user:', profile.id);
 
                     // First delete the profile
@@ -902,17 +924,28 @@
 
                     if (profileError) {
                         console.error('Error deleting profile:', profileError);
-                        throw new Error('Failed to delete profile');
+                        // Continue with deletion process even if profile deletion fails
+                        // The API call will handle this
                     }
 
-                    // Delete the user's own account
-                    const { error: userError } = await supabaseClient.auth.updateUser({
-                        data: { deleted: true }
+                    // Call the API to completely remove the user from Supabase
+                    const apiUrl = window.location.hostname === 'localhost' 
+                        ? 'http://localhost:3000/api/cleanup-orphaned-users'
+                        : '/api/cleanup-orphaned-users';
+                    
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            user_id: profile.id
+                        })
                     });
-
-                    if (userError) {
-                        console.error('Error marking user as deleted:', userError);
-                        throw new Error('Failed to update user account');
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Failed to delete account completely');
                     }
 
                     // Sign out and clear storage
@@ -921,12 +954,15 @@
                     sessionStorage.clear();
 
                     // Show success message and redirect
-                    alert('Your account has been successfully deleted.');
+                    alert('Your account has been successfully deleted from our systems.');
                     window.location.href = '/';
                     
                 } catch (error) {
                     console.error('Error deleting account:', error);
-                    alert('Failed to delete account. Please try again or contact support.');
+                    alert('Failed to delete account completely. Please try again or contact support.');
+                    // Reset button state
+                    deleteAccountBtn.disabled = false;
+                    deleteAccountBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete Account';
                 }
             });
             

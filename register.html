@@ -235,35 +235,42 @@
         // Function to generate sequential member ID
         async function generateSequentialMemberId() {
             try {
-                // Get the latest member ID from the database
-                const { data: profiles, error } = await supabaseClient
+                // Query to get the latest Member ID from profiles
+                const { data, error } = await supabaseClient
                     .from('profiles')
                     .select('member_id')
-                    .not('member_id', 'is', null)
-                    .order('member_id', { ascending: false })
-                    .limit(1);
-
+                    .order('created_at', { ascending: false })
+                    .limit(10);
+                
                 if (error) {
-                    console.error('Error fetching latest member ID:', error);
-                    // Return a random ID as fallback
-                    return `BTC${Math.floor(Math.random() * 100000).toString().padStart(5, '0')}`;
+                    console.error('Error fetching latest Member ID:', error);
+                    throw error;
                 }
-
-                let nextNumber = 1; // Default start number
-
-                if (profiles && profiles.length > 0 && profiles[0].member_id) {
-                    // Extract the number from the latest member ID (format: BTC#####)
-                    const lastNumber = parseInt(profiles[0].member_id.replace('BTC', ''), 10);
-                    if (!isNaN(lastNumber)) {
-                        nextNumber = lastNumber + 1;
-                    }
+                
+                // Default starting number if no existing IDs
+                let highestNumber = 10000;
+                
+                // Find the highest member ID number
+                if (data && data.length > 0) {
+                    data.forEach(profile => {
+                        if (profile.member_id && profile.member_id.startsWith('BTC')) {
+                            const numberPart = parseInt(profile.member_id.replace('BTC', ''), 10);
+                            if (!isNaN(numberPart) && numberPart > highestNumber) {
+                                highestNumber = numberPart;
+                            }
+                        }
+                    });
                 }
-
-                // Format the new member ID with leading zeros
-                return `BTC${nextNumber.toString().padStart(5, '0')}`;
+                
+                // Generate the next Member ID
+                const nextNumber = highestNumber + 1;
+                const memberId = `BTC${nextNumber.toString().padStart(5, '0')}`;
+                
+                console.log('Generated Member ID:', memberId);
+                return memberId;
             } catch (error) {
-                console.error('Error generating member ID:', error);
-                // Return a random ID as fallback
+                console.error('Error generating Member ID:', error);
+                // Fallback to a random Member ID
                 return `BTC${Math.floor(Math.random() * 100000).toString().padStart(5, '0')}`;
             }
         }
@@ -394,132 +401,86 @@
             }
 
             // Function to handle form submission
-            async function handleSubmit(event) {
-                event.preventDefault();
-                setLoading(true);
-                clearErrors();
-
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-                const confirmPassword = document.getElementById('confirmPassword').value;
-                const fullName = document.getElementById('fullName').value;
-
-                if (!validateForm(email, password, confirmPassword, fullName)) {
-                    setLoading(false);
-                    return;
-                }
-
+            async function handleSubmit() {
                 try {
-                    // Check for internet connectivity first
-                    if (!navigator.onLine) {
-                        throw new Error('No internet connection. Please check your network and try again.');
+                    // Display loading state
+                    registerBtn.disabled = true;
+                    registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
+                    alertContainer.innerHTML = '';
+
+                    // Get form values
+                    const email = document.getElementById('email').value.trim();
+                    const password = document.getElementById('password').value;
+                    const confirmPassword = document.getElementById('confirmPassword').value;
+                    const fullName = document.getElementById('fullName').value.trim();
+
+                    // Validate form
+                    if (!email || !password || !confirmPassword || !fullName) {
+                        throw new Error('Please fill in all required fields.');
                     }
 
-                    // Generate sequential member ID
-                    let memberId;
-                    try {
-                        memberId = await generateSequentialMemberId();
-                        console.log('Generated sequential member ID:', memberId);
-                    } catch (idError) {
-                        console.error('Error generating member ID, using fallback:', idError);
-                        memberId = `BTC${Math.floor(Math.random() * 100000).toString().padStart(5, '0')}`;
+                    if (password !== confirmPassword) {
+                        throw new Error('Passwords do not match.');
                     }
 
-                    // Store registration data for later use
+                    if (password.length < 6) {
+                        throw new Error('Password must be at least 6 characters long.');
+                    }
+
+                    // Generate sequential Member ID
+                    const memberId = await generateSequentialMemberId();
+                    console.log('Generated Member ID:', memberId);
+
+                    // Store email and memberId for verification page
                     localStorage.setItem('pendingVerificationEmail', email);
-                    localStorage.setItem('pendingFullName', fullName);
                     localStorage.setItem('pendingMemberId', memberId);
                     localStorage.setItem('registrationTime', new Date().toISOString());
 
-                    // Test Supabase connection before signup
-                    try {
-                        console.log('Testing connection to Supabase...');
-                        // Just try a simple fetch to the Supabase domain to check connectivity
-                        const connectionTest = await fetch(supabaseUrl, { 
-                            method: 'HEAD',
-                            mode: 'no-cors',
-                            cache: 'no-cache'
-                        });
-                        console.log('Supabase connection test completed');
-                    } catch (connError) {
-                        console.error('Failed to connect to Supabase:', connError);
-                        throw new Error('Unable to connect to our servers. Please check your internet connection or try again later.');
-                    }
+                    // Get exact redirect URL
+                    const redirectTo = window.location.origin + '/verification-success.html';
+                    console.log('Setting redirect URL:', redirectTo);
 
                     console.log('Attempting to sign up user with email:', email);
-                    // Create user with Supabase Auth
                     const { data, error } = await supabaseClient.auth.signUp({
-                        email,
-                        password,
+                        email: email,
+                        password: password,
                         options: {
                             data: {
                                 full_name: fullName,
-                                member_id: memberId
+                                member_id: memberId,
+                                membership_status: 'pending'
                             },
-                            emailRedirectTo: window.location.origin + '/verification-success.html'
+                            emailRedirectTo: redirectTo
                         }
                     });
-                    
-                    if (error) throw error;
-                    
-                    console.log('User registered successfully:', data);
-                    console.log('User metadata:', data.user.user_metadata);
-                    
-                    // Try to create user profile, but don't throw error if it fails due to RLS
-                    try {
-                        const { error: profileError } = await supabaseClient
-                            .from('profiles')
-                            .insert([{
-                                id: data.user.id,
-                                email: email,
-                                full_name: fullName,
-                                username: email.split('@')[0],
-                                member_id: memberId,
-                                membership_status: 'pending',
-                                membership_type: 'standard',
-                                created_at: new Date().toISOString()
-                            }]);
-                        
-                        if (profileError) {
-                            console.error('Error creating profile, but continuing:', profileError);
-                            // Don't throw error, just log it and continue
-                        } else {
-                            console.log('Profile created successfully');
-                        }
-                    } catch (profileErr) {
-                        console.error('Exception when creating profile, but continuing:', profileErr);
-                        // Don't throw error, just log it and continue
+
+                    if (error) {
+                        console.error('Supabase signup error:', error);
+                        throw new Error(error.message || 'Error creating account. Please try again.');
                     }
-                    
-                    // Save registration information to localStorage
-                    localStorage.setItem('pendingVerificationEmail', email);
-                    localStorage.setItem('pendingMemberId', memberId);
-                    localStorage.setItem('pendingUserId', data.user.id);
-                    localStorage.setItem('pendingFullName', fullName);
-                    localStorage.setItem('registrationTime', new Date().toISOString());
-                    
-                    // Double-check metadata was stored properly
-                    const { data: metadataCheck, error: metadataError } = await supabaseClient.auth.getUser();
-                    if (!metadataError && metadataCheck) {
-                        console.log('Metadata check after registration:', metadataCheck.user.user_metadata);
-                    }
-                    
-                    // Redirect to verification sent page
+
+                    console.log('Signup response:', data);
+
+                    // Save memberId to localStorage for later use
+                    localStorage.setItem('userMemberId', memberId);
+
+                    // Navigate to verification sent page
                     window.location.href = 'verification-sent.html';
                     
                 } catch (error) {
                     console.error('Registration error:', error);
+                    registerBtn.disabled = false;
+                    registerBtn.innerHTML = 'Register';
                     
-                    // Hide loading spinner
-                    setLoading(false);
-                    
-                    // Show error message
-                    const alertContainer = document.getElementById('alertContainer');
+                    // Display error in alert container
                     alertContainer.innerHTML = `
-                        <div class="alert alert-danger" role="alert">
-                            ${error.message || 'An error occurred during registration. Please try again.'}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle"></i> ${error.message || 'An error occurred during registration. Please try again.'}
                         </div>
                     `;
+                    
+                    // Scroll to error message
+                    alertContainer.scrollIntoView({ behavior: 'smooth' });
                 }
             }
 
@@ -587,18 +548,23 @@
                 return true;
             }
             
-            // Add event listener to form
-            registerForm.addEventListener('submit', async (event) => {
+            // Event listener for form submission
+            registerForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                
                 try {
-                    await handleSubmit(event);
+                    await handleSubmit();
                 } catch (error) {
-                    console.error('Unhandled error in form submission:', error);
-                    setLoading(false);
+                    console.error('Unhandled error during form submission:', error);
                     
-                    const alertContainer = document.getElementById('alertContainer');
+                    // Reset loading state
+                    registerBtn.disabled = false;
+                    registerBtn.innerHTML = 'Register';
+                    
+                    // Show error message
                     alertContainer.innerHTML = `
-                        <div class="alert alert-danger" role="alert">
-                            An unexpected error occurred. Please try again later or contact support.
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle"></i> An unexpected error occurred. Please try again later or contact support.
                         </div>
                     `;
                 }

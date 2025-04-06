@@ -43,12 +43,13 @@
             <div class="email-note">
                 <p><strong>Important Instructions:</strong></p>
                 <ol>
-                    <li>Check your email inbox for a message from <strong>noreply@supabase.co</strong></li>
+                    <li>Check your email inbox for a message from <strong>noreply@mail.app.supabase.io</strong></li>
                     <li>Open the email with subject line <strong>"Confirm your signup"</strong></li>
                     <li>Click the verification link in the email</li>
-                    <li>You'll be redirected back to our site after verification</li>
+                    <li>You'll be redirected to our verification success page automatically</li>
+                    <li>Your membership will be immediately activated upon verification</li>
                 </ol>
-                <p>Once verified, your account will be automatically activated.</p>
+                <p>Once verified, your account will be fully active and you can access all member features!</p>
             </div>
             <div class="verification-info">
                 <p><i class="fas fa-info-circle"></i> If you don't see the email, please check your spam folder.</p>
@@ -325,8 +326,9 @@
     </style>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="navigation.js" defer></script>
     <script>
-        // Initialize Supabase client
+        // Initialize Supabase client with the current project credentials
         const SUPABASE_URL = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -341,6 +343,23 @@
                 console.log('Pending verification for email:', userEmail);
             } else {
                 console.warn('No pending verification email found in localStorage');
+                document.getElementById('userEmail').textContent = 'your registered email';
+            }
+            
+            // Get the registration time
+            const registrationTime = localStorage.getItem('registrationTime');
+            if (registrationTime) {
+                const regTime = new Date(registrationTime);
+                const now = new Date();
+                const hoursSinceReg = Math.round((now - regTime) / (1000 * 60 * 60));
+                
+                if (hoursSinceReg > 23) {
+                    // Add warning about expiration if close to 24 hours
+                    const verificationInfo = document.querySelector('.verification-info');
+                    const warningElement = document.createElement('p');
+                    warningElement.innerHTML = `<i class="fas fa-exclamation-circle" style="color: #ff5555;"></i> <span style="color: #ff5555;">Warning:</span> Your verification link is about to expire (or has expired). Please request a new link.`;
+                    verificationInfo.prepend(warningElement);
+                }
             }
 
             // Handle resend button click
@@ -361,16 +380,12 @@
                         return;
                     }
 
-                    // Get redirect URL
-                    const redirectTo = `${window.location.origin || window.location.href.split('/').slice(0, -1).join('/')}/verification-success.html`;
+                    // Get absolute redirect URL
+                    const redirectTo = window.location.origin + '/verification-success.html';
                     console.log('Resend with redirect URL:', redirectTo);
                     
-                    // Show what we're sending
-                    console.log('Calling supabase.auth.resend with:', {
-                        type: 'signup',
-                        email: email,
-                        options: { emailRedirectTo: redirectTo }
-                    });
+                    // Update registration time in localStorage for expiry tracking
+                    localStorage.setItem('registrationTime', new Date().toISOString());
                     
                     // Resend email verification using Supabase
                     const { data, error } = await supabaseClient.auth.resend({
@@ -439,7 +454,10 @@
                 debugSection.innerHTML = `
                     <h3>Debug Information</h3>
                     <p>Supabase URL: ${SUPABASE_URL}</p>
-                    <p>Redirect URL: ${window.location.origin || window.location.href.split('/').slice(0, -1).join('/')}/verification-success.html</p>
+                    <p>Redirect URL: ${window.location.origin}/verification-success.html</p>
+                    <p>Registration Time: ${localStorage.getItem('registrationTime') || 'Not set'}</p>
+                    <p>Pending Email: ${localStorage.getItem('pendingVerificationEmail') || 'Not set'}</p>
+                    <p>Pending Member ID: ${localStorage.getItem('pendingMemberId') || 'Not set'}</p>
                     <button id="testSupabaseBtn" class="btn">Test Supabase Connection</button>
                 `;
                 
@@ -450,7 +468,7 @@
                     try {
                         const { data, error } = await supabaseClient.from('profiles').select('count').limit(1);
                         if (error) throw error;
-                        alert('Supabase connection successful');
+                        alert('Supabase connection successful. Data: ' + JSON.stringify(data));
                     } catch (error) {
                         alert('Supabase connection failed: ' + error.message);
                     }

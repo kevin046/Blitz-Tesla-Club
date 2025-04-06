@@ -11,6 +11,103 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .verification-container {
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            background-color: #ffffff;
+            text-align: center;
+        }
+        
+        .verification-icon {
+            font-size: 60px;
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+        
+        .membership-card {
+            background: linear-gradient(135deg, #1e5799 0%, #2989d8 50%, #207cca 51%, #7db9e8 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .membership-id {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin: 10px 0;
+        }
+        
+        .dashboard-btn {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .dashboard-btn:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(0, 123, 255, 0.2);
+            border-radius: 50%;
+            border-top-color: #007bff;
+            animation: spin 1s linear infinite;
+            margin: 20px 0;
+        }
+        
+        @keyframes spin {
+            to {transform: rotate(360deg);}
+        }
+        
+        .alert {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            text-align: left;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        
+        .alert i {
+            margin-right: 10px;
+        }
+    </style>
 </head>
 <body class="verification-page">
     <!-- Standard Navigation -->
@@ -30,43 +127,32 @@
     </nav>
 
     <main class="verification-container">
-        <div class="verification-box">
-            <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" class="verification-logo">
-            <div class="verification-content success">
-                <i class="fas fa-check-circle"></i>
-                <h1>Verification Successful!</h1>
-                <p>Your email has been verified and your Blitz T Club membership is now active.</p>
-                <p>Your Member ID: <span id="memberIdDisplay" class="highlight"></span></p>
-                <div class="next-steps">
-                    <h3>Next Steps:</h3>
-                    <div class="steps-grid">
-                        <div class="step">
-                            <i class="fas fa-sign-in-alt"></i>
-                            <h4>Login to Your Account</h4>
-                            <p>Sign in using your email and password</p>
-                        </div>
-                        <div class="step">
-                            <i class="fas fa-id-card"></i>
-                            <h4>Access Your Member Card</h4>
-                            <p>View your digital membership card</p>
-                        </div>
-                        <div class="step">
-                            <i class="fas fa-calendar-alt"></i>
-                            <h4>Join Club Events</h4>
-                            <p>Discover and RSVP to upcoming events</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="verification-actions">
-                    <a href="login.html" class="btn primary-btn">
-                        <i class="fas fa-sign-in-alt"></i> Login Now
-                    </a>
-                    <a href="index.html" class="btn secondary-btn">
-                        <i class="fas fa-home"></i> Return to Homepage
-                    </a>
-                </div>
-            </div>
+        <div class="verification-icon">
+            <i class="fas fa-envelope-open-text"></i>
         </div>
+        <h1>Email Verification</h1>
+        
+        <!-- Loading state -->
+        <div id="loadingSpinner" class="loading-spinner"></div>
+        
+        <!-- Status messages will be displayed here -->
+        <div id="verificationStatus">
+            <p>Processing your verification... Please wait.</p>
+        </div>
+        
+        <!-- Membership card will be populated by JavaScript -->
+        <div class="membership-card" style="display: none;" id="membershipCard">
+            <h2>Tesla Blitz Club Member</h2>
+            <div class="membership-id">
+                <span id="memberIdDisplay">Processing...</span>
+            </div>
+            <p>Status: <span id="membershipStatus">Active</span></p>
+        </div>
+        
+        <!-- Dashboard button, hidden initially -->
+        <a href="dashboard.html" class="dashboard-btn" id="dashboardButton" style="display: none;">
+            <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+        </a>
     </main>
 
     <!-- Standard Footer -->
@@ -357,228 +443,193 @@
 
     <script src="navigation.js" defer></script>
     <script>
-        const SUPABASE_URL = 'https://ugchcdtbaoaswghdlshk.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVnY2hjZHRiYW9hc3dnaGRsc2hrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk3ODk3NTEsImV4cCI6MjAyNTM2NTc1MX0.X5s1hTyj4WA5H8S9DnXO9YcV5h6mECZmFt27YA9TiX8';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Initialize Supabase client
+        const SUPABASE_URL = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Create a helper function to get URL parameters
-        function getUrlParameter(name) {
-            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
-            const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
-            const results = regex.exec(location.search);
-            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
-        }
-
-        // Function to generate sequential member ID
-        async function generateSequentialMemberId() {
-            try {
-                // Get the latest member ID from the database
-                const { data: profiles, error } = await supabaseClient
-                    .from('profiles')
-                    .select('member_id')
-                    .not('member_id', 'is', null)
-                    .order('member_id', { ascending: false })
-                    .limit(1);
-
-                if (error) {
-                    console.error('Error fetching latest member ID:', error);
-                    // Return a timestamp-based ID as fallback
-                    return `BTC${Date.now().toString().slice(-6)}`;
-                }
-
-                let nextNumber = 1; // Default start number
-
-                if (profiles && profiles.length > 0 && profiles[0].member_id) {
-                    // Extract the number from the latest member ID (format: BTC#####)
-                    const lastNumber = parseInt(profiles[0].member_id.replace('BTC', ''), 10);
-                    if (!isNaN(lastNumber)) {
-                        nextNumber = lastNumber + 1;
-                    }
-                }
-
-                // Format the new member ID with leading zeros
-                const memberId = `BTC${nextNumber.toString().padStart(5, '0')}`;
-                console.log('Generated sequential member ID:', memberId);
-                return memberId;
-            } catch (error) {
-                console.error('Error generating member ID:', error);
-                // Return a timestamp-based ID as fallback
-                return `BTC${Date.now().toString().slice(-6)}`;
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', async function() {
             console.log('Verification success page loaded');
+            const statusElement = document.getElementById('verificationStatus');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const dashboardButton = document.getElementById('dashboardButton');
+            
             try {
-                // Extract the access_token from the URL if present (Supabase redirects with this token)
-                const accessToken = getUrlParameter('access_token');
-                console.log('Access token from URL:', accessToken ? 'Found (length: ' + accessToken.length + ')' : 'Not found');
+                // Check for auth token in URL (handle both hash and query params for compatibility)
+                let accessToken = null;
+                let refreshToken = null;
                 
-                // Create the Supabase client with the token if available
-                let client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                
-                // If we have an access token, set it in the client
-                if (accessToken) {
-                    await client.auth.setSession({
-                        access_token: accessToken,
-                        refresh_token: getUrlParameter('refresh_token') || ''
-                    });
-                    console.log('Session set with access token');
+                // First check for hash fragment (newer Supabase auth method)
+                if (window.location.hash) {
+                    console.log('Found hash fragment in URL');
+                    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                    accessToken = hashParams.get('access_token');
+                    refreshToken = hashParams.get('refresh_token');
                 }
                 
-                // Get current user session
-                const { data: { session }, error: sessionError } = await client.auth.getSession();
+                // Fallback to query parameters (older method)
+                if (!accessToken && window.location.search) {
+                    console.log('Checking query parameters');
+                    const urlParams = new URLSearchParams(window.location.search);
+                    accessToken = urlParams.get('access_token');
+                    refreshToken = urlParams.get('refresh_token');
+                }
+
+                if (accessToken) {
+                    console.log('Found access token, setting session');
+                    // Set the user session with the token
+                    await supabase.auth.setSession({
+                        access_token: accessToken,
+                        refresh_token: refreshToken
+                    });
+                } else {
+                    console.log('No access token found in URL, checking for existing session');
+                }
+
+                // Get the current user session
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
                 
                 if (sessionError) {
-                    console.error('Error getting session:', sessionError);
-                    throw sessionError;
+                    throw new Error(sessionError.message || 'Error retrieving session');
+                }
+
+                if (!session) {
+                    console.warn('No active session found');
+                    statusElement.innerHTML = `
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> No active session found. 
+                            <p>If you've just verified your email, please try refreshing this page or clicking the verification link again.</p>
+                        </div>
+                    `;
+                    loadingSpinner.style.display = 'none';
+                    return;
+                }
+
+                console.log('User authenticated with session:', session.user.id);
+                
+                // Get any pending data from localStorage
+                const pendingMemberId = localStorage.getItem('pendingMemberId');
+                const pendingEmail = localStorage.getItem('pendingVerificationEmail');
+                
+                // Get user details 
+                const { data: { user }, error: userError } = await supabase.auth.getUser();
+                
+                if (userError || !user) {
+                    throw new Error(userError?.message || 'Error retrieving user information');
                 }
                 
-                if (session) {
-                    console.log('User is authenticated:', session.user.id);
+                console.log('User authenticated:', user.id);
+                console.log('User metadata:', user.user_metadata);
+                
+                // Check if profile exists
+                const { data: profileData, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+                
+                // Get member_id either from profile or pending storage
+                let memberId = profileData?.member_id || 
+                               user.user_metadata?.member_id || 
+                               pendingMemberId || 
+                               `BTC${Math.floor(Math.random() * 100000).toString().padStart(5, '0')}`;
+                
+                if (profileError && profileError.code !== 'PGRST116') { // PGRST116 is "no rows returned" error
+                    console.error('Error fetching profile:', profileError);
+                    // Continue with the process - we'll create the profile
+                }
+
+                // If no profile exists, create one
+                if (!profileData) {
+                    console.log('No profile found, creating new profile for user:', user.id);
                     
-                    // Get stored registration data
-                    const pendingUserId = localStorage.getItem('pendingUserId') || session.user.id;
-                    const pendingEmail = localStorage.getItem('pendingVerificationEmail') || session.user.email;
-                    const pendingFullName = localStorage.getItem('pendingFullName') || 
-                                           (session.user.user_metadata ? session.user.user_metadata.full_name : '');
+                    const { error: insertError } = await supabase
+                        .from('profiles')
+                        .insert([{
+                            id: user.id,
+                            email: user.email || pendingEmail,
+                            full_name: user.user_metadata?.full_name || 'Club Member',
+                            member_id: memberId,
+                            membership_status: 'active', // Set to active immediately on verification
+                            membership_type: 'standard',
+                            created_at: new Date().toISOString()
+                        }]);
                     
-                    // Check for member ID in multiple places
-                    let memberId = null;
-                    
-                    // 1. First check user metadata
-                    if (session.user.user_metadata && session.user.user_metadata.member_id) {
-                        memberId = session.user.user_metadata.member_id;
-                        console.log('Found member ID in user metadata:', memberId);
-                    } 
-                    // 2. If not in metadata, check localStorage
-                    else if (localStorage.getItem('pendingMemberId')) {
-                        memberId = localStorage.getItem('pendingMemberId');
-                        console.log('Found member ID in localStorage:', memberId);
-                    } 
-                    // 3. If still not found, generate a new one
-                    else {
-                        memberId = await generateSequentialMemberId();
-                        console.log('Generated new member ID:', memberId);
+                    if (insertError) {
+                        console.error('Error creating profile:', insertError);
+                        throw new Error('Failed to create your profile. Please contact support.');
                     }
                     
-                    console.log('Final member ID to use:', memberId);
-                    
-                    // Display member ID
-                    if (memberId) {
-                        document.getElementById('memberIdDisplay').textContent = memberId;
-                    } else {
-                        document.getElementById('memberIdDisplay').textContent = 'Available in your account';
-                    }
-                    
-                    try {
-                        // First check if profile exists
-                        const { data: existingProfile, error: checkError } = await client
-                            .from('profiles')
-                            .select('id, member_id, membership_status')
-                            .eq('id', session.user.id)
-                            .single();
-                        
-                        if (checkError && checkError.code !== 'PGRST116') {
-                            // Error other than "not found"
-                            console.error('Error checking for existing profile:', checkError);
-                        }
-                        
-                        if (existingProfile) {
-                            console.log('Found existing profile:', existingProfile);
-                            
-                            // Update membership status to active
-                            const { error: updateError } = await client
-                                .from('profiles')
-                                .update({ 
-                                    membership_status: 'active',
-                                    // Update member_id if it's not set but we have one
-                                    ...((!existingProfile.member_id && memberId) ? { member_id: memberId } : {})
-                                })
-                                .eq('id', session.user.id);
-                            
-                            if (updateError) {
-                                console.error('Error updating profile:', updateError);
-                            } else {
-                                console.log('Profile updated successfully');
-                            }
-                            
-                            // Use the existing member ID from the profile if available
-                            if (existingProfile.member_id) {
-                                memberId = existingProfile.member_id;
-                                document.getElementById('memberIdDisplay').textContent = memberId;
-                                console.log('Using member ID from existing profile:', memberId);
-                            }
-                        } else {
-                            console.log('No existing profile found, creating new one');
-                            
-                            // Create new profile
-                            const { error: createProfileError } = await client
-                                .from('profiles')
-                                .insert([
-                                    {
-                                        id: session.user.id,
-                                        email: pendingEmail,
-                                        full_name: pendingFullName || '',
-                                        username: pendingEmail.split('@')[0],
-                                        member_id: memberId,
-                                        membership_status: 'active',
-                                        membership_type: 'standard',
-                                        created_at: new Date().toISOString()
-                                    }
-                                ])
-                                .select()
-                                .single();
-                            
-                            if (createProfileError) {
-                                console.error('Error creating profile:', createProfileError);
-                            } else {
-                                console.log('Profile created successfully');
-                            }
-                        }
-                        
-                        // Update user metadata with member ID if needed
-                        if (memberId && (!session.user.user_metadata || !session.user.user_metadata.member_id)) {
-                            console.log('Updating user metadata with member ID');
-                            const { error: metadataError } = await client.auth.updateUser({
-                                data: { member_id: memberId }
-                            });
-                            
-                            if (metadataError) {
-                                console.error('Error updating user metadata:', metadataError);
-                            } else {
-                                console.log('User metadata updated with member ID');
-                            }
-                        }
-                        
-                    } catch (profileError) {
-                        console.error('Error handling profile:', profileError);
-                    }
+                    console.log('Profile created successfully with status "active"');
                 } else {
-                    console.log('No active session found');
+                    console.log('Profile exists, updating membership status to active');
                     
-                    // Try to get member ID from localStorage if no session
-                    const memberId = localStorage.getItem('pendingMemberId');
-                    if (memberId) {
-                        document.getElementById('memberIdDisplay').textContent = memberId;
+                    // Update existing profile to active status
+                    const { error: updateError } = await supabase
+                        .from('profiles')
+                        .update({ 
+                            membership_status: 'active',
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', user.id);
+                    
+                    if (updateError) {
+                        console.error('Error updating profile status:', updateError);
+                        throw new Error('Failed to update your membership status. Please contact support.');
+                    }
+                    
+                    console.log('Membership status updated to active');
+                }
+                
+                // Update user metadata if needed
+                if (!user.user_metadata?.member_id || user.user_metadata?.membership_status !== 'active') {
+                    console.log('Updating user metadata with member_id and active status');
+                    
+                    const { error: metadataError } = await supabase.auth.updateUser({
+                        data: { 
+                            member_id: memberId,
+                            membership_status: 'active'
+                        }
+                    });
+                    
+                    if (metadataError) {
+                        console.error('Error updating user metadata:', metadataError);
+                        // Continue anyway - this is not critical
                     } else {
-                        // If no member ID is found, show a generic message
-                        document.getElementById('memberIdDisplay').textContent = 'Available in your account';
+                        console.log('User metadata updated successfully');
                     }
                 }
                 
-                // Clear any verification-related items from localStorage
-                console.log('Clearing verification data from localStorage');
+                // Clear pending registration data
                 localStorage.removeItem('pendingVerificationEmail');
                 localStorage.removeItem('pendingMemberId');
-                localStorage.removeItem('pendingUserId');
-                localStorage.removeItem('pendingFullName');
                 localStorage.removeItem('registrationTime');
                 
+                // Save the member ID for use in other pages
+                localStorage.setItem('userMemberId', memberId);
+                
+                // Update UI to show success
+                statusElement.innerHTML = `
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> Your email has been verified successfully!
+                        <p>Your Member ID is: <strong>${memberId}</strong></p>
+                        <p>Your membership is now <strong>active</strong>.</p>
+                    </div>
+                `;
+                
+                // Show dashboard button and update link with access token
+                dashboardButton.style.display = 'inline-block';
+                loadingSpinner.style.display = 'none';
+                
             } catch (error) {
-                console.error('Error processing verification:', error);
-                // Show error message if unable to display member ID
-                document.getElementById('memberIdDisplay').textContent = 'Login to view';
+                console.error('Verification error:', error);
+                statusElement.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle"></i> Verification failed: ${error.message || 'An unexpected error occurred'}.
+                        <p>If this problem persists, please contact support.</p>
+                    </div>
+                `;
+                loadingSpinner.style.display = 'none';
             }
         });
     </script>

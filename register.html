@@ -477,6 +477,67 @@
 
             // Initialize form validation
             initFormValidation();
+            
+            // Function to set loading state
+            function setLoading(isLoading) {
+                const submitButton = document.getElementById('registerButton');
+                const loadingSpinner = document.getElementById('loadingSpinner');
+                
+                submitButton.disabled = isLoading;
+                if (isLoading) {
+                    loadingSpinner.classList.remove('d-none');
+                } else {
+                    loadingSpinner.classList.add('d-none');
+                }
+            }
+            
+            // Function to clear error messages
+            function clearErrors() {
+                const alertContainer = document.getElementById('alertContainer');
+                alertContainer.innerHTML = '';
+            }
+            
+            // Function to validate form inputs
+            function validateForm(email, password, confirmPassword, fullName) {
+                const alertContainer = document.getElementById('alertContainer');
+                let isValid = true;
+                
+                // Check if all fields have values
+                if (!email || !password || !confirmPassword || !fullName) {
+                    alertContainer.innerHTML = `
+                        <div class="alert alert-danger" role="alert">
+                            All fields are required.
+                        </div>
+                    `;
+                    return false;
+                }
+                
+                // Check if passwords match
+                if (password !== confirmPassword) {
+                    alertContainer.innerHTML = `
+                        <div class="alert alert-danger" role="alert">
+                            Passwords do not match.
+                        </div>
+                    `;
+                    return false;
+                }
+                
+                // Check password strength
+                const { score } = checkPasswordStrength(password);
+                if (score < 2) {
+                    alertContainer.innerHTML = `
+                        <div class="alert alert-danger" role="alert">
+                            Password is too weak. Please choose a stronger password.
+                        </div>
+                    `;
+                    return false;
+                }
+                
+                return true;
+            }
+            
+            // Add event listener to form
+            registerForm.addEventListener('submit', handleSubmit);
         });
 
         // Initialize navigation

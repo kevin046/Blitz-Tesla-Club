@@ -357,10 +357,10 @@
 
     <script src="navigation.js" defer></script>
     <script>
-        // Initialize Supabase client
-        const SUPABASE_URL = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
-        
+        const SUPABASE_URL = 'https://ugchcdtbaoaswghdlshk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVnY2hjZHRiYW9hc3dnaGRsc2hrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk3ODk3NTEsImV4cCI6MjAyNTM2NTc1MX0.X5s1hTyj4WA5H8S9DnXO9YcV5h6mECZmFt27YA9TiX8';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         // Create a helper function to get URL parameters
         function getUrlParameter(name) {
             name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
@@ -368,11 +368,48 @@
             const results = regex.exec(location.search);
             return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
         }
-        
-        document.addEventListener('DOMContentLoaded', async () => {
+
+        // Function to generate sequential member ID
+        async function generateSequentialMemberId() {
             try {
-                console.log('Verification success page loaded');
-                
+                // Get the latest member ID from the database
+                const { data: profiles, error } = await supabaseClient
+                    .from('profiles')
+                    .select('member_id')
+                    .not('member_id', 'is', null)
+                    .order('member_id', { ascending: false })
+                    .limit(1);
+
+                if (error) {
+                    console.error('Error fetching latest member ID:', error);
+                    // Return a timestamp-based ID as fallback
+                    return `BTC${Date.now().toString().slice(-6)}`;
+                }
+
+                let nextNumber = 1; // Default start number
+
+                if (profiles && profiles.length > 0 && profiles[0].member_id) {
+                    // Extract the number from the latest member ID (format: BTC#####)
+                    const lastNumber = parseInt(profiles[0].member_id.replace('BTC', ''), 10);
+                    if (!isNaN(lastNumber)) {
+                        nextNumber = lastNumber + 1;
+                    }
+                }
+
+                // Format the new member ID with leading zeros
+                const memberId = `BTC${nextNumber.toString().padStart(5, '0')}`;
+                console.log('Generated sequential member ID:', memberId);
+                return memberId;
+            } catch (error) {
+                console.error('Error generating member ID:', error);
+                // Return a timestamp-based ID as fallback
+                return `BTC${Date.now().toString().slice(-6)}`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('Verification success page loaded');
+            try {
                 // Extract the access_token from the URL if present (Supabase redirects with this token)
                 const accessToken = getUrlParameter('access_token');
                 console.log('Access token from URL:', accessToken ? 'Found (length: ' + accessToken.length + ')' : 'Not found');
@@ -421,7 +458,7 @@
                     } 
                     // 3. If still not found, generate a new one
                     else {
-                        memberId = `BTC${Math.floor(Math.random() * 100000).toString().padStart(5, '0')}`;
+                        memberId = await generateSequentialMemberId();
                         console.log('Generated new member ID:', memberId);
                     }
                     
@@ -478,7 +515,7 @@
                             // Create new profile
                             const { error: createProfileError } = await client
                                 .from('profiles')
-                                .upsert([
+                                .insert([
                                     {
                                         id: session.user.id,
                                         email: pendingEmail,
@@ -489,10 +526,9 @@
                                         membership_type: 'standard',
                                         created_at: new Date().toISOString()
                                     }
-                                ], { 
-                                    onConflict: 'id',
-                                    ignoreDuplicates: false
-                                });
+                                ])
+                                .select()
+                                .single();
                             
                             if (createProfileError) {
                                 console.error('Error creating profile:', createProfileError);

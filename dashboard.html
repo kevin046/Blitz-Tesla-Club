@@ -514,6 +514,44 @@
             return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
         }
 
+        // Function to generate sequential member ID
+        async function generateSequentialMemberId() {
+            try {
+                // Get the latest member ID from the database
+                const { data: profiles, error } = await supabaseClient
+                    .from('profiles')
+                    .select('member_id')
+                    .not('member_id', 'is', null)
+                    .order('member_id', { ascending: false })
+                    .limit(1);
+
+                if (error) {
+                    console.error('Error fetching latest member ID:', error);
+                    // Return a timestamp-based ID as fallback
+                    return `BTC${Date.now().toString().slice(-6)}`;
+                }
+
+                let nextNumber = 1; // Default start number
+
+                if (profiles && profiles.length > 0 && profiles[0].member_id) {
+                    // Extract the number from the latest member ID (format: BTC#####)
+                    const lastNumber = parseInt(profiles[0].member_id.replace('BTC', ''), 10);
+                    if (!isNaN(lastNumber)) {
+                        nextNumber = lastNumber + 1;
+                    }
+                }
+
+                // Format the new member ID with leading zeros
+                const memberId = `BTC${nextNumber.toString().padStart(5, '0')}`;
+                console.log('Generated sequential member ID:', memberId);
+                return memberId;
+            } catch (error) {
+                console.error('Error generating member ID:', error);
+                // Return a timestamp-based ID as fallback
+                return `BTC${Date.now().toString().slice(-6)}`;
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
             // Initialize navigation first
             await initializeNavigation();
@@ -543,6 +581,10 @@
             if (profileError && profileError.code === 'PGRST116') {
                 // Profile doesn't exist, create one
                 console.log('No profile found, creating new profile...');
+                
+                // Generate sequential member ID
+                const memberId = await generateSequentialMemberId();
+                
                 const { data: newProfile, error: createError } = await supabaseClient
                     .from('profiles')
                     .insert([
@@ -553,7 +595,7 @@
                             username: session.user.email.split('@')[0],
                             membership_status: 'pending',
                             membership_type: 'standard',
-                            member_id: `BTC${Date.now().toString().slice(-6)}`,
+                            member_id: memberId,
                             created_at: new Date().toISOString()
                         }
                     ])

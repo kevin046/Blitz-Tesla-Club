@@ -230,9 +230,45 @@
             return `${baseUrl}/api/${endpoint}`;
         }
 
+        // Function to generate sequential member ID
+        async function generateSequentialMemberId() {
+            try {
+                // Get the latest member ID from the database
+                const { data: profiles, error } = await supabaseClient
+                    .from('profiles')
+                    .select('member_id')
+                    .not('member_id', 'is', null)
+                    .order('member_id', { ascending: false })
+                    .limit(1);
+
+                if (error) {
+                    console.error('Error fetching latest member ID:', error);
+                    // Return a random ID as fallback
+                    return `BTC${Math.floor(Math.random() * 100000).toString().padStart(5, '0')}`;
+                }
+
+                let nextNumber = 1; // Default start number
+
+                if (profiles && profiles.length > 0 && profiles[0].member_id) {
+                    // Extract the number from the latest member ID (format: BTC#####)
+                    const lastNumber = parseInt(profiles[0].member_id.replace('BTC', ''), 10);
+                    if (!isNaN(lastNumber)) {
+                        nextNumber = lastNumber + 1;
+                    }
+                }
+
+                // Format the new member ID with leading zeros
+                return `BTC${nextNumber.toString().padStart(5, '0')}`;
+            } catch (error) {
+                console.error('Error generating member ID:', error);
+                // Return a random ID as fallback
+                return `BTC${Math.floor(Math.random() * 100000).toString().padStart(5, '0')}`;
+            }
+        }
+
         // Initialize Supabase client
-        const supabaseUrl = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
+        const supabaseUrl = 'https://ugchcdtbaoaswghdlshk.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVnY2hjZHRiYW9hc3dnaGRsc2hrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk3ODk3NTEsImV4cCI6MjAyNTM2NTc1MX0.X5s1hTyj4WA5H8S9DnXO9YcV5h6mECZmFt27YA9TiX8';
 
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey, {
             auth: {
@@ -334,35 +370,34 @@
                 console.log('Form validation initialized');
             }
 
-            // Handle form submission
-            document.getElementById('registerForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                const submitButton = document.getElementById('registerButton');
-                const alertContainer = document.getElementById('alertContainer');
-                const loadingSpinner = document.getElementById('loadingSpinner');
-                
-                // Show loading spinner
-                submitButton.disabled = true;
-                loadingSpinner.classList.remove('d-none');
-                alertContainer.innerHTML = '';
-                
-                // Get form values
-                const fullName = document.getElementById('fullName').value.trim();
-                const email = document.getElementById('email').value.trim();
-                const password = document.getElementById('password').value.trim();
-                
+            // Function to handle form submission
+            async function handleSubmit(event) {
+                event.preventDefault();
+                setLoading(true);
+                clearErrors();
+
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                const fullName = document.getElementById('fullName').value;
+
+                if (!validateForm(email, password, confirmPassword, fullName)) {
+                    setLoading(false);
+                    return;
+                }
+
                 try {
-                    // Generate unique member ID
-                    const memberId = `BTC${Math.floor(Math.random() * 100000).toString().padStart(5, '0')}`;
-                    console.log('Generated member ID:', memberId);
-                    
-                    // Get Referrer URL (for redirect after successful verification)
-                    const origin = window.location.origin;
-                    const redirectTo = `${origin}/verification-success.html`;
-                    console.log('Redirect URL:', redirectTo);
-                    
-                    // Register user with Supabase
+                    // Generate sequential member ID
+                    const memberId = await generateSequentialMemberId();
+                    console.log('Generated sequential member ID:', memberId);
+
+                    // Store registration data for later use
+                    localStorage.setItem('pendingVerificationEmail', email);
+                    localStorage.setItem('pendingFullName', fullName);
+                    localStorage.setItem('pendingMemberId', memberId);
+                    localStorage.setItem('registrationTime', new Date().toISOString());
+
+                    // Create user with Supabase Auth
                     const { data, error } = await supabaseClient.auth.signUp({
                         email,
                         password,
@@ -370,8 +405,7 @@
                             data: {
                                 full_name: fullName,
                                 member_id: memberId
-                            },
-                            emailRedirectTo: redirectTo
+                            }
                         }
                     });
                     
@@ -436,7 +470,7 @@
                         </div>
                     `;
                 }
-            });
+            }
 
             // Initialize password strength meter
             initPasswordStrengthMeter();

@@ -360,14 +360,37 @@
         // Initialize Supabase client
         const SUPABASE_URL = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Create a helper function to get URL parameters
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            const results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
         
         document.addEventListener('DOMContentLoaded', async () => {
             try {
                 console.log('Verification success page loaded');
                 
+                // Extract the access_token from the URL if present (Supabase redirects with this token)
+                const accessToken = getUrlParameter('access_token');
+                console.log('Access token from URL:', accessToken ? 'Found (length: ' + accessToken.length + ')' : 'Not found');
+                
+                // Create the Supabase client with the token if available
+                let client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                
+                // If we have an access token, set it in the client
+                if (accessToken) {
+                    await client.auth.setSession({
+                        access_token: accessToken,
+                        refresh_token: getUrlParameter('refresh_token') || ''
+                    });
+                    console.log('Session set with access token');
+                }
+                
                 // Get current user session
-                const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+                const { data: { session }, error: sessionError } = await client.auth.getSession();
                 
                 if (sessionError) {
                     console.error('Error getting session:', sessionError);
@@ -378,57 +401,28 @@
                     console.log('User is authenticated:', session.user.id);
                     
                     // Get stored registration data
-                    const pendingUserId = localStorage.getItem('pendingUserId');
-                    const pendingEmail = localStorage.getItem('pendingVerificationEmail');
-                    const pendingFullName = localStorage.getItem('pendingFullName');
-                    const memberId = session.user.user_metadata.member_id || localStorage.getItem('pendingMemberId');
+                    const pendingUserId = localStorage.getItem('pendingUserId') || session.user.id;
+                    const pendingEmail = localStorage.getItem('pendingVerificationEmail') || session.user.email;
+                    const pendingFullName = localStorage.getItem('pendingFullName') || 
+                                           (session.user.user_metadata ? session.user.user_metadata.full_name : '');
+                    const memberId = (session.user.user_metadata && session.user.user_metadata.member_id) ? 
+                                     session.user.user_metadata.member_id : 
+                                     localStorage.getItem('pendingMemberId');
                     
-                    console.log('Member ID from session or localStorage:', memberId);
+                    console.log('Member ID:', memberId);
+                    console.log('Email:', pendingEmail);
                     
-                    // Check if profile exists
-                    const { data: existingProfile, error: profileCheckError } = await supabaseClient
-                        .from('profiles')
-                        .select('id, email')
-                        .eq('id', session.user.id)
-                        .single();
-                    
-                    if (profileCheckError && profileCheckError.code !== 'PGRST116') {
-                        console.error('Error checking if profile exists:', profileCheckError);
+                    // Display member ID
+                    if (memberId) {
+                        document.getElementById('memberIdDisplay').textContent = memberId;
+                    } else {
+                        document.getElementById('memberIdDisplay').textContent = 'Available in your account';
                     }
                     
-                    // Create profile if it doesn't exist
-                    if (!existingProfile) {
-                        console.log('Profile does not exist, creating it now...');
-                        
-                        // Create profile
-                        const { error: createProfileError } = await supabaseClient
-                            .from('profiles')
-                            .upsert([
-                                {
-                                    id: session.user.id,
-                                    email: pendingEmail || session.user.email,
-                                    full_name: pendingFullName || session.user.user_metadata.full_name || '',
-                                    username: (pendingEmail || session.user.email).split('@')[0],
-                                    member_id: memberId,
-                                    membership_status: 'active',
-                                    membership_type: 'standard',
-                                    created_at: new Date().toISOString()
-                                }
-                            ], { 
-                                onConflict: 'id',
-                                ignoreDuplicates: false
-                            });
-                        
-                        if (createProfileError) {
-                            console.error('Error creating profile:', createProfileError);
-                        } else {
-                            console.log('Profile created successfully');
-                        }
-                    } else {
-                        console.log('Profile already exists, updating status to active');
-                        
-                        // Update profile status to active
-                        const { error: updateError } = await supabaseClient
+                    try {
+                        // First try to update the profile status if it exists
+                        console.log('Attempting to update existing profile...');
+                        const { data: updateData, error: updateError } = await client
                             .from('profiles')
                             .update({ 
                                 membership_status: 'active' 
@@ -436,17 +430,38 @@
                             .eq('id', session.user.id);
                         
                         if (updateError) {
-                            console.error('Error updating profile:', updateError);
+                            console.log('Profile update failed, attempting to create profile...', updateError);
+                            
+                            // Try to create the profile
+                            const { error: createProfileError } = await client
+                                .from('profiles')
+                                .upsert([
+                                    {
+                                        id: session.user.id,
+                                        email: pendingEmail,
+                                        full_name: pendingFullName || '',
+                                        username: pendingEmail.split('@')[0],
+                                        member_id: memberId || `BTC${Math.floor(Math.random() * 100000).toString().padStart(5, '0')}`,
+                                        membership_status: 'active',
+                                        membership_type: 'standard',
+                                        created_at: new Date().toISOString()
+                                    }
+                                ], { 
+                                    onConflict: 'id',
+                                    ignoreDuplicates: false
+                                });
+                            
+                            if (createProfileError) {
+                                console.error('Error creating profile:', createProfileError);
+                                // Continue despite error
+                            } else {
+                                console.log('Profile created successfully');
+                            }
                         } else {
-                            console.log('Profile status updated to active');
+                            console.log('Profile updated successfully');
                         }
-                    }
-                    
-                    // Display member ID
-                    if (memberId) {
-                        document.getElementById('memberIdDisplay').textContent = memberId;
-                    } else {
-                        document.getElementById('memberIdDisplay').textContent = 'Available in your account';
+                    } catch (profileError) {
+                        console.error('Error handling profile:', profileError);
                     }
                 } else {
                     console.log('No active session found');

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Email Verification Debug Tool</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            background: #fafafa;
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #555;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        input {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .error {
+            color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            color: #2ecc71;
+            background: rgba(46, 204, 113, 0.1);
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .config-display {
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Supabase Email Verification Debug Tool</h1>
+        
+        <div class="section">
+            <h2>Supabase Configuration</h2>
+            <p>Your current Supabase configuration:</p>
+            <div class="config-display">
+                <p><strong>URL:</strong> <span id="supabaseUrl"></span></p>
+            </div>
+            <button id="testConnectionBtn">Test Supabase Connection</button>
+            <div id="connectionResult"></div>
+        </div>
+
+        <div class="section">
+            <h2>Test User Signup</h2>
+            <p>Create a test user to verify email sending:</p>
+            <form id="signupForm">
+                <div>
+                    <label for="testEmail">Email:</label>
+                    <input type="email" id="testEmail" placeholder="test@example.com" required>
+                </div>
+                <div>
+                    <label for="testPassword">Password:</label>
+                    <input type="password" id="testPassword" placeholder="password (min 8 characters)" required minlength="8">
+                </div>
+                <button type="submit">Test Signup & Email Verification</button>
+            </form>
+            <div id="signupResult"></div>
+        </div>
+
+        <div class="section">
+            <h2>Test Verification Resend</h2>
+            <p>Test resending verification email:</p>
+            <form id="resendForm">
+                <div>
+                    <label for="resendEmail">Email:</label>
+                    <input type="email" id="resendEmail" placeholder="already-registered@example.com" required>
+                </div>
+                <button type="submit">Resend Verification Email</button>
+            </form>
+            <div id="resendResult"></div>
+        </div>
+
+        <div class="section">
+            <h2>Check User Status</h2>
+            <p>Check if a user exists and their verification status:</p>
+            <form id="checkUserForm">
+                <div>
+                    <label for="checkEmail">Email:</label>
+                    <input type="email" id="checkEmail" placeholder="user@example.com" required>
+                </div>
+                <button type="submit">Check User Status</button>
+            </form>
+            <div id="checkUserResult"></div>
+        </div>
+
+        <div class="section">
+            <h2>Troubleshooting Tips</h2>
+            <ul>
+                <li>Make sure emails are enabled in your Supabase project settings.</li>
+                <li>Check that your Supabase project has a verified sender domain.</li>
+                <li>Verify that your site URL is added to the allowed redirect URLs in Supabase.</li>
+                <li>Check spam/junk folders for verification emails.</li>
+                <li>Try using a different email provider (Gmail, Outlook, etc.).</li>
+                <li>Ensure the emailRedirectTo URL is absolute and properly formatted.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Supabase
+        const SUPABASE_URL = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Display Supabase URL
+            document.getElementById('supabaseUrl').textContent = SUPABASE_URL;
+
+            // Test Connection button
+            document.getElementById('testConnectionBtn').addEventListener('click', async function() {
+                const resultDiv = document.getElementById('connectionResult');
+                resultDiv.innerHTML = 'Testing connection...';
+                
+                try {
+                    // Try to get a single row from profiles to test connection
+                    const { data, error } = await supabase
+                        .from('profiles')
+                        .select('count')
+                        .limit(1);
+                    
+                    if (error) throw error;
+                    
+                    resultDiv.innerHTML = `<div class="success">Connection successful! Database is accessible.</div>`;
+                } catch (error) {
+                    console.error('Connection error:', error);
+                    resultDiv.innerHTML = `<div class="error">Connection failed: ${error.message}</div>`;
+                }
+            });
+
+            // Test Signup form
+            document.getElementById('signupForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const email = document.getElementById('testEmail').value;
+                const password = document.getElementById('testPassword').value;
+                const resultDiv = document.getElementById('signupResult');
+                
+                resultDiv.innerHTML = 'Creating test user and sending verification email...';
+                
+                try {
+                    // Generate redirect URL
+                    const redirectTo = `${window.location.origin || window.location.href.split('/').slice(0, -1).join('/')}/verification-success.html`;
+                    
+                    // Create user with email verification
+                    const { data, error } = await supabase.auth.signUp({
+                        email,
+                        password,
+                        options: {
+                            emailRedirectTo: redirectTo
+                        }
+                    });
+                    
+                    if (error) throw error;
+                    
+                    let resultHtml = `<div class="success">
+                        <p>Signup process initiated!</p>
+                        <p>Response data:</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>`;
+                    
+                    // Check if confirmation email was sent (user is not confirmed)
+                    if (!data.session) {
+                        resultHtml += `<div class="success">
+                            <p>Verification email should have been sent to ${email}</p>
+                            <p>Check your inbox and spam folder.</p>
+                        </div>`;
+                    } else {
+                        resultHtml += `<div class="error">
+                            <p>Warning: User was created but may not have received a verification email.</p>
+                            <p>This usually happens if email confirmation is disabled in Supabase settings.</p>
+                        </div>`;
+                    }
+                    
+                    resultDiv.innerHTML = resultHtml;
+                } catch (error) {
+                    console.error('Signup error:', error);
+                    resultDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                }
+            });
+
+            // Resend verification form
+            document.getElementById('resendForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const email = document.getElementById('resendEmail').value;
+                const resultDiv = document.getElementById('resendResult');
+                
+                resultDiv.innerHTML = 'Resending verification email...';
+                
+                try {
+                    // Generate redirect URL
+                    const redirectTo = `${window.location.origin || window.location.href.split('/').slice(0, -1).join('/')}/verification-success.html`;
+                    
+                    // Resend verification email
+                    const { data, error } = await supabase.auth.resend({
+                        type: 'signup',
+                        email,
+                        options: {
+                            emailRedirectTo: redirectTo
+                        }
+                    });
+                    
+                    if (error) throw error;
+                    
+                    resultDiv.innerHTML = `<div class="success">
+                        <p>Verification email resend successful!</p>
+                        <p>Check your inbox and spam folder for an email sent to ${email}</p>
+                        <p>Response data:</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>`;
+                } catch (error) {
+                    console.error('Resend error:', error);
+                    resultDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                }
+            });
+
+            // Check user status form
+            document.getElementById('checkUserForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const email = document.getElementById('checkEmail').value;
+                const resultDiv = document.getElementById('checkUserResult');
+                
+                resultDiv.innerHTML = 'Checking user status...';
+                
+                try {
+                    // Check if user exists in profiles
+                    const { data: profile, error: profileError } = await supabase
+                        .from('profiles')
+                        .select('id, email, membership_status, created_at')
+                        .eq('email', email)
+                        .single();
+                    
+                    let resultHtml = '';
+                    
+                    if (profileError && profileError.code !== 'PGRST116') {
+                        // A real error occurred
+                        throw profileError;
+                    }
+                    
+                    if (profile) {
+                        resultHtml += `<div class="success">
+                            <p>User found in profiles table:</p>
+                            <pre>${JSON.stringify(profile, null, 2)}</pre>
+                        </div>`;
+                    } else {
+                        resultHtml += `<div class="error">
+                            <p>User not found in profiles table.</p>
+                        </div>`;
+                    }
+                    
+                    resultDiv.innerHTML = resultHtml;
+                } catch (error) {
+                    console.error('Check user error:', error);
+                    resultDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

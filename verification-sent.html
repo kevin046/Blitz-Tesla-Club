@@ -283,6 +283,45 @@
                 padding: 12px 15px;
             }
         }
+
+        /* Debug section styling */
+        .debug-section {
+            margin-top: 30px;
+            padding: 15px;
+            background: rgba(255, 165, 0, 0.15);
+            border-left: 4px solid orange;
+            text-align: left;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .debug-section h3 {
+            color: orange;
+            margin-bottom: 10px;
+        }
+
+        .debug-section p {
+            font-family: monospace;
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 5px;
+            border-radius: 4px;
+            word-break: break-all;
+            margin-bottom: 10px;
+        }
+
+        .debug-section button {
+            background: #333;
+            color: orange;
+            border: 1px solid orange;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .debug-section button:hover {
+            background: #555;
+        }
     </style>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -293,18 +332,30 @@
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         document.addEventListener('DOMContentLoaded', async () => {
+            console.log('Verification sent page loaded');
+            
             // Display user's email
             const userEmail = localStorage.getItem('pendingVerificationEmail');
             if (userEmail) {
                 document.getElementById('userEmail').textContent = userEmail;
+                console.log('Pending verification for email:', userEmail);
+            } else {
+                console.warn('No pending verification email found in localStorage');
             }
 
             // Handle resend button click
             const resendButton = document.getElementById('resendButton');
+            const timerElement = document.getElementById('resendTimer');
+            
             resendButton.addEventListener('click', async () => {
+                console.log('Resend button clicked');
+                resendButton.disabled = true;
+                resendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                
                 try {
                     const email = localStorage.getItem('pendingVerificationEmail');
                     if (!email) {
+                        console.error('No email found in localStorage for resend');
                         alert('No email found to resend verification. Please register again.');
                         window.location.href = 'register.html';
                         return;
@@ -312,9 +363,17 @@
 
                     // Get redirect URL
                     const redirectTo = `${window.location.origin || window.location.href.split('/').slice(0, -1).join('/')}/verification-success.html`;
+                    console.log('Resend with redirect URL:', redirectTo);
+                    
+                    // Show what we're sending
+                    console.log('Calling supabase.auth.resend with:', {
+                        type: 'signup',
+                        email: email,
+                        options: { emailRedirectTo: redirectTo }
+                    });
                     
                     // Resend email verification using Supabase
-                    const { error } = await supabaseClient.auth.resend({
+                    const { data, error } = await supabaseClient.auth.resend({
                         type: 'signup',
                         email: email,
                         options: {
@@ -326,14 +385,20 @@
                         console.error('Error resending verification email:', error);
                         throw error;
                     }
+                    
+                    console.log('Resend verification response:', data);
 
                     // Update button state
                     resendButton.disabled = true;
                     resendButton.innerHTML = '<i class="fas fa-check"></i> Email Sent';
                     
+                    // Add success message
+                    alert('Verification email has been resent. Please check your inbox and spam folder.');
+                    
                     // Start countdown timer
                     let timeLeft = 60;
-                    const timerElement = document.getElementById('resendTimer');
+                    timerElement.textContent = `Resend available in ${timeLeft}s`;
+                    
                     const timer = setInterval(() => {
                         timeLeft--;
                         timerElement.textContent = `Resend available in ${timeLeft}s`;
@@ -347,9 +412,50 @@
 
                 } catch (error) {
                     console.error('Error sending verification:', error);
-                    alert('Failed to resend verification email. Please try again or contact support.');
+                    resendButton.disabled = false;
+                    resendButton.innerHTML = '<i class="fas fa-redo"></i> Resend Email';
+                    
+                    // Show error message with more details
+                    let errorMessage = 'Failed to resend verification email. ';
+                    
+                    if (error.message) {
+                        errorMessage += error.message;
+                    } else {
+                        errorMessage += 'Please try again or contact support.';
+                    }
+                    
+                    alert(errorMessage);
                 }
             });
+            
+            // Check if we need to show debug info
+            const showDebug = new URLSearchParams(window.location.search).get('debug') === 'true';
+            if (showDebug) {
+                console.log('Debug mode enabled');
+                
+                // Create debug section
+                const debugSection = document.createElement('div');
+                debugSection.className = 'debug-section';
+                debugSection.innerHTML = `
+                    <h3>Debug Information</h3>
+                    <p>Supabase URL: ${SUPABASE_URL}</p>
+                    <p>Redirect URL: ${window.location.origin || window.location.href.split('/').slice(0, -1).join('/')}/verification-success.html</p>
+                    <button id="testSupabaseBtn" class="btn">Test Supabase Connection</button>
+                `;
+                
+                document.querySelector('.verification-box').appendChild(debugSection);
+                
+                // Add test button functionality
+                document.getElementById('testSupabaseBtn').addEventListener('click', async () => {
+                    try {
+                        const { data, error } = await supabaseClient.from('profiles').select('count').limit(1);
+                        if (error) throw error;
+                        alert('Supabase connection successful');
+                    } catch (error) {
+                        alert('Supabase connection failed: ' + error.message);
+                    }
+                });
+            }
         });
     </script>
 </body>

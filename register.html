@@ -384,7 +384,12 @@
                     const memberId = await generateMemberId();
                     console.log('Using member ID:', memberId);
 
+                    // Determine redirect URL
+                    const redirectUrl = `${window.location.origin || window.location.href.split('/').slice(0, -1).join('/')}/verification-success.html`;
+                    console.log('Email redirect URL:', redirectUrl);
+
                     // Create auth user
+                    console.log('Calling Supabase auth.signUp with email:', email);
                     const { data, error } = await supabaseClient.auth.signUp({
                         email,
                         password,
@@ -393,13 +398,23 @@
                                 full_name: fullName,
                                 member_id: memberId
                             },
-                            emailRedirectTo: `${window.location.origin || window.location.href.split('/').slice(0, -1).join('/')}/verification-success.html`
+                            emailRedirectTo: redirectUrl
                         }
                     });
 
-                    if (error) throw error;
+                    if (error) {
+                        console.error('Supabase signUp error:', error);
+                        throw error;
+                    }
 
                     console.log('User created successfully:', data);
+                    console.log('Email confirmation sent:', !data.session);
+                    
+                    // Check if the email confirmation was sent
+                    if (data.user && data.user.identities && data.user.identities.length === 0) {
+                        console.error('User exists but no identity created. This usually means the email is already registered.');
+                        throw new Error('This email is already registered. Please sign in instead.');
+                    }
 
                     // Create profile with sequential member ID
                     const { error: profileError } = await supabaseClient

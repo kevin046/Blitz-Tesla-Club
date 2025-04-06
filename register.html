@@ -437,12 +437,15 @@
 
                     if (profileError) {
                         console.error('Profile creation error:', profileError);
-                        throw profileError;
+                        // Continue despite profile error - we'll handle it in verification-success.html
+                        console.log('Continuing to verification page despite profile creation error...');
                     }
 
                     // Store registration info in localStorage
                     localStorage.setItem('pendingVerificationEmail', email);
                     localStorage.setItem('pendingMemberId', memberId);
+                    localStorage.setItem('pendingUserId', data.user.id);
+                    localStorage.setItem('pendingFullName', fullName);
                     localStorage.setItem('registrationTime', new Date().toISOString());
 
                     // Redirect to verification sent page

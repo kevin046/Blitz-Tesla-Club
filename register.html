@@ -11,7 +11,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" 
-           integrity="sha384-QOiS7KxuQJQcuh/qs81gHzMcvF+oU2xQgRMwVbS+hPOm5qHCBYUXNXZ6zVWVQX9/" 
            crossorigin="anonymous" 
            onerror="console.error('Failed to load Supabase library'); alert('Failed to load required resources. Please check your internet connection and refresh the page.');"></script>
     <style>
@@ -270,15 +269,19 @@
         }
 
         // Initialize Supabase client
-        const supabaseUrl = 'https://ugchcdtbaoaswghdlshk.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVnY2hjZHRiYW9hc3dnaGRsc2hrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk3ODk3NTEsImV4cCI6MjAyNTM2NTc1MX0.X5s1hTyj4WA5H8S9DnXO9YcV5h6mECZmFt27YA9TiX8';
+        const supabaseUrl = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
 
         let supabaseClient;
         try {
             // Check if the Supabase object is available
             if (typeof supabase === 'undefined') {
                 console.error('Supabase library not loaded. Please check your internet connection and refresh the page.');
-                alert('Failed to load required resources. Please check your internet connection and refresh the page.');
+                document.getElementById('alertContainer').innerHTML = `
+                    <div class="alert alert-danger" role="alert">
+                        Failed to load required resources. Please check your internet connection and refresh the page.
+                    </div>
+                `;
             } else {
                 supabaseClient = supabase.createClient(supabaseUrl, supabaseKey, {
                     auth: {
@@ -291,6 +294,11 @@
             }
         } catch (initError) {
             console.error('Error initializing Supabase client:', initError);
+            document.getElementById('alertContainer').innerHTML = `
+                <div class="alert alert-danger" role="alert">
+                    Error connecting to our servers. Please try again later.
+                </div>
+            `;
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -423,16 +431,14 @@
                     localStorage.setItem('pendingMemberId', memberId);
                     localStorage.setItem('registrationTime', new Date().toISOString());
 
-                    // Create user with Supabase Auth with timeout
-                    console.log('Attempting to register user with Supabase...');
-                    
                     // Test Supabase connection before signup
                     try {
+                        console.log('Testing connection to Supabase...');
+                        // Just try a simple fetch to the Supabase domain to check connectivity
                         const connectionTest = await fetch(supabaseUrl, { 
                             method: 'HEAD',
                             mode: 'no-cors',
-                            cache: 'no-cache',
-                            timeout: 5000
+                            cache: 'no-cache'
                         });
                         console.log('Supabase connection test completed');
                     } catch (connError) {
@@ -440,6 +446,8 @@
                         throw new Error('Unable to connect to our servers. Please check your internet connection or try again later.');
                     }
 
+                    console.log('Attempting to sign up user with email:', email);
+                    // Create user with Supabase Auth
                     const { data, error } = await supabaseClient.auth.signUp({
                         email,
                         password,
@@ -447,7 +455,8 @@
                             data: {
                                 full_name: fullName,
                                 member_id: memberId
-                            }
+                            },
+                            emailRedirectTo: window.location.origin + '/verification-success.html'
                         }
                     });
                     
@@ -579,7 +588,21 @@
             }
             
             // Add event listener to form
-            registerForm.addEventListener('submit', handleSubmit);
+            registerForm.addEventListener('submit', async (event) => {
+                try {
+                    await handleSubmit(event);
+                } catch (error) {
+                    console.error('Unhandled error in form submission:', error);
+                    setLoading(false);
+                    
+                    const alertContainer = document.getElementById('alertContainer');
+                    alertContainer.innerHTML = `
+                        <div class="alert alert-danger" role="alert">
+                            An unexpected error occurred. Please try again later or contact support.
+                        </div>
+                    `;
+                }
+            });
         });
 
         // Initialize navigation

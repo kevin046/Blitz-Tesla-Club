@@ -25,13 +25,7 @@
             <i class="fas fa-bars"></i>
         </div>
         <ul class="nav-links">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="events.html">Events</a></li>
-            <li><a href="gallery.html">Gallery</a></li>
-            <li><a href="executive.html">Executives</a></li>
-            <li><a href="news.html">News</a></li>
-            <li><a href="register.html">Join Us</a></li>
-            <li><a href="login.html">Login</a></li>
+            <!-- Navigation items will be dynamically inserted by navigation.js -->
         </ul>
     </nav>
 
@@ -129,19 +123,63 @@
     </footer>
 
     <style>
+        body.verification-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-top: 60px; /* Added padding to prevent content from being hidden under the nav */
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .verification-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 20px;
+            margin: 20px 0 40px; /* Adjusted margin */
+        }
+
+        .verification-box {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .verification-logo {
+            width: 80px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
         .verification-content {
             text-align: center;
         }
         
         .verification-content i {
-            font-size: 4em;
-            margin-bottom: 20px;
+            font-size: 3em;
+            margin-bottom: 15px;
             color: #4CAF50;
         }
         
         .verification-content h1 {
             margin-bottom: 15px;
             color: #fff;
+            font-size: 1.8em;
         }
         
         .verification-content p {
@@ -162,7 +200,7 @@
         }
         
         .next-steps {
-            margin: 30px 0;
+            margin: 25px 0;
             text-align: left;
             background: rgba(0, 0, 0, 0.3);
             padding: 20px;
@@ -219,15 +257,77 @@
             flex-wrap: wrap;
             gap: 15px;
             justify-content: center;
-            margin-top: 30px;
+            margin-top: 25px;
         }
         
         .verification-actions .btn {
             min-width: 150px;
             padding: 12px 24px;
         }
+
+        .primary-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+
+        .primary-btn:hover {
+            background: #45a049;
+        }
+
+        .secondary-btn {
+            background: transparent;
+            color: #4CAF50;
+            border: 2px solid #4CAF50;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .secondary-btn:hover {
+            background: rgba(76, 175, 80, 0.1);
+        }
         
         @media (max-width: 768px) {
+            body.verification-page {
+                padding-top: 50px;
+            }
+
+            .verification-container {
+                padding: 15px;
+                margin: 10px 0 20px;
+            }
+
+            .verification-box {
+                padding: 20px 15px;
+            }
+
+            .verification-content i {
+                font-size: 2.5em;
+                margin-bottom: 10px;
+            }
+
+            .verification-content h1 {
+                font-size: 1.5em;
+            }
+
             .steps-grid {
                 grid-template-columns: 1fr;
             }
@@ -239,9 +339,23 @@
             .verification-actions .btn {
                 width: 100%;
             }
+
+            .next-steps {
+                padding: 15px;
+                margin: 20px 0;
+            }
+
+            .step {
+                padding: 12px;
+            }
+
+            .step i {
+                font-size: 1.5em;
+            }
         }
     </style>
 
+    <script src="navigation.js" defer></script>
     <script>
         // Initialize Supabase client
         const SUPABASE_URL = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
@@ -284,6 +398,9 @@
                     const memberId = localStorage.getItem('pendingMemberId');
                     if (memberId) {
                         document.getElementById('memberIdDisplay').textContent = memberId;
+                    } else {
+                        // If no member ID is found, show a generic message
+                        document.getElementById('memberIdDisplay').textContent = 'Available in your account';
                     }
                 }
                 
@@ -294,6 +411,8 @@
                 
             } catch (error) {
                 console.error('Error processing verification:', error);
+                // Show error message if unable to display member ID
+                document.getElementById('memberIdDisplay').textContent = 'Login to view';
             }
         });
     </script>

@@ -308,104 +308,79 @@
             `;
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', function() {
+            // Reference to the elements
             const registerForm = document.getElementById('registerForm');
+            const registerButton = document.getElementById('registerButton');
+            const alertContainer = document.getElementById('alertContainer');
+            
+            // Use the supabaseClient that's already defined above
+            console.log('Form initialization started');
+            
+            // Password strength meter functionality
             const passwordInput = document.getElementById('password');
-            const strengthBar = document.querySelector('.strength-bar');
-
-            // Function to show error messages
-            function showMessage(message, isError = true) {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${isError ? 'error' : 'success'}`;
-                messageDiv.textContent = message;
-                
-                // Remove any existing message
-                const existingMessage = document.querySelector('.message');
-                if (existingMessage) {
-                    existingMessage.remove();
-                }
-                
-                // Insert message before the form
-                registerForm.insertAdjacentElement('beforebegin', messageDiv);
-                
-                // Remove message after 5 seconds
-                setTimeout(() => {
-                    messageDiv.remove();
-                }, 5000);
-            }
-
-            // Password visibility toggle
-            document.querySelectorAll('.toggle-password').forEach(button => {
-                button.addEventListener('click', function() {
-                    const input = this.previousElementSibling;
-                    const icon = this.querySelector('i');
-                    
-                    if (input.type === 'password') {
-                        input.type = 'text';
-                        icon.classList.remove('fa-eye');
-                        icon.classList.add('fa-eye-slash');
-                    } else {
-                        input.type = 'password';
-                        icon.classList.remove('fa-eye-slash');
-                        icon.classList.add('fa-eye');
-                    }
+            const strengthMeter = document.getElementById('strengthMeter');
+            const strengthText = document.getElementById('strengthText');
+            
+            if (passwordInput) {
+                console.log('Password strength meter initialization');
+                // Toggle password visibility for both password fields
+                const toggleButtons = document.querySelectorAll('.toggle-password');
+                toggleButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        const input = this.previousElementSibling;
+                        const icon = this.querySelector('i');
+                        
+                        if (input.type === 'password') {
+                            input.type = 'text';
+                            icon.classList.remove('fa-eye');
+                            icon.classList.add('fa-eye-slash');
+                        } else {
+                            input.type = 'password';
+                            icon.classList.remove('fa-eye-slash');
+                            icon.classList.add('fa-eye');
+                        }
+                    });
                 });
-            });
-
-            // Password strength checker
+            }
+            
+            // Function to check password strength
             function checkPasswordStrength(password) {
                 let strength = 0;
-                const patterns = {
-                    length: password.length >= 8,
-                    lowercase: /[a-z]/.test(password),
-                    uppercase: /[A-Z]/.test(password),
-                    numbers: /\d/.test(password),
-                    special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
-                };
-
-                strength += patterns.length ? 1 : 0;
-                strength += (patterns.lowercase && patterns.uppercase) ? 1 : 0;
-                strength += patterns.numbers ? 1 : 0;
-                strength += patterns.special ? 1 : 0;
-
-                return { score: strength, patterns };
+                if (password.length >= 8) strength += 1;
+                if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength += 1;
+                if (password.match(/\d/)) strength += 1;
+                if (password.match(/[^a-zA-Z\d]/)) strength += 1;
+                return strength;
             }
-
-            // Password strength meter
-            passwordInput.addEventListener('input', () => {
-                const { score, patterns } = checkPasswordStrength(passwordInput.value);
-                strengthBar.className = 'strength-bar';
+            
+            // Event listener for form submission
+            registerForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
                 
-                if (score === 0) {
-                    strengthBar.style.width = '0';
-                } else if (score <= 2) {
-                    strengthBar.classList.add('strength-weak');
-                } else if (score === 3) {
-                    strengthBar.classList.add('strength-medium');
-                } else {
-                    strengthBar.classList.add('strength-strong');
+                try {
+                    await handleSubmit();
+                } catch (error) {
+                    console.error('Unhandled error during form submission:', error);
+                    
+                    // Reset loading state
+                    registerButton.disabled = false;
+                    registerButton.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+                    
+                    // Show error message
+                    alertContainer.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle"></i> An unexpected error occurred. Please try again later or contact support.
+                        </div>
+                    `;
                 }
             });
-
-            // Define password strength meter function
-            function initPasswordStrengthMeter() {
-                console.log("Password strength meter initialization");
-                // This function is now defined to prevent the ReferenceError
-                // The actual password strength functionality may already be initialized elsewhere
-            }
-
-            // Function to initialize form validation
-            function initFormValidation() {
-                // Simple validation already handled by form attributes
-                console.log('Form validation initialized');
-            }
-
-            // Function to handle form submission
+            
             async function handleSubmit() {
                 try {
                     // Display loading state
-                    registerBtn.disabled = true;
-                    registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
+                    registerButton.disabled = true;
+                    registerButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
                     alertContainer.innerHTML = '';
 
                     // Get form values
@@ -413,10 +388,15 @@
                     const password = document.getElementById('password').value;
                     const confirmPassword = document.getElementById('confirmPassword').value;
                     const fullName = document.getElementById('fullName').value.trim();
+                    const termsChecked = document.getElementById('terms').checked;
 
                     // Validate form
                     if (!email || !password || !confirmPassword || !fullName) {
                         throw new Error('Please fill in all required fields.');
+                    }
+
+                    if (!termsChecked) {
+                        throw new Error('You must agree to the Terms of Service and Privacy Policy.');
                     }
 
                     if (password !== confirmPassword) {
@@ -469,8 +449,8 @@
                     
                 } catch (error) {
                     console.error('Registration error:', error);
-                    registerBtn.disabled = false;
-                    registerBtn.innerHTML = 'Register';
+                    registerButton.disabled = false;
+                    registerButton.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
                     
                     // Display error in alert container
                     alertContainer.innerHTML = `
@@ -483,92 +463,6 @@
                     alertContainer.scrollIntoView({ behavior: 'smooth' });
                 }
             }
-
-            // Initialize password strength meter
-            initPasswordStrengthMeter();
-
-            // Initialize form validation
-            initFormValidation();
-            
-            // Function to set loading state
-            function setLoading(isLoading) {
-                const submitButton = document.getElementById('registerButton');
-                const loadingSpinner = document.getElementById('loadingSpinner');
-                
-                submitButton.disabled = isLoading;
-                if (isLoading) {
-                    loadingSpinner.classList.remove('d-none');
-                } else {
-                    loadingSpinner.classList.add('d-none');
-                }
-            }
-            
-            // Function to clear error messages
-            function clearErrors() {
-                const alertContainer = document.getElementById('alertContainer');
-                alertContainer.innerHTML = '';
-            }
-            
-            // Function to validate form inputs
-            function validateForm(email, password, confirmPassword, fullName) {
-                const alertContainer = document.getElementById('alertContainer');
-                let isValid = true;
-                
-                // Check if all fields have values
-                if (!email || !password || !confirmPassword || !fullName) {
-                    alertContainer.innerHTML = `
-                        <div class="alert alert-danger" role="alert">
-                            All fields are required.
-                        </div>
-                    `;
-                    return false;
-                }
-                
-                // Check if passwords match
-                if (password !== confirmPassword) {
-                    alertContainer.innerHTML = `
-                        <div class="alert alert-danger" role="alert">
-                            Passwords do not match.
-                        </div>
-                    `;
-                    return false;
-                }
-                
-                // Check password strength
-                const { score } = checkPasswordStrength(password);
-                if (score < 2) {
-                    alertContainer.innerHTML = `
-                        <div class="alert alert-danger" role="alert">
-                            Password is too weak. Please choose a stronger password.
-                        </div>
-                    `;
-                    return false;
-                }
-                
-                return true;
-            }
-            
-            // Event listener for form submission
-            registerForm.addEventListener('submit', async function(event) {
-                event.preventDefault();
-                
-                try {
-                    await handleSubmit();
-                } catch (error) {
-                    console.error('Unhandled error during form submission:', error);
-                    
-                    // Reset loading state
-                    registerBtn.disabled = false;
-                    registerBtn.innerHTML = 'Register';
-                    
-                    // Show error message
-                    alertContainer.innerHTML = `
-                        <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-circle"></i> An unexpected error occurred. Please try again later or contact support.
-                        </div>
-                    `;
-                }
-            });
         });
 
         // Initialize navigation

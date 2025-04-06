@@ -644,7 +644,42 @@
 
             const memberId = document.getElementById('memberId');
             if (memberId) {
-                memberId.textContent = profile.member_id || 'Not Available';
+                // Check multiple sources for member ID in order of preference
+                const storedMemberId = localStorage.getItem('userMemberId');
+                const displayMemberId = profile.member_id || 
+                                       session.user.user_metadata?.member_id || 
+                                       storedMemberId || 
+                                       'Not Available';
+                
+                console.log('Member ID sources:', {
+                    profile: profile.member_id,
+                    metadata: session.user.user_metadata?.member_id,
+                    localStorage: storedMemberId
+                });
+                
+                // Set the member ID on the profile if it's missing but available elsewhere
+                if (!profile.member_id && (session.user.user_metadata?.member_id || storedMemberId)) {
+                    const memberId = session.user.user_metadata?.member_id || storedMemberId;
+                    console.log('Updating missing profile member_id with:', memberId);
+                    
+                    // Update the profile with the member ID
+                    supabaseClient
+                        .from('profiles')
+                        .update({ 
+                            member_id: memberId,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', session.user.id)
+                        .then(response => {
+                            if (response.error) {
+                                console.error('Error updating profile with member ID:', response.error);
+                            } else {
+                                console.log('Profile updated with member ID:', memberId);
+                            }
+                        });
+                }
+                
+                memberId.textContent = displayMemberId;
             }
 
             const eventsAttended = document.getElementById('eventsAttended');
@@ -765,9 +800,23 @@
                         day: 'numeric'
                     }) : 'Not Available';
 
+                // Get the member ID from all possible sources
+                const storedMemberId = localStorage.getItem('userMemberId');
+                const cardMemberId = profile.member_id || 
+                                  session.user.user_metadata?.member_id || 
+                                  storedMemberId || 
+                                  'Not Available';
+                
+                console.log('Member ID for card display:', {
+                    profileId: profile.member_id,
+                    metadataId: session.user.user_metadata?.member_id,
+                    localStorageId: storedMemberId,
+                    using: cardMemberId
+                });
+
                 // Update card info
                 document.getElementById('cardFullName').textContent = profile.full_name;
-                document.getElementById('cardMemberId').textContent = profile.member_id;
+                document.getElementById('cardMemberId').textContent = cardMemberId;
                 document.getElementById('cardMemberSince').textContent = formattedDate;
                 document.getElementById('cardMembershipStatus').textContent = 
                     profile.membership_type.charAt(0).toUpperCase() + profile.membership_type.slice(1);
@@ -779,7 +828,7 @@
                 // Generate QR code
                 const qrData = JSON.stringify({
                     id: profile.id,
-                    memberId: profile.member_id,
+                    memberId: cardMemberId,
                     type: profile.membership_type,
                     name: profile.full_name,
                     since: formattedDate,

@@ -459,10 +459,17 @@
                     const memberId = await generateSequentialMemberId();
                     console.log('Successfully generated Member ID:', memberId);
 
-                    // Store email and memberId for verification page
+                    // Store email and memberId for verification page - Add timestamp for debugging
+                    const storageTimestamp = new Date().toISOString();
                     localStorage.setItem('pendingVerificationEmail', email);
                     localStorage.setItem('pendingMemberId', memberId);
-                    localStorage.setItem('registrationTime', new Date().toISOString());
+                    localStorage.setItem('registrationTime', storageTimestamp);
+                    
+                    // Also store in localStorage as userMemberId (for dashboard access)
+                    localStorage.setItem('userMemberId', memberId);
+                    console.log(`Stored member ID in localStorage at ${storageTimestamp}:`, 
+                                `pendingMemberId=${memberId}`, 
+                                `userMemberId=${memberId}`);
 
                     // Get exact redirect URL
                     const redirectTo = window.location.origin + '/verification-success.html';
@@ -489,36 +496,84 @@
 
                     console.log('Signup response:', data);
                     console.log('User metadata:', data.user?.user_metadata);
+                    
+                    // Create the profile in Supabase immediately to ensure the member ID is saved
+                    try {
+                        // Check if the user ID is available
+                        if (data.user && data.user.id) {
+                            console.log('Creating profile for user:', data.user.id);
+                            
+                            // Create a profile in the profiles table
+                            const { error: profileError } = await supabaseClient
+                                .from('profiles')
+                                .insert([
+                                    {
+                                        id: data.user.id,
+                                        email: email,
+                                        full_name: fullName,
+                                        member_id: memberId,
+                                        membership_status: 'pending',
+                                        membership_type: 'standard',
+                                        created_at: new Date().toISOString()
+                                    }
+                                ]);
+                                
+                            if (profileError) {
+                                console.error('Error creating profile:', profileError);
+                                // Continue anyway - the profile will be created during verification
+                            } else {
+                                console.log('Profile created successfully with Member ID:', memberId);
+                            }
+                        }
+                    } catch (profileCreateError) {
+                        console.error('Error during profile creation:', profileCreateError);
+                        // Continue anyway - the profile will be created during verification
+                    }
 
-                    // Save memberId to localStorage for later use
-                    localStorage.setItem('userMemberId', memberId);
+                    // Update user metadata again to ensure member_id is saved
+                    try {
+                        const { error: metadataError } = await supabaseClient.auth.updateUser({
+                            data: { 
+                                member_id: memberId,
+                                membership_status: 'pending'
+                            }
+                        });
+                        
+                        if (metadataError) {
+                            console.error('Error updating user metadata:', metadataError);
+                        } else {
+                            console.log('User metadata updated with Member ID:', memberId);
+                        }
+                    } catch (metadataError) {
+                        console.error('Error during metadata update:', metadataError);
+                    }
 
-                    // Show success message before redirecting
+                    // Show success message and redirect
                     alertContainer.innerHTML = `
-                        <div class="alert alert-success">
-                            <i class="fas fa-check-circle"></i> Account created successfully! Your Member ID is: <strong>${memberId}</strong>. Redirecting to verification page...
+                        <div class="alert alert-success" role="alert">
+                            <i class="fas fa-check-circle"></i> Registration successful! 
+                            <p>Your Member ID is: <strong>${memberId}</strong></p>
+                            <p>A verification email has been sent to ${email}</p>
                         </div>
                     `;
                     
-                    // Navigate to verification sent page after a short delay
+                    // Delay redirect to verification page by 2 seconds to ensure all data is saved
                     setTimeout(() => {
                         window.location.href = 'verification-sent.html';
-                    }, 1500);
-                    
+                    }, 2000);
+
                 } catch (error) {
                     console.error('Registration error:', error);
-                    registerButton.disabled = false;
-                    registerButton.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
                     
-                    // Display error in alert container
                     alertContainer.innerHTML = `
-                        <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-circle"></i> ${error.message || 'An error occurred during registration. Please try again.'}
+                        <div class="alert alert-danger" role="alert">
+                            <i class="fas fa-exclamation-circle"></i> ${error.message}
                         </div>
                     `;
                     
-                    // Scroll to error message
-                    alertContainer.scrollIntoView({ behavior: 'smooth' });
+                    // Reset button state
+                    registerButton.disabled = false;
+                    registerButton.innerHTML = 'Register';
                 }
             }
         });

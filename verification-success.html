@@ -453,6 +453,8 @@
             const statusElement = document.getElementById('verificationStatus');
             const loadingSpinner = document.getElementById('loadingSpinner');
             const dashboardButton = document.getElementById('dashboardButton');
+            const membershipCard = document.getElementById('membershipCard');
+            const memberIdDisplay = document.getElementById('memberIdDisplay');
             
             try {
                 // Check for auth token in URL (handle both hash and query params for compatibility)
@@ -511,6 +513,12 @@
                 const pendingMemberId = localStorage.getItem('pendingMemberId');
                 const pendingEmail = localStorage.getItem('pendingVerificationEmail');
                 
+                console.log('Pending data from localStorage:', {
+                    pendingMemberId,
+                    pendingEmail,
+                    registrationTime: localStorage.getItem('registrationTime')
+                });
+                
                 // Get user details 
                 const { data: { user }, error: userError } = await supabase.auth.getUser();
                 
@@ -530,9 +538,16 @@
                 
                 // Get member_id either from profile or pending storage
                 let memberId = profileData?.member_id || 
-                               user.user_metadata?.member_id || 
-                               pendingMemberId || 
-                               `BTC${Math.floor(Math.random() * 100000).toString().padStart(5, '0')}`;
+                              user.user_metadata?.member_id || 
+                              pendingMemberId;
+                              
+                // If no member ID is found, generate a new one
+                if (!memberId) {
+                    console.warn('No member ID found in profile, metadata, or localStorage. Generating a new one.');
+                    memberId = `BTC${Math.floor(Math.random() * 100000).toString().padStart(5, '0')}`;
+                }
+                
+                console.log('Using Member ID:', memberId);
                 
                 if (profileError && profileError.code !== 'PGRST116') { // PGRST116 is "no rows returned" error
                     console.error('Error fetching profile:', profileError);
@@ -560,15 +575,16 @@
                         throw new Error('Failed to create your profile. Please contact support.');
                     }
                     
-                    console.log('Profile created successfully with status "active"');
+                    console.log('Profile created successfully with status "active" and Member ID:', memberId);
                 } else {
-                    console.log('Profile exists, updating membership status to active');
+                    console.log('Profile exists with Member ID:', profileData.member_id);
                     
-                    // Update existing profile to active status
+                    // Update existing profile to active status and ensure member_id is set
                     const { error: updateError } = await supabase
                         .from('profiles')
                         .update({ 
                             membership_status: 'active',
+                            member_id: memberId, // Ensure member_id is set in profile
                             updated_at: new Date().toISOString()
                         })
                         .eq('id', user.id);
@@ -578,7 +594,7 @@
                         throw new Error('Failed to update your membership status. Please contact support.');
                     }
                     
-                    console.log('Membership status updated to active');
+                    console.log('Membership status updated to active and Member ID confirmed');
                 }
                 
                 // Update user metadata if needed
@@ -596,7 +612,7 @@
                         console.error('Error updating user metadata:', metadataError);
                         // Continue anyway - this is not critical
                     } else {
-                        console.log('User metadata updated successfully');
+                        console.log('User metadata updated successfully with Member ID:', memberId);
                     }
                 }
                 
@@ -607,6 +623,7 @@
                 
                 // Save the member ID for use in other pages
                 localStorage.setItem('userMemberId', memberId);
+                console.log('Saved Member ID to localStorage as userMemberId:', memberId);
                 
                 // Update UI to show success
                 statusElement.innerHTML = `
@@ -617,7 +634,11 @@
                     </div>
                 `;
                 
-                // Show dashboard button and update link with access token
+                // Display membership card
+                membershipCard.style.display = 'block';
+                memberIdDisplay.textContent = memberId;
+                
+                // Show dashboard button
                 dashboardButton.style.display = 'inline-block';
                 loadingSpinner.style.display = 'none';
                 

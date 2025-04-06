@@ -137,7 +137,7 @@
             
             // If running locally with file:// protocol
             if (baseUrl.startsWith('file://')) {
-                return 'http://localhost:3000/dashboard.html';
+                return 'dashboard.html'; // Use a relative path instead of localhost:3000
             }
             
             // If running on localhost

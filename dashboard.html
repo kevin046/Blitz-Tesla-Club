@@ -300,6 +300,52 @@
         .toggle-password:hover {
             color: #888;
         }
+
+        /* Password Strength Meter */
+        .password-strength-meter {
+            margin-top: 10px;
+            font-size: 0.85em;
+        }
+
+        .strength-label {
+            margin-bottom: 5px;
+            color: #bbb;
+        }
+
+        .strength-bar-container {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin-bottom: 6px;
+        }
+
+        .strength-bar {
+            height: 100%;
+            width: 0;
+            transition: width 0.3s ease, background 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .strength-weak {
+            width: 33%;
+            background: #dc3545;
+        }
+
+        .strength-medium {
+            width: 66%;
+            background: #ffc107;
+        }
+
+        .strength-strong {
+            width: 100%;
+            background: #28a745;
+        }
+
+        #passwordRequirements {
+            color: #888;
+            font-size: 0.85em;
+        }
     </style>
 </head>
 <body class="dashboard-page">
@@ -762,27 +808,80 @@
             modalEditProfileForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
+                const currentPassword = document.getElementById('modalCurrentPassword').value;
                 const newPassword = document.getElementById('modalNewPassword').value;
                 const confirmPassword = document.getElementById('modalConfirmPassword').value;
+                
+                if (!currentPassword) {
+                    alert('Please enter your current password');
+                    return;
+                }
                 
                 if (newPassword !== confirmPassword) {
                     alert('Passwords do not match');
                     return;
                 }
                 
+                // Password validation
+                if (newPassword.length < 8) {
+                    alert('Password must be at least 8 characters long');
+                    return;
+                }
+                
+                const submitButton = modalEditProfileForm.querySelector('button[type="submit"]');
+                const originalButtonText = submitButton.innerHTML;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+                submitButton.disabled = true;
+                
                 try {
+                    // First verify the current password by signing in
+                    const { data: signInData, error: signInError } = await supabaseClient.auth.signInWithPassword({
+                        email: window.userProfile.email,
+                        password: currentPassword
+                    });
+                    
+                    if (signInError) {
+                        throw new Error('Current password is incorrect');
+                    }
+                    
+                    // Update password using Supabase auth
                     const { error } = await supabaseClient.auth.updateUser({
                         password: newPassword
                     });
                     
                     if (error) throw error;
                     
+                    // Show success message
                     alert('Password updated successfully');
-                    editProfileModal.style.display = 'none';
+                    
+                    // Reset form and close modal
                     modalEditProfileForm.reset();
+                    editProfileModal.style.display = 'none';
+                    
+                    // Optionally force re-login
+                    if (confirm('Your password has been updated successfully. For security reasons, would you like to log out and sign in with your new password?')) {
+                        await supabaseClient.auth.signOut();
+                        window.location.href = 'login.html';
+                    }
                 } catch (error) {
                     console.error('Error updating password:', error);
-                    alert('Failed to update password');
+                    
+                    // Show specific error message based on the error
+                    if (error.message.includes('Password should be at least')) {
+                        alert('Password must be at least 8 characters long');
+                    } else if (error.message.includes('expired')) {
+                        alert('Your session has expired. Please log in again to change your password.');
+                        await supabaseClient.auth.signOut();
+                        window.location.href = 'login.html';
+                    } else if (error.message.includes('incorrect')) {
+                        alert('Current password is incorrect');
+                    } else {
+                        alert('Failed to update password: ' + error.message);
+                    }
+                } finally {
+                    // Restore button state
+                    submitButton.innerHTML = originalButtonText;
+                    submitButton.disabled = false;
                 }
             });
             
@@ -849,6 +948,51 @@
                 });
             });
 
+            // Password strength meter
+            const passwordInput = document.getElementById('modalNewPassword');
+            const strengthMeter = document.querySelector('.password-strength-meter');
+            const strengthBar = document.getElementById('strengthBar');
+            const strengthText = document.getElementById('strengthText');
+
+            passwordInput.addEventListener('input', function() {
+                const password = this.value;
+                
+                // Show strength meter only if password has some value
+                if (password.length > 0) {
+                    strengthMeter.style.display = 'block';
+                } else {
+                    strengthMeter.style.display = 'none';
+                    return;
+                }
+                
+                // Calculate password strength
+                let strength = 0;
+                
+                // Basic requirements
+                if (password.length >= 8) strength += 1; // Length
+                if (/[A-Z]/.test(password)) strength += 1; // Uppercase
+                if (/[a-z]/.test(password)) strength += 1; // Lowercase
+                if (/[0-9]/.test(password)) strength += 1; // Numbers
+                if (/[^A-Za-z0-9]/.test(password)) strength += 1; // Special chars
+                
+                // Update strength indicator
+                strengthBar.className = 'strength-bar';
+                
+                if (strength < 3) {
+                    strengthBar.classList.add('strength-weak');
+                    strengthText.textContent = 'Weak';
+                    strengthText.style.color = '#dc3545';
+                } else if (strength < 5) {
+                    strengthBar.classList.add('strength-medium');
+                    strengthText.textContent = 'Medium';
+                    strengthText.style.color = '#ffc107';
+                } else {
+                    strengthBar.classList.add('strength-strong');
+                    strengthText.textContent = 'Strong';
+                    strengthText.style.color = '#28a745';
+                }
+            });
+
             // Check if coming from verification success
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('verified') === 'true') {
@@ -881,10 +1025,12 @@
                         localStorage.setItem('tokenExpiry', new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString());
 
                         // Get base URL for verification link
-                        const baseUrl = window.location.hostname === 'localhost' 
-                            ? 'http://localhost:3000' 
-                            : 'https://www.blitztclub.com';
-                        const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}`;
+                        const baseUrl = window.location.protocol === 'file:' 
+                            ? '.' // Use relative path for file:// protocol
+                            : window.location.hostname === 'localhost' 
+                                ? 'http://localhost:3000' 
+                                : 'https://www.blitztclub.com';
+                        const verificationUrl = `${baseUrl}/${baseUrl === '.' ? '' : ''}verify-email.html?token=${verificationToken}`;
 
                         // Send verification email using FormSubmit
                         const formData = new FormData();
@@ -1033,6 +1179,17 @@ Blitz T Club Team`);
                         <!-- Add hidden username field for accessibility -->
                         <input type="hidden" id="modalUsername" name="username" autocomplete="username">
                         <div class="form-group">
+                            <label for="modalCurrentPassword">Current Password</label>
+                            <div class="password-input-container">
+                                <input type="password" id="modalCurrentPassword" name="currentPassword" 
+                                    placeholder="Enter current password" autocomplete="current-password"
+                                    class="modern-input">
+                                <button type="button" class="toggle-password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
                             <label for="modalNewPassword">New Password</label>
                             <div class="password-input-container">
                                 <input type="password" id="modalNewPassword" name="newPassword" 
@@ -1041,6 +1198,13 @@ Blitz T Club Team`);
                                 <button type="button" class="toggle-password">
                                     <i class="fas fa-eye"></i>
                                 </button>
+                            </div>
+                            <div class="password-strength-meter" style="display: none;">
+                                <div class="strength-label">Password strength: <span id="strengthText">Weak</span></div>
+                                <div class="strength-bar-container">
+                                    <div class="strength-bar" id="strengthBar"></div>
+                                </div>
+                                <small id="passwordRequirements">Use at least 8 characters, including uppercase, lowercase letters, and numbers</small>
                             </div>
                         </div>
                         <div class="form-group">

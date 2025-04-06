@@ -15,7 +15,7 @@
     <!-- Standard Navigation -->
     <nav>
         <div class="logo">
-            <a href="/">
+            <a href="index.html">
                 <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo" loading="lazy" width="50" height="50">
                 <span>BLITZ T CLUB</span>
             </a>
@@ -310,10 +310,12 @@
                     localStorage.setItem('tokenExpiry', new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString());
 
                     // Get base URL for verification link
-                    const baseUrl = window.location.hostname === 'localhost' 
-                        ? 'http://localhost:3000' 
-                        : 'https://www.blitztclub.com';
-                    const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}`;
+                    const baseUrl = window.location.protocol === 'file:' 
+                        ? '.' // Use relative path for file:// protocol
+                        : window.location.hostname === 'localhost' 
+                            ? 'http://localhost:3000' 
+                            : 'https://www.blitztclub.com';
+                    const verificationUrl = `${baseUrl}/${baseUrl === '.' ? '' : ''}verify-email.html?token=${verificationToken}`;
 
                     // Send verification email using FormSubmit
                     const formData = new FormData();

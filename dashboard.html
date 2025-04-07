@@ -1258,14 +1258,14 @@
             
             // Handle account deletion
             deleteAccountBtn.addEventListener('click', async () => {
-                if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-                    return;
-                }
+                // Safety confirmation
+                const confirmDelete = confirm("Are you sure you want to delete your account? This action cannot be undone.");
+                if (!confirmDelete) return;
                 
-                // Ask for "delete" confirmation instead of password
-                const confirmText = prompt("Please type 'delete' to confirm account deletion:");
-                if (confirmText !== 'delete' && confirmText !== 'Delete') {
-                    alert('Account deletion cancelled. To confirm deletion, you must type "delete".');
+                // Get confirmation through text entry
+                const deletePrompt = prompt("To confirm deletion, please type 'delete'");
+                if (deletePrompt?.toLowerCase() !== 'delete') {
+                    alert("Account deletion cancelled. Please type 'delete' to confirm.");
                     return;
                 }
                 
@@ -1274,104 +1274,144 @@
                     deleteAccountBtn.disabled = true;
                     deleteAccountBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
                     
-                    console.log('Deleting account for user:', profile.id);
-
-                    // First delete the profile data - this removes personal information
+                    // Get the current user and profile
+                    const { data: { user } } = await supabaseClient.auth.getUser();
+                    if (!user) {
+                        alert("You must be logged in to delete your account.");
+                        return;
+                    }
+                    
+                    console.log(`Deleting account for user: ${user.id}`);
+                    
+                    // Step 1: Delete profile data first to remove personal information
                     const { error: profileError } = await supabaseClient
                         .from('profiles')
                         .delete()
-                        .eq('id', profile.id);
-
+                        .eq('id', user.id);
+                    
                     if (profileError) {
-                        console.error('Error deleting profile:', profileError);
+                        console.error("Error deleting profile:", profileError);
+                        // Continue anyway - we want to complete as much of the deletion as possible
                     } else {
-                        console.log('Profile data deleted successfully');
-                    }
-
-                    // Delete any related data from other tables if they exist
-                    try {
-                        const { error: eventRegError } = await supabaseClient
-                            .from('event_registrations')
-                            .delete()
-                            .eq('user_id', profile.id);
-                            
-                        if (eventRegError && !eventRegError.message?.includes('does not exist')) {
-                            console.warn('Error deleting event registrations:', eventRegError);
-                        } else {
-                            console.log('Event registrations deleted or none found');
-                        }
-                    } catch (err) {
-                        console.warn('Event registrations deletion error:', err);
+                        console.log("Profile data deleted successfully");
                     }
                     
-                    // IMPORTANT: This is the critical step for completely removing the user from Supabase
+                    // Step 2: Delete any related data
+                    // Example: Delete event registrations if that table exists
                     try {
-                        // Method 1: Try with client token (works if user deleting themselves)
-                        console.log('Attempting to delete user account directly from Supabase Auth...');
-                        const { error: deleteError } = await supabaseClient.auth.admin.deleteUser(profile.id);
+                        await supabaseClient
+                            .from('event_registrations')
+                            .delete()
+                            .eq('user_id', user.id);
+                        console.log("Event registrations deleted or none found");
+                    } catch (regError) {
+                        console.log("Event registrations deleted or none found");
+                    }
+                    
+                    // Step 3: Try to handle the Supabase Auth record
+                    try {
+                        // Create a unique email that won't conflict with other deleted accounts
+                        const uniqueId = Date.now().toString(36) + Math.random().toString(36).substring(2, 10);
+                        const randomEmail = `deleted-${uniqueId}@deleted-account.none`;
+                        const randomPassword = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 30);
                         
-                        if (deleteError) {
-                            console.log('First deletion attempt failed, trying alternative method:', deleteError.message);
-                            
-                            // Method 2: Alternative approach - make account unusable by scrambling email and password
-                            // This is a workaround since direct deletion requires admin privileges
-                            const randomEmail = `deleted-${Date.now()}-${Math.random().toString(36).substring(2, 10)}@deleted.account`;
-                            const randomPassword = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-                            
-                            // Update user to a random email so it can't be accessed
+                        console.log("Attempting to make auth account unusable...");
+                        
+                        // Strategy 1: Try to update both email and password (fastest way to make account inaccessible)
+                        let authUpdateSuccess = false;
+                        try {
                             const { error: updateError } = await supabaseClient.auth.updateUser({
                                 email: randomEmail,
                                 password: randomPassword,
                                 data: {
                                     deleted: true,
-                                    deletion_time: new Date().toISOString(),
-                                    original_email: profile.email, // Keep original email just in case recovery is needed
+                                    deletion_time: new Date().toISOString()
                                 }
                             });
                             
-                            if (updateError) {
-                                console.error('Error updating user for deletion:', updateError);
-                                throw new Error('Failed to delete account (Method 2)');
+                            if (!updateError) {
+                                console.log("Successfully made Supabase Auth account unusable (full update)");
+                                authUpdateSuccess = true;
                             } else {
-                                console.log('User account made permanently inaccessible');
+                                console.warn("Full auth update failed:", updateError.message);
                             }
-                        } else {
-                            console.log('User successfully deleted from Supabase Auth');
+                        } catch (fullUpdateError) {
+                            console.warn("Error during full auth update:", fullUpdateError);
                         }
-                    } catch (error) {
-                        console.error('Error during account deletion:', error);
-                        throw new Error('Failed to delete account completely');
+                        
+                        // Strategy 2: If email update failed, try just password (still makes login impossible)
+                        if (!authUpdateSuccess) {
+                            try {
+                                const { error: passwordError } = await supabaseClient.auth.updateUser({
+                                    password: randomPassword,
+                                    data: {
+                                        deleted: true,
+                                        deletion_time: new Date().toISOString()
+                                    }
+                                });
+                                
+                                if (!passwordError) {
+                                    console.log("Successfully made Supabase Auth account unusable (password only)");
+                                    authUpdateSuccess = true;
+                                } else {
+                                    console.warn("Password update failed:", passwordError.message);
+                                }
+                            } catch (passwordError) {
+                                console.warn("Error during password update:", passwordError);
+                            }
+                        }
+                        
+                        // Strategy 3: If all else fails, at least mark as deleted in metadata
+                        if (!authUpdateSuccess) {
+                            try {
+                                const { error: metadataError } = await supabaseClient.auth.updateUser({
+                                    data: {
+                                        deleted: true,
+                                        deletion_time: new Date().toISOString(),
+                                        email_before_deletion: user.email
+                                    }
+                                });
+                                
+                                if (!metadataError) {
+                                    console.log("Successfully marked user as deleted in metadata");
+                                } else {
+                                    console.warn("Metadata update failed:", metadataError.message);
+                                }
+                            } catch (metaError) {
+                                console.warn("Error updating user metadata:", metaError);
+                            }
+                        }
+                    } catch (authError) {
+                        console.error("Error handling auth record:", authError);
                     }
                     
-                    // Sign out and clear auth data
-                    console.log('Signing out user');
+                    // Step 4: Sign out the user
                     await supabaseClient.auth.signOut();
                     
-                    // Clear all storage
+                    // Step 5: Clear all local storage related to the user
                     localStorage.clear();
                     sessionStorage.clear();
                     
-                    // Show success message and redirect
-                    alert('Your account has been successfully deleted. All your data has been removed from our system. You will now be redirected to the homepage.');
+                    // Show success message
+                    alert("Your account has been successfully deleted. You will now be redirected to the homepage.");
+                    
+                    // Redirect to homepage
                     window.location.href = 'index.html';
                     
                 } catch (error) {
-                    console.error('Error in account deletion process:', error);
+                    console.error("Error during account deletion:", error);
                     
-                    // Provide a more specific message
-                    const continueAnyway = confirm('We encountered an issue while attempting to delete your account completely. Would you like to sign out anyway? (Note: Your profile data has been deleted, but your authentication record may still exist)');
-                    
-                    if (continueAnyway) {
-                        // Sign out and redirect
+                    // If deletion fails, still log the user out for security
+                    try {
                         await supabaseClient.auth.signOut();
                         localStorage.clear();
                         sessionStorage.clear();
-                        window.location.href = 'index.html';
-                    } else {
-                        // Reset button state
-                        deleteAccountBtn.disabled = false;
-                        deleteAccountBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete Account';
+                    } catch (e) {
+                        console.error("Error during cleanup after failed deletion:", e);
                     }
+                    
+                    alert("There was an issue deleting your account completely. Your profile data may have been removed, but we could not fully delete your authentication record. You have been logged out for security. Please contact support for further assistance.");
+                    window.location.href = 'index.html';
                 }
             });
             

@@ -8,104 +8,285 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        :root {
+            --primary-color: #171a20;
+            --secondary-color: #007bff;
+            --accent-color: #4CAF50;
+            --background-color: #f8f9fa;
+            --text-color: #333333;
+            --card-bg-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        body.verification-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            padding-top: 60px;
+        }
+
         .verification-container {
             max-width: 700px;
             margin: 40px auto;
             padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 0 20px var(--shadow-color);
             background-color: #ffffff;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .verification-container h1 {
+            margin-bottom: 20px;
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 28px;
         }
         
         .verification-icon {
             font-size: 60px;
-            color: #007bff;
+            color: var(--secondary-color);
             margin-bottom: 20px;
+            animation: pulse 2s infinite;
         }
         
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        /* Membership Card Styles */
         .membership-card {
-            background: linear-gradient(135deg, #1e5799 0%, #2989d8 50%, #207cca 51%, #7db9e8 100%);
+            background: var(--card-bg-gradient);
             color: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-            text-align: center;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px auto;
+            text-align: left;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            position: relative;
+            overflow: hidden;
+            transform: perspective(1000px) rotateY(0deg);
+            transition: transform 0.5s ease;
+        }
+        
+        .membership-card:hover {
+            transform: perspective(1000px) rotateY(5deg);
+        }
+        
+        .membership-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                rgba(255,255,255,0) 0%, 
+                rgba(255,255,255,0.05) 50%, 
+                rgba(255,255,255,0) 100%);
+            transform: rotate(45deg);
+            animation: shimmer 3s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+        
+        .membership-card h2 {
+            font-size: 22px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .card-logo {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            opacity: 0.8;
+            width: 40px;
+            height: 40px;
         }
         
         .membership-id {
             font-size: 24px;
-            font-weight: bold;
+            font-weight: 700;
             letter-spacing: 2px;
-            margin: 10px 0;
+            margin: 15px 0;
+            color: white;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 10px;
         }
         
-        .dashboard-btn {
-            background-color: #28a745;
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
+        .card-details {
             margin-top: 20px;
+            font-size: 14px;
+        }
+        
+        .card-details p {
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .card-details strong {
+            color: rgba(255,255,255,0.9);
+        }
+        
+        /* Button Styles */
+        .dashboard-btn {
+            background-color: var(--success-color);
+            color: white;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 25px;
             transition: all 0.3s ease;
             text-decoration: none;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         
         .dashboard-btn:hover {
             background-color: #218838;
             transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
         }
         
+        .dashboard-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .dashboard-btn i {
+            font-size: 18px;
+        }
+        
+        /* Loading Animation */
         .loading-spinner {
             display: inline-block;
             width: 50px;
             height: 50px;
-            border: 5px solid rgba(0, 123, 255, 0.2);
+            border: 4px solid rgba(0, 123, 255, 0.1);
             border-radius: 50%;
-            border-top-color: #007bff;
-            animation: spin 1s linear infinite;
+            border-top-color: var(--secondary-color);
+            animation: spin 1s ease-in-out infinite;
             margin: 20px 0;
         }
         
         @keyframes spin {
-            to {transform: rotate(360deg);}
+            to { transform: rotate(360deg); }
         }
         
+        /* Alert Styles */
         .alert {
-            padding: 15px;
+            padding: 16px;
             margin: 20px 0;
-            border-radius: 5px;
+            border-radius: 8px;
             text-align: left;
+            position: relative;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
         }
         
         .alert-success {
             background-color: #d4edda;
             color: #155724;
-            border: 1px solid #c3e6cb;
+            border-left: 4px solid #28a745;
         }
         
         .alert-danger {
             background-color: #f8d7da;
             color: #721c24;
-            border: 1px solid #f5c6cb;
+            border-left: 4px solid #dc3545;
         }
         
         .alert-warning {
             background-color: #fff3cd;
             color: #856404;
-            border: 1px solid #ffeeba;
+            border-left: 4px solid #ffc107;
         }
         
         .alert i {
             margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        .alert p {
+            margin: 8px 0 0 28px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .alert strong {
+            font-weight: 600;
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            body.verification-page {
+                padding-top: 60px;
+            }
+
+            .verification-container {
+                padding: 20px;
+                margin: 20px 10px;
+                border-radius: 10px;
+            }
+            
+            .verification-container h1 {
+                font-size: 24px;
+            }
+
+            .verification-icon {
+                font-size: 50px;
+            }
+            
+            .membership-card {
+                padding: 20px;
+                margin: 20px auto;
+            }
+            
+            .membership-card h2 {
+                font-size: 18px;
+            }
+            
+            .membership-id {
+                font-size: 20px;
+            }
+            
+            .dashboard-btn {
+                padding: 12px 20px;
+                font-size: 15px;
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -130,7 +311,7 @@
         <div class="verification-icon">
             <i class="fas fa-envelope-open-text"></i>
         </div>
-        <h1>Email Verification</h1>
+        <h1>Email Verification Successful</h1>
         
         <!-- Loading state -->
         <div id="loadingSpinner" class="loading-spinner"></div>
@@ -142,11 +323,15 @@
         
         <!-- Membership card will be populated by JavaScript -->
         <div class="membership-card" style="display: none;" id="membershipCard">
-            <h2>Tesla Blitz Club Member</h2>
+            <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz T Club Logo" class="card-logo">
+            <h2>Blitz T Club Member</h2>
             <div class="membership-id">
                 <span id="memberIdDisplay">Processing...</span>
             </div>
-            <p>Status: <span id="membershipStatus">Active</span></p>
+            <div class="card-details">
+                <p><strong>Status:</strong> <span id="membershipStatus">Active</span></p>
+                <p><strong>Member Since:</strong> <span id="memberSince">Today</span></p>
+            </div>
         </div>
         
         <!-- Dashboard button, hidden initially -->
@@ -208,239 +393,6 @@
         </div>
     </footer>
 
-    <style>
-        body.verification-page {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            padding-top: 60px; /* Added padding to prevent content from being hidden under the nav */
-        }
-
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.9);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-
-        .verification-container {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 30px 20px;
-            margin: 20px 0 40px; /* Adjusted margin */
-        }
-
-        .verification-box {
-            background: rgba(0, 0, 0, 0.7);
-            padding: 30px;
-            border-radius: 15px;
-            text-align: center;
-            max-width: 800px;
-            width: 100%;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .verification-logo {
-            width: 80px;
-            height: auto;
-            margin-bottom: 20px;
-        }
-
-        .verification-content {
-            text-align: center;
-        }
-        
-        .verification-content i {
-            font-size: 3em;
-            margin-bottom: 15px;
-            color: #4CAF50;
-        }
-        
-        .verification-content h1 {
-            margin-bottom: 15px;
-            color: #fff;
-            font-size: 1.8em;
-        }
-        
-        .verification-content p {
-            color: #ccc;
-            line-height: 1.5;
-            margin-bottom: 15px;
-        }
-        
-        .highlight {
-            color: #4CAF50;
-            font-weight: 600;
-            font-size: 1.1em;
-            background: rgba(76, 175, 80, 0.1);
-            padding: 3px 10px;
-            border-radius: 4px;
-            display: inline-block;
-            margin-top: 5px;
-        }
-        
-        .next-steps {
-            margin: 25px 0;
-            text-align: left;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 20px;
-            border-radius: 10px;
-        }
-        
-        .next-steps h3 {
-            color: #4CAF50;
-            margin-bottom: 15px;
-            font-size: 1.2em;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 10px;
-        }
-        
-        .steps-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-        
-        .step {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            transition: transform 0.3s, background 0.3s;
-        }
-        
-        .step:hover {
-            transform: translateY(-5px);
-            background: rgba(76, 175, 80, 0.1);
-        }
-        
-        .step i {
-            font-size: 2em;
-            color: #4CAF50;
-            margin-bottom: 10px;
-        }
-        
-        .step h4 {
-            color: #fff;
-            margin-bottom: 8px;
-            font-size: 1em;
-        }
-        
-        .step p {
-            color: #aaa;
-            font-size: 0.9em;
-            margin: 0;
-        }
-        
-        .verification-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            justify-content: center;
-            margin-top: 25px;
-        }
-        
-        .verification-actions .btn {
-            min-width: 150px;
-            padding: 12px 24px;
-        }
-
-        .primary-btn {
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            text-decoration: none;
-            transition: background 0.3s;
-        }
-
-        .primary-btn:hover {
-            background: #45a049;
-        }
-
-        .secondary-btn {
-            background: transparent;
-            color: #4CAF50;
-            border: 2px solid #4CAF50;
-            border-radius: 5px;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            text-decoration: none;
-            transition: all 0.3s;
-        }
-
-        .secondary-btn:hover {
-            background: rgba(76, 175, 80, 0.1);
-        }
-        
-        @media (max-width: 768px) {
-            body.verification-page {
-                padding-top: 50px;
-            }
-
-            .verification-container {
-                padding: 15px;
-                margin: 10px 0 20px;
-            }
-
-            .verification-box {
-                padding: 20px 15px;
-            }
-
-            .verification-content i {
-                font-size: 2.5em;
-                margin-bottom: 10px;
-            }
-
-            .verification-content h1 {
-                font-size: 1.5em;
-            }
-
-            .steps-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .verification-actions {
-                flex-direction: column;
-            }
-            
-            .verification-actions .btn {
-                width: 100%;
-            }
-
-            .next-steps {
-                padding: 15px;
-                margin: 20px 0;
-            }
-
-            .step {
-                padding: 12px;
-            }
-
-            .step i {
-                font-size: 1.5em;
-            }
-        }
-    </style>
-
     <script src="navigation.js" defer></script>
     <script>
         // Initialize Supabase client
@@ -455,6 +407,8 @@
             const dashboardButton = document.getElementById('dashboardButton');
             const membershipCard = document.getElementById('membershipCard');
             const memberIdDisplay = document.getElementById('memberIdDisplay');
+            const membershipStatus = document.getElementById('membershipStatus');
+            const memberSince = document.getElementById('memberSince');
             
             try {
                 // Check for auth token in URL (handle both hash and query params for compatibility)
@@ -554,6 +508,13 @@
                     // Continue with the process - we'll create the profile
                 }
 
+                // Get the current date for "member since"
+                const currentDate = new Date().toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+
                 // If no profile exists, create one
                 if (!profileData) {
                     console.log('No profile found, creating new profile for user:', user.id);
@@ -576,6 +537,9 @@
                     }
                     
                     console.log('Profile created successfully with status "active" and Member ID:', memberId);
+                    
+                    // Set member since date
+                    memberSince.textContent = currentDate;
                 } else {
                     console.log('Profile exists with Member ID:', profileData.member_id);
                     
@@ -595,6 +559,18 @@
                     }
                     
                     console.log('Membership status updated to active and Member ID confirmed');
+                    
+                    // Set member since date from profile if available
+                    if (profileData.created_at) {
+                        const createdDate = new Date(profileData.created_at).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+                        memberSince.textContent = createdDate;
+                    } else {
+                        memberSince.textContent = currentDate;
+                    }
                 }
                 
                 // Update user metadata if needed
@@ -637,6 +613,7 @@
                 // Display membership card
                 membershipCard.style.display = 'block';
                 memberIdDisplay.textContent = memberId;
+                membershipStatus.textContent = 'Active';
                 
                 // Show dashboard button
                 dashboardButton.style.display = 'inline-block';

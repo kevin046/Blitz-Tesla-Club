@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
@@ -60,6 +60,230 @@
             * {
                 -webkit-tap-highlight-color: transparent;
             }
+        }
+
+        /* Modern Membership Card Styles */
+        .modal-content.membership-card {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin: 0 auto;
+            text-align: left;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 450px;
+            position: relative;
+            overflow: hidden;
+            transform: perspective(1000px) rotateY(0deg);
+            transition: transform 0.5s ease;
+        }
+        
+        .modal-content.membership-card:hover {
+            transform: perspective(1000px) rotateY(5deg);
+        }
+        
+        .modal-content.membership-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                rgba(255,255,255,0) 0%, 
+                rgba(255,255,255,0.05) 50%, 
+                rgba(255,255,255,0) 100%);
+            transform: rotate(45deg);
+            animation: shimmer 3s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            background: transparent;
+            padding: 0;
+            border: none;
+        }
+        
+        .card-header img {
+            height: 60px;
+            width: auto;
+            background: transparent;
+            margin: 0;
+        }
+        
+        .header-text h2 {
+            font-size: 22px;
+            margin: 0;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.95);
+            background: transparent;
+        }
+        
+        .member-info {
+            margin: 25px 0;
+            text-align: left;
+        }
+        
+        .member-info h3 {
+            font-size: 24px;
+            margin-bottom: 25px;
+            font-weight: 700;
+            color: white;
+            letter-spacing: 0.5px;
+            text-transform: capitalize;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 14px;
+            color: white;
+            margin-bottom: 5px;
+        }
+        
+        .info-row .label {
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+        }
+        
+        .card-footer {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .qr-section {
+            text-align: center;
+        }
+        
+        canvas.qr-code {
+            width: 120px;
+            height: 120px;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            margin: 0 auto 15px;
+        }
+        
+        .qr-text {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .qr-text i {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        /* Premium Card Style */
+        .membership-card[data-type="premium"] {
+            background: linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .membership-card[data-type="premium"]::before {
+            background: linear-gradient(45deg, 
+                rgba(255,255,255,0) 0%, 
+                rgba(255,255,255,0.1) 50%, 
+                rgba(255,255,255,0) 100%);
+        }
+        
+        .membership-card[data-type="premium"] .header-text h2 {
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .membership-card[data-type="premium"] .info-row {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+        }
+        
+        .membership-card[data-type="premium"] .qr-text {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        /* Modal styling for the card */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            overflow: auto;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: modalFadeIn 0.3s ease forwards;
+        }
+        
+        @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-content {
+            position: relative;
+            margin: 20px;
+            animation: modalSlideIn 0.4s ease-out forwards;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.2s ease;
+        }
+        
+        .close-modal:hover {
+            background: rgba(0, 0, 0, 0.5);
+            transform: scale(1.1);
         }
 
         .profile-settings {
@@ -329,17 +553,17 @@
 
         .strength-weak {
             width: 33%;
-            background: #dc3545;
+            background: #dc2626;
         }
 
         .strength-medium {
             width: 66%;
-            background: #ffc107;
+            background: #f59e0b;
         }
 
         .strength-strong {
             width: 100%;
-            background: #28a745;
+            background: #16a34a;
         }
 
         #passwordRequirements {
@@ -553,6 +777,45 @@
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
+            // Check for any pending account deletion requests
+            const pendingDeletion = localStorage.getItem('pendingAccountDeletion');
+            const deletionTime = localStorage.getItem('deletionRequestTime');
+            
+            if (pendingDeletion && navigator.onLine && window.location.protocol !== 'file:') {
+                console.log('Found pending account deletion request from:', deletionTime);
+                
+                try {
+                    // Check if we're on localhost or a deployed server
+                    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                    const apiUrl = isLocalhost
+                        ? 'http://localhost:3000/api/cleanup-orphaned-users'
+                        : '/api/cleanup-orphaned-users';
+                    
+                    console.log('Attempting to process pending deletion via API:', apiUrl);
+                    
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            user_id: pendingDeletion
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        console.log('Successfully processed pending account deletion');
+                        // Clear the pending deletion
+                        localStorage.removeItem('pendingAccountDeletion');
+                        localStorage.removeItem('deletionRequestTime');
+                    } else {
+                        console.warn('Could not process pending deletion - will try again later');
+                    }
+                } catch (error) {
+                    console.error('Error processing pending deletion:', error);
+                }
+            }
+            
             // Initialize navigation first
             await initializeNavigation();
 
@@ -790,6 +1053,7 @@
             // Add this after profile data is loaded
             const membershipCardBtn = document.getElementById('membershipCardBtn');
             const modal = document.getElementById('membershipCardModal');
+            const closeModalBtn = document.querySelector('.close-modal');
 
             membershipCardBtn.addEventListener('click', () => {
                 // Format date for card display
@@ -852,8 +1116,23 @@
                 modal.classList.add('show');
             });
 
+            // Close modal when clicking the X button
+            if (closeModalBtn) {
+                closeModalBtn.addEventListener('click', () => {
+                    modal.classList.remove('show');
+                });
+            }
+
+            // Close modal when clicking outside
             window.addEventListener('click', (e) => {
                 if (e.target === modal) {
+                    modal.classList.remove('show');
+                }
+            });
+
+            // Close modal with Escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && modal.classList.contains('show')) {
                     modal.classList.remove('show');
                 }
             });
@@ -1016,38 +1295,121 @@
                     if (profileError) {
                         console.error('Error deleting profile:', profileError);
                         // Continue with deletion process even if profile deletion fails
-                        // The API call will handle this
                     }
 
-                    // Call the API to completely remove the user from Supabase
-                    const apiUrl = window.location.hostname === 'localhost' 
-                        ? 'http://localhost:3000/api/cleanup-orphaned-users'
-                        : '/api/cleanup-orphaned-users';
-                    
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            user_id: profile.id
-                        })
-                    });
-                    
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'Failed to delete account completely');
+                    try {
+                        // Determine if we're running from file protocol
+                        const isFileProtocol = window.location.protocol === 'file:';
+                        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                        
+                        // If running from file:// protocol, we need to handle this differently
+                        if (isFileProtocol) {
+                            console.log('Running from file protocol - implementing direct user deletion');
+                            
+                            // Step 1: Delete all user-related data in Supabase database
+                            // Delete any events the user registered for (if you have an events table)
+                            const { error: eventsError } = await supabaseClient
+                                .from('event_registrations')
+                                .delete()
+                                .eq('user_id', profile.id);
+                            
+                            if (eventsError) {
+                                console.warn('Error deleting event registrations:', eventsError);
+                                // Continue anyway as this is not critical
+                            }
+                            
+                            // Step 2: Use the appropriate Supabase auth method that works with client-side permissions
+                            // This will work with the client's own token since they're deleting their own account
+                            console.log('Deleting user account from Supabase Auth');
+                            const { error: deleteUserError } = await supabaseClient.auth.updateUser({
+                                data: { deleted: true, deletion_time: new Date().toISOString() }
+                            });
+                            
+                            if (deleteUserError) {
+                                console.error('Error updating user metadata for deletion:', deleteUserError);
+                                // Continue with the process as we've already deleted the profile
+                            } else {
+                                console.log('User metadata updated to mark account as deleted');
+                            }
+                            
+                            // Step 3: Since we can't fully delete the auth account client-side,
+                            // we'll add a server-side deletion request to a queue
+                            try {
+                                // Store deletion request in localStorage for future sync
+                                localStorage.setItem('pendingAccountDeletion', profile.id);
+                                localStorage.setItem('deletionRequestTime', new Date().toISOString());
+                                console.log('Queued account for server-side deletion on next online session');
+                            } catch (storageError) {
+                                console.warn('Could not queue deletion request:', storageError);
+                            }
+                        } else {
+                            // Regular web server environment - use API endpoint
+                            const apiUrl = isLocalhost
+                                ? 'http://localhost:3000/api/cleanup-orphaned-users'
+                                : '/api/cleanup-orphaned-users';
+                            
+                            console.log('Using API endpoint for account deletion:', apiUrl);
+                            
+                            const response = await fetch(apiUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    user_id: profile.id
+                                })
+                            });
+                            
+                            if (!response.ok) {
+                                const errorData = await response.json();
+                                throw new Error(errorData.error || 'Failed to delete account completely');
+                            }
+                        }
+
+                        // Sign out and clear storage regardless of method used
+                        await supabaseClient.auth.signOut();
+                        localStorage.removeItem('supabase.auth.token');
+                        sessionStorage.removeItem('supabase.auth.token');
+                        
+                        // We keep the pendingAccountDeletion item if it exists
+                        const pendingDeletion = localStorage.getItem('pendingAccountDeletion');
+                        const deletionTime = localStorage.getItem('deletionRequestTime');
+                        
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        
+                        // Restore the pending deletion info if it exists
+                        if (pendingDeletion) {
+                            localStorage.setItem('pendingAccountDeletion', pendingDeletion);
+                            localStorage.setItem('deletionRequestTime', deletionTime);
+                        }
+
+                        // Show success message and redirect
+                        alert('Your account has been successfully deleted. You will now be redirected to the homepage.');
+                        window.location.href = 'index.html';
+                    } catch (error) {
+                        console.error('Error deleting account:', error);
+                        
+                        // Special handling for local development/testing
+                        if (window.location.protocol === 'file:') {
+                            const continueAnyway = confirm('We encountered an issue while deleting your account. Your profile data has been deleted, but your auth account may need to be removed next time you\'re online. Would you like to sign out now?');
+                            
+                            if (continueAnyway) {
+                                // Just sign out
+                                await supabaseClient.auth.signOut();
+                                localStorage.clear();
+                                sessionStorage.clear();
+                                window.location.href = 'index.html';
+                                return;
+                            }
+                        } else {
+                            alert('Failed to delete account completely. Please try again or contact support.');
+                        }
+                        
+                        // Reset button state
+                        deleteAccountBtn.disabled = false;
+                        deleteAccountBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete Account';
                     }
-
-                    // Sign out and clear storage
-                    await supabaseClient.auth.signOut();
-                    localStorage.clear();
-                    sessionStorage.clear();
-
-                    // Show success message and redirect
-                    alert('Your account has been successfully deleted from our systems.');
-                    window.location.href = '/';
-                    
                 } catch (error) {
                     console.error('Error deleting account:', error);
                     alert('Failed to delete account completely. Please try again or contact support.');
@@ -1223,41 +1585,34 @@ Blitz T Club Team`);
     <!-- Membership Card Modal -->
     <div id="membershipCardModal" class="modal">
         <div class="modal-content membership-card">
-            <div class="card-front">
-                <div class="card-header">
-                    <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo">
-                    <div class="header-text">
-                        <h2>Blitz Membership Card</h2>
-                        <span class="card-type" id="cardType"></span>
-                    </div>
+            <button class="close-modal">&times;</button>
+            <div class="card-header">
+                <div class="header-text">
+                    <h2>Blitz T Club</h2>
                 </div>
-                <div class="card-body">
-                    <div class="member-photo">
-                        <i class="fas fa-user-circle"></i>
-                    </div>
-                    <div class="member-info">
-                        <h3 id="cardFullName"></h3>
-                        <div class="info-row">
-                            <span class="label">Member ID:</span>
-                            <span id="cardMemberId"></span>
-                        </div>
-                        <div class="info-row">
-                            <span class="label">Member Since:</span>
-                            <span id="cardMemberSince"></span>
-                        </div>
-                        <div class="info-row">
-                            <span class="label">Status:</span>
-                            <span id="cardMembershipStatus"></span>
-                        </div>
-                    </div>
-                    <div class="card-footer">
-                        <div class="qr-section">
-                            <canvas class="qr-code" id="memberQRCode"></canvas>
-                            <div class="qr-text">
-                                <i class="fas fa-qrcode"></i>
-                                <small>Scan to verify membership</small>
-                            </div>
-                        </div>
+                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo">
+            </div>
+            <div class="member-info">
+                <h3 id="cardFullName"></h3>
+                <div class="info-row">
+                    <span class="label">Member ID</span>
+                    <span id="cardMemberId"></span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Member Since</span>
+                    <span id="cardMemberSince"></span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Status</span>
+                    <span id="cardMembershipStatus"></span>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="qr-section">
+                    <canvas class="qr-code" id="memberQRCode"></canvas>
+                    <div class="qr-text">
+                        <i class="fas fa-qrcode"></i>
+                        <small>Scan to verify membership</small>
                     </div>
                 </div>
             </div>

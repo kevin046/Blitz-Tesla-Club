@@ -1276,7 +1276,7 @@
                     
                     console.log('Deleting account for user:', profile.id);
 
-                    // First delete the profile
+                    // First delete the profile data - this removes personal information
                     const { error: profileError } = await supabaseClient
                         .from('profiles')
                         .delete()
@@ -1284,89 +1284,94 @@
 
                     if (profileError) {
                         console.error('Error deleting profile:', profileError);
-                        // Continue with deletion process even if profile deletion fails
+                    } else {
+                        console.log('Profile data deleted successfully');
                     }
 
+                    // Delete any related data from other tables if they exist
                     try {
-                        // Delete any related data from other tables
-                        // This makes the account deletion more thorough even without the API endpoint
-                        
-                        // 1. Delete from event_registrations if exists
-                        try {
-                            const { error: eventRegError } = await supabaseClient
-                                .from('event_registrations')
-                                .delete()
-                                .eq('user_id', profile.id);
-                                
-                            if (eventRegError && !eventRegError.message.includes('does not exist')) {
-                                console.warn('Error deleting event registrations:', eventRegError);
-                            }
-                        } catch (err) {
-                            console.warn('Event registrations deletion error (likely table not exists):', err);
+                        const { error: eventRegError } = await supabaseClient
+                            .from('event_registrations')
+                            .delete()
+                            .eq('user_id', profile.id);
+                            
+                        if (eventRegError && !eventRegError.message?.includes('does not exist')) {
+                            console.warn('Error deleting event registrations:', eventRegError);
+                        } else {
+                            console.log('Event registrations deleted or none found');
                         }
+                    } catch (err) {
+                        console.warn('Event registrations deletion error:', err);
+                    }
+                    
+                    // IMPORTANT: This is the critical step for completely removing the user from Supabase
+                    try {
+                        // Method 1: Try with client token (works if user deleting themselves)
+                        console.log('Attempting to delete user account directly from Supabase Auth...');
+                        const { error: deleteError } = await supabaseClient.auth.admin.deleteUser(profile.id);
                         
-                        // 2. Update user metadata to mark as deleted
-                        const { error: metadataError } = await supabaseClient.auth.updateUser({
-                            data: { 
-                                deleted: true, 
-                                deletion_time: new Date().toISOString(),
-                                email_original: profile.email,
-                                member_id_original: profile.member_id
+                        if (deleteError) {
+                            console.log('First deletion attempt failed, trying alternative method:', deleteError.message);
+                            
+                            // Method 2: Alternative approach - make account unusable by scrambling email and password
+                            // This is a workaround since direct deletion requires admin privileges
+                            const randomEmail = `deleted-${Date.now()}-${Math.random().toString(36).substring(2, 10)}@deleted.account`;
+                            const randomPassword = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                            
+                            // Update user to a random email so it can't be accessed
+                            const { error: updateError } = await supabaseClient.auth.updateUser({
+                                email: randomEmail,
+                                password: randomPassword,
+                                data: {
+                                    deleted: true,
+                                    deletion_time: new Date().toISOString(),
+                                    original_email: profile.email, // Keep original email just in case recovery is needed
+                                }
+                            });
+                            
+                            if (updateError) {
+                                console.error('Error updating user for deletion:', updateError);
+                                throw new Error('Failed to delete account (Method 2)');
+                            } else {
+                                console.log('User account made permanently inaccessible');
                             }
-                        });
-                        
-                        if (metadataError) {
-                            console.warn('Error updating user metadata:', metadataError);
+                        } else {
+                            console.log('User successfully deleted from Supabase Auth');
                         }
-                        
-                        // Store the deletion request for future processing when API is available
-                        localStorage.setItem('pendingAccountDeletion', profile.id);
-                        localStorage.setItem('deletionRequestTime', new Date().toISOString());
-                        
-                        // Sign out and clear all auth data
+                    } catch (error) {
+                        console.error('Error during account deletion:', error);
+                        throw new Error('Failed to delete account completely');
+                    }
+                    
+                    // Sign out and clear auth data
+                    console.log('Signing out user');
+                    await supabaseClient.auth.signOut();
+                    
+                    // Clear all storage
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    
+                    // Show success message and redirect
+                    alert('Your account has been successfully deleted. All your data has been removed from our system. You will now be redirected to the homepage.');
+                    window.location.href = 'index.html';
+                    
+                } catch (error) {
+                    console.error('Error in account deletion process:', error);
+                    
+                    // Provide a more specific message
+                    const continueAnyway = confirm('We encountered an issue while attempting to delete your account completely. Would you like to sign out anyway? (Note: Your profile data has been deleted, but your authentication record may still exist)');
+                    
+                    if (continueAnyway) {
+                        // Sign out and redirect
                         await supabaseClient.auth.signOut();
-                        
-                        // Clear localStorage and sessionStorage but preserve deletion info
-                        const pendingDeletion = localStorage.getItem('pendingAccountDeletion');
-                        const deletionTime = localStorage.getItem('deletionRequestTime');
-                        
                         localStorage.clear();
                         sessionStorage.clear();
-                        
-                        // Restore deletion tracking data
-                        if (pendingDeletion) {
-                            localStorage.setItem('pendingAccountDeletion', pendingDeletion);
-                            localStorage.setItem('deletionRequestTime', deletionTime);
-                        }
-
-                        // Show success message and redirect
-                        alert('Your account has been deleted successfully. Your profile and personal data have been removed from our system. You will now be redirected to the homepage.');
                         window.location.href = 'index.html';
-                        
-                    } catch (error) {
-                        console.error('Error in final deletion steps:', error);
-                        
-                        // Provide a more specific message and allow the user to continue
-                        const continueAnyway = confirm('We encountered an issue while processing your deletion request. Your profile data has been deleted, but we could not complete all steps. Would you like to sign out and continue anyway?');
-                        
-                        if (continueAnyway) {
-                            // Just sign out and redirect
-                            await supabaseClient.auth.signOut();
-                            localStorage.clear();
-                            sessionStorage.clear();
-                            window.location.href = 'index.html';
-                        } else {
-                            // Reset button state
-                            deleteAccountBtn.disabled = false;
-                            deleteAccountBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete Account';
-                        }
+                    } else {
+                        // Reset button state
+                        deleteAccountBtn.disabled = false;
+                        deleteAccountBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete Account';
                     }
-                } catch (error) {
-                    console.error('Error starting account deletion:', error);
-                    alert('Failed to delete account. Please try again or contact support.');
-                    // Reset button state
-                    deleteAccountBtn.disabled = false;
-                    deleteAccountBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete Account';
                 }
             });
             

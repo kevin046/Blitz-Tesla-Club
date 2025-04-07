@@ -1,0 +1,313 @@
+/* Mobile Optimizations - Improves Mobile Experience */
+
+/* Global Mobile Optimizations */
+html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    touch-action: manipulation;
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior-y: none;
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+}
+
+/* Better touch targets for mobile */
+button, 
+a, 
+.nav-links li, 
+.menu-toggle, 
+input[type="checkbox"],
+input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+}
+
+/* Fix for iOS Safari 100vh issue */
+@supports (-webkit-touch-callout: none) {
+    .min-h-screen, 
+    body, 
+    html, 
+    main,
+    [style*="min-height: 100vh"] {
+        min-height: -webkit-fill-available;
+    }
+}
+
+/* Better spacing on mobile */
+main {
+    padding-bottom: env(safe-area-inset-bottom, 20px);
+    padding-top: env(safe-area-inset-top, 20px);
+}
+
+/* Mobile Menu Improvements */
+.menu-toggle {
+    position: relative;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 12px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.menu-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Enable smooth scrolling except for users who prefer reduced motion */
+@media (prefers-reduced-motion: no-preference) {
+    html {
+        scroll-behavior: smooth;
+    }
+}
+
+/* Prevent content shift when scrollbar appears */
+html {
+    scrollbar-gutter: stable;
+}
+
+/* Improve form elements on mobile */
+input, 
+textarea, 
+select, 
+button {
+    font-size: 16px; /* Prevents iOS Safari from zooming on focus */
+    max-width: 100%;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+/* Fix for position: fixed on iOS */
+.modal, 
+.fixed-element, 
+.nav-links.active,
+[style*="position: fixed"] {
+    -webkit-transform: translateZ(0);
+}
+
+/* Prevent pull-to-refresh on mobile */
+body {
+    overscroll-behavior-y: contain;
+}
+
+/* Prevent text from being too small on mobile */
+p, li, h1, h2, h3, h4, h5, h6 {
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    hyphens: auto;
+}
+
+/* Fix for sticky hover effects on mobile */
+@media (hover: hover) {
+    a:hover {
+        /* Only apply hover styles on devices that support hover */
+    }
+}
+
+/* Remove sticky hover on touch devices */
+@media (hover: none) {
+    a:hover, button:hover {
+        transition: none !important;
+    }
+}
+
+/* Improve fixed navbar on mobile */
+nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+}
+
+/* Improve mobile menu animation */
+.nav-links.active {
+    animation: slide-in 0.3s ease forwards;
+}
+
+@keyframes slide-in {
+    from {
+        transform: translateX(100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+/* Fix for double-tap issues on iOS */
+a, button {
+    touch-action: manipulation;
+}
+
+/* Improve mobile content containers */
+.container,
+.section-content,
+[class*="container"] {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
+    box-sizing: border-box;
+}
+
+/* Better table handling on mobile */
+table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Improved mobile accessibility for focus states */
+:focus {
+    outline: 2px solid rgba(66, 153, 225, 0.6);
+    outline-offset: 2px;
+}
+
+/* Scrolling improvements for iOS */
+* {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Fixed positioning for iOS */
+.fixed-ios {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* Mobile scrolling improvements */
+body.nav-open {
+    position: fixed;
+    width: 100%;
+    overflow: hidden;
+    height: 100%;
+    touch-action: none;
+}
+
+/* Ensure content is visible on mobile devices */
+main {
+    padding-bottom: 70px; /* Extra space at bottom for better scrolling */
+}
+
+/* Improve readability on mobile */
+p, li {
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+h1 {
+    font-size: 28px;
+    line-height: 1.3;
+}
+
+h2 {
+    font-size: 24px;
+    line-height: 1.3;
+}
+
+h3 {
+    font-size: 20px;
+    line-height: 1.3;
+}
+
+/* Fix iOS input field zooming */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="password"],
+textarea,
+select {
+    font-size: 16px;
+}
+
+/* Fix small buttons on mobile */
+.btn, button, 
+[class*="btn-"], 
+.nav-links a {
+    padding: 12px 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    min-height: 44px;
+    touch-action: manipulation;
+}
+
+/* Responsive images */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Additional mobile-specific media queries */
+@media (max-width: 480px) {
+    /* Extra small devices */
+    main {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    h1 {
+        font-size: 24px;
+    }
+    
+    h2 {
+        font-size: 20px;
+    }
+    
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .footer-content {
+        flex-direction: column;
+    }
+    
+    .footer-section {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+}
+
+/* Fix for iOS momentum scrolling */
+.scroll-container {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: scroll;
+}
+
+/* iOS notch support */
+@supports (padding: max(0px)) {
+    body, 
+    nav,
+    .container,
+    .footer-content,
+    .modal-content {
+        padding-left: max(15px, env(safe-area-inset-left));
+        padding-right: max(15px, env(safe-area-inset-right));
+    }
+    
+    .fixed-bottom,
+    footer {
+        padding-bottom: max(15px, env(safe-area-inset-bottom));
+    }
+    
+    .fixed-top,
+    nav {
+        padding-top: max(15px, env(safe-area-inset-top));
+    }
+} 

@@ -109,17 +109,16 @@ function initializeMobileMenu() {
     const navLinks = document.querySelector('.nav-links');
     const body = document.body;
     
-    if (!menuToggle || !navLinks) return;
+    if (!menuToggle || !navLinks) {
+        console.warn('Mobile menu elements not found');
+        return;
+    }
     
     // Remove any existing event listeners (in case this function runs multiple times)
-    menuToggle.removeEventListener('click', toggleMobileMenu);
+    menuToggle.removeEventListener('click', toggleMobileMenuHandler);
     
     // Add click event listener to toggle button
-    menuToggle.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleMobileMenu();
-    });
+    menuToggle.addEventListener('click', toggleMobileMenuHandler);
     
     // Close menu when clicking outside
     document.addEventListener('click', (e) => {
@@ -143,6 +142,27 @@ function initializeMobileMenu() {
             closeMobileMenu();
         }
     });
+
+    // Handle orientation changes
+    window.addEventListener('orientationchange', () => {
+        // Small delay to let orientation change complete
+        setTimeout(() => {
+            // Close menu on orientation change
+            if (navLinks.classList.contains('active')) {
+                closeMobileMenu();
+            }
+        }, 300);
+    });
+
+    // Make sure menu is closed when page loads
+    closeMobileMenu();
+}
+
+// Separate handler function to avoid duplicate listeners
+function toggleMobileMenuHandler(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleMobileMenu();
 }
 
 // Function to toggle mobile menu state
@@ -151,7 +171,10 @@ function toggleMobileMenu() {
     const menuToggle = document.querySelector('.menu-toggle');
     const body = document.body;
     
-    if (!navLinks || !menuToggle) return;
+    if (!navLinks || !menuToggle) {
+        console.warn('Mobile menu elements not found');
+        return;
+    }
     
     navLinks.classList.toggle('active');
     menuToggle.classList.toggle('active');
@@ -160,15 +183,21 @@ function toggleMobileMenu() {
     // Toggle body scroll lock
     if (navLinks.classList.contains('active')) {
         document.body.style.overflow = 'hidden';
-        document.body.style.position = 'fixed';
-        document.body.style.width = '100%';
         
-        // Prevent scrolling on iOS/mobile
+        // Only set fixed position on small screens
+        if (window.innerWidth <= 768) {
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+            document.body.style.height = '100%';
+        }
+        
+        // Prevent scrolling on iOS/mobile with passive: false
         document.addEventListener('touchmove', preventScroll, { passive: false });
     } else {
         document.body.style.overflow = '';
         document.body.style.position = '';
         document.body.style.width = '';
+        document.body.style.height = '';
         
         // Remove scroll prevention
         document.removeEventListener('touchmove', preventScroll);
@@ -189,6 +218,7 @@ function closeMobileMenu() {
     body.style.overflow = '';
     body.style.position = '';
     body.style.width = '';
+    body.style.height = '';
     
     // Remove scroll prevention
     document.removeEventListener('touchmove', preventScroll);

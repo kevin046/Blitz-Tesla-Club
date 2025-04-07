@@ -8,6 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Dashboard - Blitz T Club</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="mobile-optimizations.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,7 +16,7 @@
     <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
-    <script src="navigation.js"></script>
+    <script src="navigation.js" defer></script>
     <style>
         /* iOS Optimizations */
         @supports (-webkit-touch-callout: none) {
@@ -582,7 +583,7 @@
                 <span>BLITZ T CLUB</span>
             </a>
         </div>
-        <div class="menu-toggle" aria-label="Toggle navigation menu">
+        <div class="menu-toggle">
             <i class="fas fa-bars"></i>
         </div>
         <ul class="nav-links">

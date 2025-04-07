@@ -101,6 +101,16 @@ async function initializeNavigation() {
 
     // Initialize the mobile menu
     initializeMobileMenu();
+    
+    // Create menu backdrop if it doesn't exist
+    if (!document.querySelector('.menu-backdrop')) {
+        const backdrop = document.createElement('div');
+        backdrop.className = 'menu-backdrop';
+        document.body.appendChild(backdrop);
+        
+        // Add click handler to backdrop to close menu
+        backdrop.addEventListener('click', closeMobileMenu);
+    }
 }
 
 // Function to handle mobile menu behavior
@@ -169,6 +179,7 @@ function toggleMobileMenuHandler(e) {
 function toggleMobileMenu() {
     const navLinks = document.querySelector('.nav-links');
     const menuToggle = document.querySelector('.menu-toggle');
+    const backdrop = document.querySelector('.menu-backdrop');
     const body = document.body;
     
     if (!navLinks || !menuToggle) {
@@ -176,31 +187,47 @@ function toggleMobileMenu() {
         return;
     }
     
+    // Save current scroll position before toggling
+    const scrollY = window.scrollY;
+    
+    // Toggle the active classes
     navLinks.classList.toggle('active');
     menuToggle.classList.toggle('active');
-    body.classList.toggle('nav-open');
+    if (backdrop) backdrop.classList.toggle('active');
     
-    // Toggle body scroll lock
+    // If menu is now active (opened)
     if (navLinks.classList.contains('active')) {
-        document.body.style.overflow = 'hidden';
+        // Store the current scroll position
+        body.dataset.scrollY = scrollY;
         
-        // Only set fixed position on small screens
-        if (window.innerWidth <= 768) {
-            document.body.style.position = 'fixed';
-            document.body.style.width = '100%';
-            document.body.style.height = '100%';
-        }
+        // Add nav-open class to body
+        body.classList.add('nav-open');
+        
+        // Apply fixed position to prevent scrolling
+        body.style.position = 'fixed';
+        body.style.top = `-${scrollY}px`;
+        body.style.width = '100%';
+        body.style.overflow = 'hidden';
         
         // Prevent scrolling on iOS/mobile with passive: false
         document.addEventListener('touchmove', preventScroll, { passive: false });
     } else {
-        document.body.style.overflow = '';
-        document.body.style.position = '';
-        document.body.style.width = '';
-        document.body.style.height = '';
+        // Menu is now closed
+        // Remove the nav-open class
+        body.classList.remove('nav-open');
+        
+        // Restore body positioning and scrolling
+        body.style.position = '';
+        body.style.top = '';
+        body.style.width = '';
+        body.style.overflow = '';
         
         // Remove scroll prevention
         document.removeEventListener('touchmove', preventScroll);
+        
+        // Restore scroll position
+        const scrollY = parseInt(body.dataset.scrollY || '0');
+        window.scrollTo(0, scrollY);
     }
 }
 
@@ -208,20 +235,37 @@ function toggleMobileMenu() {
 function closeMobileMenu() {
     const navLinks = document.querySelector('.nav-links');
     const menuToggle = document.querySelector('.menu-toggle');
+    const backdrop = document.querySelector('.menu-backdrop');
     const body = document.body;
     
-    if (!navLinks || !menuToggle) return;
+    if (!navLinks || !menuToggle) {
+        console.warn('Mobile menu elements not found');
+        return;
+    }
     
+    // Remove active classes
     navLinks.classList.remove('active');
     menuToggle.classList.remove('active');
+    if (backdrop) backdrop.classList.remove('active');
     body.classList.remove('nav-open');
-    body.style.overflow = '';
+    
+    // Restore body positioning and scrolling
     body.style.position = '';
+    body.style.top = '';
     body.style.width = '';
     body.style.height = '';
+    body.style.overflow = '';
     
     // Remove scroll prevention
     document.removeEventListener('touchmove', preventScroll);
+    
+    // Restore scroll position if needed
+    if (body.dataset.scrollY) {
+        const scrollY = parseInt(body.dataset.scrollY || '0');
+        window.scrollTo(0, scrollY);
+        // Clear the stored position
+        body.removeAttribute('data-scrollY');
+    }
 }
 
 // Prevent scrolling function for iOS

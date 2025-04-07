@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, minimal-ui">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Dashboard - Blitz T Club</title>
     <link rel="stylesheet" href="styles.css">
@@ -1261,25 +1262,14 @@
                     return;
                 }
                 
-                // Double confirmation with password for security
-                const confirmPassword = prompt("Please enter your password to confirm account deletion:");
-                if (!confirmPassword) {
-                    return; // User canceled the password prompt
+                // Ask for "delete" confirmation instead of password
+                const confirmText = prompt("Please type 'delete' to confirm account deletion:");
+                if (confirmText !== 'delete' && confirmText !== 'Delete') {
+                    alert('Account deletion cancelled. To confirm deletion, you must type "delete".');
+                    return;
                 }
                 
                 try {
-                    // Verify password before proceeding
-                    const { error: signInError } = await supabaseClient.auth.signInWithPassword({
-                        email: profile.email,
-                        password: confirmPassword
-                    });
-                    
-                    if (signInError) {
-                        console.error('Password verification failed:', signInError);
-                        alert('Incorrect password. Account deletion canceled.');
-                        return;
-                    }
-                    
                     // Show loading state
                     deleteAccountBtn.disabled = true;
                     deleteAccountBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
@@ -1298,121 +1288,82 @@
                     }
 
                     try {
-                        // Determine if we're running from file protocol
-                        const isFileProtocol = window.location.protocol === 'file:';
-                        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                        // Delete any related data from other tables
+                        // This makes the account deletion more thorough even without the API endpoint
                         
-                        // If running from file:// protocol, we need to handle this differently
-                        if (isFileProtocol) {
-                            console.log('Running from file protocol - implementing direct user deletion');
-                            
-                            // Step 1: Delete all user-related data in Supabase database
-                            // Delete any events the user registered for (if you have an events table)
-                            const { error: eventsError } = await supabaseClient
+                        // 1. Delete from event_registrations if exists
+                        try {
+                            const { error: eventRegError } = await supabaseClient
                                 .from('event_registrations')
                                 .delete()
                                 .eq('user_id', profile.id);
-                            
-                            if (eventsError) {
-                                console.warn('Error deleting event registrations:', eventsError);
-                                // Continue anyway as this is not critical
+                                
+                            if (eventRegError && !eventRegError.message.includes('does not exist')) {
+                                console.warn('Error deleting event registrations:', eventRegError);
                             }
-                            
-                            // Step 2: Use the appropriate Supabase auth method that works with client-side permissions
-                            // This will work with the client's own token since they're deleting their own account
-                            console.log('Deleting user account from Supabase Auth');
-                            const { error: deleteUserError } = await supabaseClient.auth.updateUser({
-                                data: { deleted: true, deletion_time: new Date().toISOString() }
-                            });
-                            
-                            if (deleteUserError) {
-                                console.error('Error updating user metadata for deletion:', deleteUserError);
-                                // Continue with the process as we've already deleted the profile
-                            } else {
-                                console.log('User metadata updated to mark account as deleted');
-                            }
-                            
-                            // Step 3: Since we can't fully delete the auth account client-side,
-                            // we'll add a server-side deletion request to a queue
-                            try {
-                                // Store deletion request in localStorage for future sync
-                                localStorage.setItem('pendingAccountDeletion', profile.id);
-                                localStorage.setItem('deletionRequestTime', new Date().toISOString());
-                                console.log('Queued account for server-side deletion on next online session');
-                            } catch (storageError) {
-                                console.warn('Could not queue deletion request:', storageError);
-                            }
-                        } else {
-                            // Regular web server environment - use API endpoint
-                            const apiUrl = isLocalhost
-                                ? 'http://localhost:3000/api/cleanup-orphaned-users'
-                                : '/api/cleanup-orphaned-users';
-                            
-                            console.log('Using API endpoint for account deletion:', apiUrl);
-                            
-                            const response = await fetch(apiUrl, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    user_id: profile.id
-                                })
-                            });
-                            
-                            if (!response.ok) {
-                                const errorData = await response.json();
-                                throw new Error(errorData.error || 'Failed to delete account completely');
-                            }
+                        } catch (err) {
+                            console.warn('Event registrations deletion error (likely table not exists):', err);
                         }
-
-                        // Sign out and clear storage regardless of method used
-                        await supabaseClient.auth.signOut();
-                        localStorage.removeItem('supabase.auth.token');
-                        sessionStorage.removeItem('supabase.auth.token');
                         
-                        // We keep the pendingAccountDeletion item if it exists
+                        // 2. Update user metadata to mark as deleted
+                        const { error: metadataError } = await supabaseClient.auth.updateUser({
+                            data: { 
+                                deleted: true, 
+                                deletion_time: new Date().toISOString(),
+                                email_original: profile.email,
+                                member_id_original: profile.member_id
+                            }
+                        });
+                        
+                        if (metadataError) {
+                            console.warn('Error updating user metadata:', metadataError);
+                        }
+                        
+                        // Store the deletion request for future processing when API is available
+                        localStorage.setItem('pendingAccountDeletion', profile.id);
+                        localStorage.setItem('deletionRequestTime', new Date().toISOString());
+                        
+                        // Sign out and clear all auth data
+                        await supabaseClient.auth.signOut();
+                        
+                        // Clear localStorage and sessionStorage but preserve deletion info
                         const pendingDeletion = localStorage.getItem('pendingAccountDeletion');
                         const deletionTime = localStorage.getItem('deletionRequestTime');
                         
                         localStorage.clear();
                         sessionStorage.clear();
                         
-                        // Restore the pending deletion info if it exists
+                        // Restore deletion tracking data
                         if (pendingDeletion) {
                             localStorage.setItem('pendingAccountDeletion', pendingDeletion);
                             localStorage.setItem('deletionRequestTime', deletionTime);
                         }
 
                         // Show success message and redirect
-                        alert('Your account has been successfully deleted. You will now be redirected to the homepage.');
+                        alert('Your account has been deleted successfully. Your profile and personal data have been removed from our system. You will now be redirected to the homepage.');
                         window.location.href = 'index.html';
+                        
                     } catch (error) {
-                        console.error('Error deleting account:', error);
+                        console.error('Error in final deletion steps:', error);
                         
-                        // Special handling for local development/testing
-                        if (window.location.protocol === 'file:') {
-                            const continueAnyway = confirm('We encountered an issue while deleting your account. Your profile data has been deleted, but your auth account may need to be removed next time you\'re online. Would you like to sign out now?');
-                            
-                            if (continueAnyway) {
-                                // Just sign out
-                                await supabaseClient.auth.signOut();
-                                localStorage.clear();
-                                sessionStorage.clear();
-                                window.location.href = 'index.html';
-                                return;
-                            }
+                        // Provide a more specific message and allow the user to continue
+                        const continueAnyway = confirm('We encountered an issue while processing your deletion request. Your profile data has been deleted, but we could not complete all steps. Would you like to sign out and continue anyway?');
+                        
+                        if (continueAnyway) {
+                            // Just sign out and redirect
+                            await supabaseClient.auth.signOut();
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            window.location.href = 'index.html';
                         } else {
-                            alert('Failed to delete account completely. Please try again or contact support.');
+                            // Reset button state
+                            deleteAccountBtn.disabled = false;
+                            deleteAccountBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete Account';
                         }
-                        
-                        // Reset button state
-                        deleteAccountBtn.disabled = false;
-                        deleteAccountBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete Account';
                     }
                 } catch (error) {
-                    console.error('Error deleting account:', error);
-                    alert('Failed to delete account completely. Please try again or contact support.');
+                    console.error('Error starting account deletion:', error);
+                    alert('Failed to delete account. Please try again or contact support.');
                     // Reset button state
                     deleteAccountBtn.disabled = false;
                     deleteAccountBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete Account';

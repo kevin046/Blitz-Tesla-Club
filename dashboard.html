@@ -8,16 +8,59 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Dashboard - Blitz T Club</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="mobile-optimizations.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/BvmtNLtB/logo.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script src="navigation.js" defer></script>
+    <script>
+        // Only keep necessary script elements for dashboard functionality, removing any mobile menu customizations
+        
+        // Calculate viewport height for mobile browsers (fix iOS issues)
+        function setViewportHeight() {
+            let vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        
+        // Set the height on page load
+        window.addEventListener('load', setViewportHeight);
+        // Update height on resize and orientation change
+        window.addEventListener('resize', setViewportHeight);
+        window.addEventListener('orientationchange', setViewportHeight);
+    </script>
     <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', sans-serif;
+            background-color: #171a20;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        /* Special handling for mobile menu open state to prevent split screen */
+        body.nav-open {
+            overflow: hidden !important;
+            position: fixed !important;
+            width: 100% !important;
+            height: 100% !important;
+            touch-action: none !important;
+        }
+        
+        .dashboard-page main {
+            flex: 1;
+            padding: 20px;
+            z-index: 1;
+        }
+        
         /* iOS Optimizations */
         @supports (-webkit-touch-callout: none) {
             .dashboard-container {
@@ -63,7 +106,7 @@
                 -webkit-tap-highlight-color: transparent;
             }
         }
-
+        
         /* Modern Membership Card Styles */
         .modal-content.membership-card {
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
@@ -583,7 +626,7 @@
                 <span>BLITZ T CLUB</span>
             </a>
         </div>
-        <div class="menu-toggle">
+        <div class="menu-toggle" aria-label="Toggle navigation menu">
             <i class="fas fa-bars"></i>
         </div>
         <ul class="nav-links">
@@ -733,51 +776,6 @@
 
     <!-- Keep your existing script -->
     <script>
-        // Function to generate random token
-        function generateToken(length = 32) {
-            const array = new Uint8Array(length);
-            crypto.getRandomValues(array);
-            return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
-        }
-
-        // Function to generate sequential member ID
-        async function generateSequentialMemberId() {
-            try {
-                // Get the latest member ID from the database
-                const { data: profiles, error } = await supabaseClient
-                    .from('profiles')
-                    .select('member_id')
-                    .not('member_id', 'is', null)
-                    .order('member_id', { ascending: false })
-                    .limit(1);
-
-                if (error) {
-                    console.error('Error fetching latest member ID:', error);
-                    // Return a timestamp-based ID as fallback
-                    return `BTC${Date.now().toString().slice(-6)}`;
-                }
-
-                let nextNumber = 1; // Default start number
-
-                if (profiles && profiles.length > 0 && profiles[0].member_id) {
-                    // Extract the number from the latest member ID (format: BTC#####)
-                    const lastNumber = parseInt(profiles[0].member_id.replace('BTC', ''), 10);
-                    if (!isNaN(lastNumber)) {
-                        nextNumber = lastNumber + 1;
-                    }
-                }
-
-                // Format the new member ID with leading zeros
-                const memberId = `BTC${nextNumber.toString().padStart(5, '0')}`;
-                console.log('Generated sequential member ID:', memberId);
-                return memberId;
-            } catch (error) {
-                console.error('Error generating member ID:', error);
-                // Return a timestamp-based ID as fallback
-                return `BTC${Date.now().toString().slice(-6)}`;
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', async () => {
             // Check for any pending account deletion requests
             const pendingDeletion = localStorage.getItem('pendingAccountDeletion');
@@ -793,7 +791,7 @@
                         ? 'http://localhost:3000/api/cleanup-orphaned-users'
                         : '/api/cleanup-orphaned-users';
                     
-                    console.log('Attempting to process pending deletion via API:', apiUrl);
+                    console.log('Processing pending deletion via API:', apiUrl);
                     
                     const response = await fetch(apiUrl, {
                         method: 'POST',
@@ -818,9 +816,9 @@
                 }
             }
             
-            // Initialize navigation first
-            await initializeNavigation();
-
+            // Initialize navigation first - let the navigation.js handle all menu functionality
+            console.log('Waiting for navigation.js to initialize...');
+            
             // Check if user is logged in
             const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
             
@@ -1032,25 +1030,6 @@
                     window.location.href = 'login.html';
                 });
             });
-
-            // Handle mobile menu
-            const menuToggle = document.querySelector('.menu-toggle');
-            const navLinks = document.querySelector('.nav-links');
-            const body = document.body;
-            if (menuToggle && navLinks) {
-                menuToggle.addEventListener('click', () => {
-                    navLinks.classList.toggle('active');
-                    body.classList.toggle('nav-open');
-                });
-
-                // Close menu when clicking a link
-                navLinks.querySelectorAll('a').forEach(link => {
-                    link.addEventListener('click', () => {
-                        navLinks.classList.remove('active');
-                        body.classList.remove('nav-open');
-                    });
-                });
-            }
 
             // Add this after profile data is loaded
             const membershipCardBtn = document.getElementById('membershipCardBtn');
@@ -1639,5 +1618,27 @@ Blitz T Club Team`);
             </div>
         </div>
     </div>
+
+    <!-- Add event listener to ensure consistent menu initialization -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Ensuring mobile menu consistency across pages');
+            
+            // Force consistent class names to match index.html
+            document.body.classList.remove('nav-open');
+            
+            const navLinks = document.querySelector('.nav-links');
+            if (navLinks) {
+                navLinks.classList.remove('active');
+            }
+            
+            // Re-initialize navigation if available
+            if (typeof window.initializeNavigation === 'function') {
+                setTimeout(function() {
+                    window.initializeNavigation();
+                }, 100);
+            }
+        });
+    </script>
 </body>
 </html> 

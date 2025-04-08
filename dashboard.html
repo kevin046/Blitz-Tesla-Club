@@ -1648,22 +1648,40 @@ Blitz T Club Team`);
             // This ensures all existing members have one coupon by default
             if (profile.coupon_redeemed === undefined || profile.coupon_redeemed === null) {
                 console.log('No coupon redemption status found, initializing...');
-                // Initialize coupon_redeemed field to false (coupon available)
-                supabaseClient
-                    .from('profiles')
-                    .update({ 
-                        coupon_redeemed: false,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', session.user.id)
-                    .then(response => {
-                        if (response.error) {
-                            console.error('Error initializing coupon status:', response.error);
-                        } else {
-                            console.log('Coupon status initialized successfully');
-                            profile.coupon_redeemed = false;
-                        }
-                    });
+                
+                // First check if the column exists to avoid schema errors
+                try {
+                    // Try to get the column info to see if it exists
+                    const { data: columnInfo, error: columnError } = await supabaseClient
+                        .rpc('check_column_exists', { 
+                            table_name: 'profiles', 
+                            column_name: 'coupon_redeemed' 
+                        });
+                    
+                    // Only try to update if the column exists
+                    if (columnInfo && columnInfo === true) {
+                        // Initialize coupon_redeemed field to false (coupon available)
+                        supabaseClient
+                            .from('profiles')
+                            .update({ 
+                                coupon_redeemed: false,
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', session.user.id)
+                            .then(response => {
+                                if (response.error) {
+                                    console.error('Error initializing coupon status:', response.error);
+                                } else {
+                                    console.log('Coupon status initialized successfully');
+                                    profile.coupon_redeemed = false;
+                                }
+                            });
+                    } else {
+                        console.warn('The coupon_redeemed column does not exist in the profiles table. Skipping initialization.');
+                    }
+                } catch (error) {
+                    console.warn('Could not check if column exists, skipping coupon initialization:', error);
+                }
             } else {
                 console.log('Coupon redemption status:', profile.coupon_redeemed);
             }

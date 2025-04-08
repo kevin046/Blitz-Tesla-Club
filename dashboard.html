@@ -615,6 +615,124 @@
             color: #888;
             font-size: 0.85em;
         }
+        
+        /* Coupon Card Styles */
+        .coupon-container {
+            text-align: center;
+            padding: 10px 0;
+        }
+        
+        .coupon-icon {
+            font-size: 48px;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .coupon-icon.redeemed {
+            color: #16a34a;
+        }
+        
+        .coupon-status h3 {
+            margin-bottom: 10px;
+            color: #1a1a1a;
+        }
+        
+        .coupon-status p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .coupon-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            background: #e3f2fd;
+            color: #0d47a1;
+            margin-bottom: 20px;
+        }
+        
+        .coupon-badge.redeemed {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        #redeemCouponBtn {
+            transition: all 0.3s ease;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        #redeemCouponBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .coupon-redeemed {
+            text-align: center;
+        }
+        
+        .coupon-redeemed h3 {
+            margin-bottom: 10px;
+            color: #1a1a1a;
+        }
+        
+        .coupon-redeemed p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .redemption-info {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .redemption-info p {
+            margin: 0;
+            color: #555;
+        }
+        
+        /* Coupon Redemption Modal */
+        .redemption-modal .modal-content {
+            max-width: 500px;
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .redemption-modal .modal-icon {
+            font-size: 60px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        
+        .redemption-modal h2 {
+            color: #1a1a1a;
+            margin-bottom: 15px;
+        }
+        
+        .redemption-modal p {
+            color: #666;
+            margin-bottom: 25px;
+        }
+        
+        .redemption-modal .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .redemption-modal .confirm-btn {
+            background: #16a34a;
+        }
+        
+        .redemption-modal .confirm-btn:hover {
+            background: #15803d;
+        }
     </style>
 </head>
 <body class="dashboard-page">
@@ -692,6 +810,39 @@
                 </div>
             </div>
 
+            <!-- Coupon Redemption Card -->
+            <div class="dashboard-card" id="couponCard">
+                <div class="card-header">
+                    <h2><i class="fas fa-ticket-alt"></i> Member Coupon</h2>
+                </div>
+                <div class="card-content">
+                    <div class="coupon-container">
+                        <div class="coupon-status" id="couponStatus">
+                            <div class="coupon-icon">
+                                <i class="fas fa-gift"></i>
+                            </div>
+                            <h3>Club Event Item Coupon</h3>
+                            <p>As a valued member, you receive one coupon to redeem for an exclusive club event item.</p>
+                            <div class="coupon-badge" id="couponBadge">Available</div>
+                            <button class="btn primary-btn" id="redeemCouponBtn">
+                                <i class="fas fa-ticket-alt"></i> Redeem Coupon
+                            </button>
+                        </div>
+                        <div class="coupon-redeemed" id="couponRedeemed" style="display: none;">
+                            <div class="coupon-icon redeemed">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <h3>Coupon Redeemed</h3>
+                            <p>You've already redeemed your club event item coupon.</p>
+                            <div class="coupon-badge redeemed">Redeemed</div>
+                            <div class="redemption-info">
+                                <p>Redeemed on: <span id="redemptionDate">-</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Quick Links Card -->
             <div class="dashboard-card">
                 <div class="card-header">
@@ -1482,6 +1633,152 @@ Blitz T Club Team`);
                     }
                 });
             }
+
+            // Handle coupon redemption functionality
+            const couponStatus = document.getElementById('couponStatus');
+            const couponRedeemed = document.getElementById('couponRedeemed');
+            const couponBadge = document.getElementById('couponBadge');
+            const redeemCouponBtn = document.getElementById('redeemCouponBtn');
+            const redemptionDate = document.getElementById('redemptionDate');
+            const redemptionModal = document.getElementById('redemptionModal');
+            const cancelRedemptionBtn = document.getElementById('cancelRedemptionBtn');
+            const confirmRedemptionBtn = document.getElementById('confirmRedemptionBtn');
+            
+            // Check if coupon_redeemed field exists in profile, if not, initialize it
+            // This ensures all existing members have one coupon by default
+            if (profile.coupon_redeemed === undefined || profile.coupon_redeemed === null) {
+                console.log('No coupon redemption status found, initializing...');
+                // Initialize coupon_redeemed field to false (coupon available)
+                supabaseClient
+                    .from('profiles')
+                    .update({ 
+                        coupon_redeemed: false,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', session.user.id)
+                    .then(response => {
+                        if (response.error) {
+                            console.error('Error initializing coupon status:', response.error);
+                        } else {
+                            console.log('Coupon status initialized successfully');
+                            profile.coupon_redeemed = false;
+                        }
+                    });
+            } else {
+                console.log('Coupon redemption status:', profile.coupon_redeemed);
+            }
+            
+            // Update coupon display based on redemption status
+            function updateCouponDisplay() {
+                if (profile.coupon_redeemed) {
+                    couponStatus.style.display = 'none';
+                    couponRedeemed.style.display = 'block';
+                    
+                    // Display redemption date if available
+                    if (profile.coupon_redeemed_at) {
+                        const formattedDate = new Date(profile.coupon_redeemed_at).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+                        redemptionDate.textContent = formattedDate;
+                    } else {
+                        redemptionDate.textContent = 'Not available';
+                    }
+                } else {
+                    couponStatus.style.display = 'block';
+                    couponRedeemed.style.display = 'none';
+                }
+            }
+            
+            // Initial update of coupon display
+            updateCouponDisplay();
+            
+            // Handle redeem button click
+            redeemCouponBtn.addEventListener('click', () => {
+                // Show redemption confirmation modal
+                redemptionModal.classList.add('show');
+            });
+            
+            // Close modal when clicking the cancel button
+            cancelRedemptionBtn.addEventListener('click', () => {
+                redemptionModal.classList.remove('show');
+            });
+            
+            // Close modal when clicking the X button
+            redemptionModal.querySelector('.close-modal').addEventListener('click', () => {
+                redemptionModal.classList.remove('show');
+            });
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', (e) => {
+                if (e.target === redemptionModal) {
+                    redemptionModal.classList.remove('show');
+                }
+            });
+            
+            // Handle redemption confirmation
+            confirmRedemptionBtn.addEventListener('click', async () => {
+                try {
+                    // Disable button to prevent multiple clicks
+                    confirmRedemptionBtn.disabled = true;
+                    confirmRedemptionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                    
+                    // Get latest profile info to ensure we have accurate data
+                    const { data: latestProfile, error: profileError } = await supabaseClient
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', session.user.id)
+                        .single();
+                    
+                    if (profileError) {
+                        throw new Error('Failed to fetch latest profile data');
+                    }
+                    
+                    // Double-check if coupon has already been redeemed
+                    if (latestProfile.coupon_redeemed) {
+                        alert('Your coupon has already been redeemed.');
+                        redemptionModal.classList.remove('show');
+                        return;
+                    }
+                    
+                    // Update profile to mark coupon as redeemed
+                    const redemptionTimestamp = new Date().toISOString();
+                    const { error: updateError } = await supabaseClient
+                        .from('profiles')
+                        .update({
+                            coupon_redeemed: true,
+                            coupon_redeemed_at: redemptionTimestamp,
+                            updated_at: redemptionTimestamp
+                        })
+                        .eq('id', session.user.id);
+                    
+                    if (updateError) {
+                        throw new Error('Failed to update redemption status');
+                    }
+                    
+                    // Update local profile data
+                    profile.coupon_redeemed = true;
+                    profile.coupon_redeemed_at = redemptionTimestamp;
+                    
+                    // Update display
+                    updateCouponDisplay();
+                    
+                    // Close modal
+                    redemptionModal.classList.remove('show');
+                    
+                    // Show success message
+                    alert('Coupon redeemed successfully! You can collect your club event item at the next event.');
+                    
+                } catch (error) {
+                    console.error('Error redeeming coupon:', error);
+                    alert('Error redeeming coupon: ' + error.message);
+                } finally {
+                    // Reset button state
+                    confirmRedemptionBtn.disabled = false;
+                    confirmRedemptionBtn.innerHTML = '<i class="fas fa-check"></i> Confirm Redemption';
+                }
+            });
         });
     </script>
 
@@ -1640,5 +1937,29 @@ Blitz T Club Team`);
             }
         });
     </script>
+    
+    <!-- Coupon Redemption Modal -->
+    <div id="redemptionModal" class="modal redemption-modal">
+        <div class="modal-content">
+            <button class="close-modal">&times;</button>
+            <div class="modal-icon">
+                <i class="fas fa-ticket-alt"></i>
+            </div>
+            <h2>Redeem Your Club Event Item Coupon</h2>
+            <p>Are you sure you want to redeem your coupon for an exclusive club event item? This action cannot be undone.</p>
+            <div class="redemption-details">
+                <p>You'll be able to collect your item at the next club event.</p>
+                <p>Please show your membership card at the event to claim your item.</p>
+            </div>
+            <div class="button-group">
+                <button class="btn primary-btn" id="cancelRedemptionBtn">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button class="btn primary-btn confirm-btn" id="confirmRedemptionBtn">
+                    <i class="fas fa-check"></i> Confirm Redemption
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 </html> 

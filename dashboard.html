@@ -56,14 +56,6 @@
             }
         };
         
-        // Show emergency logout button after a delay
-        setTimeout(() => {
-            const emergencyBtn = document.getElementById('emergencyLogoutButton');
-            if (emergencyBtn) {
-                emergencyBtn.style.display = 'block';
-            }
-        }, 5000); // Show after 5 seconds
-        
         // Only keep necessary script elements for dashboard functionality, removing any mobile menu customizations
         
         // Calculate viewport height for mobile browsers (fix iOS issues)
@@ -779,35 +771,9 @@
         .redemption-modal .confirm-btn:hover {
             background: #15803d;
         }
-
-        /* Emergency Logout Button */
-        #emergencyLogoutButton {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            z-index: 9999;
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 5px 10px;
-            font-size: 12px;
-            cursor: pointer;
-            opacity: 0.7;
-            display: none; /* Hidden by default, will be shown after timeout */
-        }
-        
-        #emergencyLogoutButton:hover {
-            opacity: 1;
-        }
     </style>
 </head>
 <body class="dashboard-page">
-    <!-- Emergency Logout Button -->
-    <button id="emergencyLogoutButton" onclick="window.performLogout()">
-        Emergency Logout
-    </button>
-    
     <!-- Standard Navigation -->
     <nav>
         <div class="logo">

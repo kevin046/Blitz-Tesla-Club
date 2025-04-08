@@ -18,6 +18,52 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script src="navigation.js" defer></script>
     <script>
+        // Add a global direct logout function that can be called from anywhere
+        window.performLogout = async function() {
+            console.log('Direct logout function called');
+            try {
+                // Try to sign out through Supabase
+                if (window.supabaseClient) {
+                    await window.supabaseClient.auth.signOut()
+                        .catch(e => console.error('Error during signOut call:', e));
+                }
+            } catch (error) {
+                console.error('Critical error during logout attempt:', error);
+            } finally {
+                // Always clear storage and redirect regardless of errors
+                console.log('Clearing storage and redirecting to login');
+                localStorage.removeItem('supabase.auth.token');
+                sessionStorage.removeItem('supabase.auth.token');
+                
+                // Clear any other auth-related storage that might exist
+                try {
+                    for (let key in localStorage) {
+                        if (key.includes('supabase') || key.includes('auth') || key.includes('token')) {
+                            localStorage.removeItem(key);
+                        }
+                    }
+                    for (let key in sessionStorage) {
+                        if (key.includes('supabase') || key.includes('auth') || key.includes('token')) {
+                            sessionStorage.removeItem(key);
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error clearing storage:', e);
+                }
+                
+                // Force redirect to login page
+                window.location.href = 'login.html';
+            }
+        };
+        
+        // Show emergency logout button after a delay
+        setTimeout(() => {
+            const emergencyBtn = document.getElementById('emergencyLogoutButton');
+            if (emergencyBtn) {
+                emergencyBtn.style.display = 'block';
+            }
+        }, 5000); // Show after 5 seconds
+        
         // Only keep necessary script elements for dashboard functionality, removing any mobile menu customizations
         
         // Calculate viewport height for mobile browsers (fix iOS issues)
@@ -733,9 +779,35 @@
         .redemption-modal .confirm-btn:hover {
             background: #15803d;
         }
+
+        /* Emergency Logout Button */
+        #emergencyLogoutButton {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 9999;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            opacity: 0.7;
+            display: none; /* Hidden by default, will be shown after timeout */
+        }
+        
+        #emergencyLogoutButton:hover {
+            opacity: 1;
+        }
     </style>
 </head>
 <body class="dashboard-page">
+    <!-- Emergency Logout Button -->
+    <button id="emergencyLogoutButton" onclick="window.performLogout()">
+        Emergency Logout
+    </button>
+    
     <!-- Standard Navigation -->
     <nav>
         <div class="logo">
@@ -1171,20 +1243,10 @@
             // Handle logout - KEEP THIS OUTSIDE OF TRY/CATCH BLOCKS
             const logoutButtons = document.querySelectorAll('#logoutBtn, #footerLogoutBtn');
             logoutButtons.forEach(button => {
-                button.addEventListener('click', async () => {
-                    try {
-                        const { error } = await supabaseClient.auth.signOut();
-                        if (error) {
-                            console.error('Error signing out:', error);
-                        }
-                    } catch (error) {
-                        console.error('Unexpected error during logout:', error);
-                    } finally {
-                        // Always clear storage and redirect, even if there's an error
-                        localStorage.removeItem('supabase.auth.token');
-                        sessionStorage.removeItem('supabase.auth.token');
-                        window.location.href = 'login.html';
-                    }
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    // Call our direct logout function
+                    window.performLogout();
                 });
             });
 
@@ -1640,6 +1702,55 @@ Blitz T Club Team`);
                 });
             }
 
+            // Initialize coupon status if needed
+            async function initializeCouponStatus() {
+                try {
+                    // Only proceed if all required DOM elements are found
+                    if (!couponStatus || !couponRedeemed || !redeemCouponBtn || !redemptionDate || 
+                        !redemptionModal || !cancelRedemptionBtn || !confirmRedemptionBtn) {
+                        console.warn('Some coupon elements not found, skipping coupon initialization');
+                        return;
+                    }
+
+                    // Check if coupon_redeemed exists in profile data
+                    if (profile.coupon_redeemed === undefined) {
+                        console.log('Coupon feature not fully set up in the database');
+                        
+                        // Try to update the profile with the field if it's missing
+                        try {
+                            // Initialize coupon_redeemed field to false (for existing users)
+                            const { error: updateError } = await supabaseClient
+                                .from('profiles')
+                                .update({ coupon_redeemed: false })
+                                .eq('id', session.user.id);
+                            
+                            if (updateError) {
+                                if (updateError.message && updateError.message.includes('column "coupon_redeemed" does not exist')) {
+                                    console.error('Coupon column does not exist in the database:', updateError);
+                                    throw new Error('Database schema needs to be updated for coupon feature');
+                                } else {
+                                    console.error('Error updating coupon status:', updateError);
+                                }
+                            } else {
+                                // Update was successful, so update local profile data
+                                profile.coupon_redeemed = false;
+                                console.log('Successfully initialized coupon_redeemed field');
+                            }
+                        } catch (error) {
+                            console.error('Error initializing coupon status:', error);
+                            // For admin users, show an alert about the missing column
+                            if (profile.email && (profile.email.includes('admin') || profile.email === 'linkevin046@gmail.com')) {
+                                alert('Admin notice: The coupon_redeemed column is missing in the profiles table. Please run the SQL to add it.');
+                            }
+                        }
+                    }
+                    
+                    updateCouponDisplay();
+                } catch (error) {
+                    console.error('Error initializing coupon status:', error);
+                }
+            }
+
             // Handle coupon redemption functionality - WRAP IN TRY/CATCH
             try {
                 const couponStatus = document.getElementById('couponStatus');
@@ -1650,58 +1761,6 @@ Blitz T Club Team`);
                 const redemptionModal = document.getElementById('redemptionModal');
                 const cancelRedemptionBtn = document.getElementById('cancelRedemptionBtn');
                 const confirmRedemptionBtn = document.getElementById('confirmRedemptionBtn');
-                
-                // Check if all required elements exist before proceeding
-                if (!couponStatus || !couponRedeemed || !redeemCouponBtn) {
-                    console.warn('Coupon elements not found in the DOM. Skipping coupon functionality.');
-                    return;
-                }
-                
-                // Check if coupon_redeemed field exists in profile, if not, initialize it
-                // This ensures all existing members have one coupon by default
-                if (profile.coupon_redeemed === undefined || profile.coupon_redeemed === null) {
-                    console.log('No coupon redemption status found, initializing...');
-                    
-                    // First check if the column exists to avoid schema errors
-                    try {
-                        // Try to get the column info to see if it exists
-                        const { data: columnInfo, error: columnError } = await supabaseClient
-                            .rpc('check_column_exists', { 
-                                table_name: 'profiles', 
-                                column_name: 'coupon_redeemed' 
-                            });
-                        
-                        // Only try to update if the column exists
-                        if (columnInfo && columnInfo === true) {
-                            // Initialize coupon_redeemed field to false (coupon available)
-                            supabaseClient
-                                .from('profiles')
-                                .update({ 
-                                    coupon_redeemed: false,
-                                    updated_at: new Date().toISOString()
-                                })
-                                .eq('id', session.user.id)
-                                .then(response => {
-                                    if (response.error) {
-                                        console.error('Error initializing coupon status:', response.error);
-                                    } else {
-                                        console.log('Coupon status initialized successfully');
-                                        profile.coupon_redeemed = false;
-                                    }
-                                });
-                        } else {
-                            console.warn('The coupon_redeemed column does not exist in the profiles table. Skipping initialization.');
-                            // Set default values to prevent errors
-                            profile.coupon_redeemed = false;
-                        }
-                    } catch (error) {
-                        console.warn('Could not check if column exists, skipping coupon initialization:', error);
-                        // Set default values to prevent errors
-                        profile.coupon_redeemed = false;
-                    }
-                } else {
-                    console.log('Coupon redemption status:', profile.coupon_redeemed);
-                }
                 
                 // Update coupon display based on redemption status
                 function updateCouponDisplay() {
@@ -1726,105 +1785,106 @@ Blitz T Club Team`);
                     }
                 }
                 
-                // Initial update of coupon display
-                updateCouponDisplay();
-                
-                // Handle redeem button click
-                redeemCouponBtn.addEventListener('click', () => {
-                    // Show redemption confirmation modal
-                    redemptionModal.classList.add('show');
-                });
-                
-                // Close modal when clicking the cancel button
-                cancelRedemptionBtn.addEventListener('click', () => {
-                    redemptionModal.classList.remove('show');
-                });
-                
-                // Close modal when clicking the X button
-                redemptionModal.querySelector('.close-modal').addEventListener('click', () => {
-                    redemptionModal.classList.remove('show');
-                });
-                
-                // Close modal when clicking outside
-                window.addEventListener('click', (e) => {
-                    if (e.target === redemptionModal) {
+                // Initialize coupon status
+                if (couponStatus && couponRedeemed && redeemCouponBtn) {
+                    await initializeCouponStatus();
+                    
+                    // Handle redeem button click
+                    redeemCouponBtn.addEventListener('click', () => {
+                        // Show redemption confirmation modal
+                        redemptionModal.classList.add('show');
+                    });
+                    
+                    // Close modal when clicking the cancel button
+                    cancelRedemptionBtn.addEventListener('click', () => {
                         redemptionModal.classList.remove('show');
-                    }
-                });
-                
-                // Handle redemption confirmation
-                confirmRedemptionBtn.addEventListener('click', async () => {
-                    try {
-                        // Disable button to prevent multiple clicks
-                        confirmRedemptionBtn.disabled = true;
-                        confirmRedemptionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-                        
-                        // Check if the column exists first
-                        const { data: columnInfo, error: columnError } = await supabaseClient
-                            .rpc('check_column_exists', { 
-                                table_name: 'profiles', 
-                                column_name: 'coupon_redeemed' 
-                            });
-                        
-                        if (!columnInfo || columnInfo !== true) {
-                            throw new Error('Coupon feature is not available. The database has not been updated with the required fields.');
-                        }
-                        
-                        // Get latest profile info to ensure we have accurate data
-                        const { data: latestProfile, error: profileError } = await supabaseClient
-                            .from('profiles')
-                            .select('*')
-                            .eq('id', session.user.id)
-                            .single();
-                        
-                        if (profileError) {
-                            throw new Error('Failed to fetch latest profile data');
-                        }
-                        
-                        // Double-check if coupon has already been redeemed
-                        if (latestProfile.coupon_redeemed) {
-                            alert('Your coupon has already been redeemed.');
+                    });
+                    
+                    // Close modal when clicking the X button
+                    redemptionModal.querySelector('.close-modal').addEventListener('click', () => {
+                        redemptionModal.classList.remove('show');
+                    });
+                    
+                    // Close modal when clicking outside
+                    window.addEventListener('click', (e) => {
+                        if (e.target === redemptionModal) {
                             redemptionModal.classList.remove('show');
-                            return;
                         }
-                        
-                        // Update profile to mark coupon as redeemed
-                        const redemptionTimestamp = new Date().toISOString();
-                        const { error: updateError } = await supabaseClient
-                            .from('profiles')
-                            .update({
-                                coupon_redeemed: true,
-                                coupon_redeemed_at: redemptionTimestamp,
-                                updated_at: redemptionTimestamp
-                            })
-                            .eq('id', session.user.id);
-                        
-                        if (updateError) {
-                            throw new Error('Failed to update redemption status');
+                    });
+                    
+                    // Handle redemption confirmation
+                    confirmRedemptionBtn.addEventListener('click', async () => {
+                        try {
+                            // Disable button to prevent multiple clicks
+                            confirmRedemptionBtn.disabled = true;
+                            confirmRedemptionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                            
+                            // Get latest profile info to ensure we have accurate data
+                            const { data: latestProfile, error: profileError } = await supabaseClient
+                                .from('profiles')
+                                .select('*')
+                                .eq('id', session.user.id)
+                                .single();
+                            
+                            if (profileError) {
+                                throw new Error('Failed to fetch profile data: ' + profileError.message);
+                            }
+                            
+                            // Check if coupon_redeemed exists in the profile, if not it means the column hasn't been added
+                            if (latestProfile.coupon_redeemed === undefined) {
+                                throw new Error('Coupon feature is not available. Please contact the administrator.');
+                            }
+                            
+                            // Double-check if coupon has already been redeemed
+                            if (latestProfile.coupon_redeemed === true) {
+                                alert('Your coupon has already been redeemed.');
+                                redemptionModal.classList.remove('show');
+                                return;
+                            }
+                            
+                            // Update profile to mark coupon as redeemed
+                            const redemptionTimestamp = new Date().toISOString();
+                            const { error: updateError } = await supabaseClient
+                                .from('profiles')
+                                .update({
+                                    coupon_redeemed: true,
+                                    coupon_redeemed_at: redemptionTimestamp,
+                                    updated_at: redemptionTimestamp
+                                })
+                                .eq('id', session.user.id);
+                            
+                            if (updateError) {
+                                // If the update fails because the column doesn't exist, provide a meaningful error
+                                if (updateError.message && updateError.message.includes('column "coupon_redeemed" does not exist')) {
+                                    throw new Error('Coupon feature is not fully set up. The database needs to be updated.');
+                                } else {
+                                    throw new Error('Failed to update redemption status: ' + updateError.message);
+                                }
+                            }
+                            
+                            // Update local profile data
+                            profile.coupon_redeemed = true;
+                            profile.coupon_redeemed_at = redemptionTimestamp;
+                            
+                            // Update display
+                            updateCouponDisplay();
+                            
+                            // Close modal
+                            redemptionModal.classList.remove('show');
+                            
+                            // Show success message
+                            alert('Coupon redeemed successfully! You can collect your club event item at the next event.');
+                            
+                        } catch (error) {
+                            console.error('Error redeeming coupon:', error);
+                            alert('Error redeeming coupon: ' + error.message);
+                        } finally {
+                            // Reset button state
+                            confirmRedemptionBtn.disabled = false;
+                            confirmRedemptionBtn.innerHTML = '<i class="fas fa-check"></i> Confirm Redemption';
                         }
-                        
-                        // Update local profile data
-                        profile.coupon_redeemed = true;
-                        profile.coupon_redeemed_at = redemptionTimestamp;
-                        
-                        // Update display
-                        updateCouponDisplay();
-                        
-                        // Close modal
-                        redemptionModal.classList.remove('show');
-                        
-                        // Show success message
-                        alert('Coupon redeemed successfully! You can collect your club event item at the next event.');
-                        
-                    } catch (error) {
-                        console.error('Error redeeming coupon:', error);
-                        alert('Error redeeming coupon: ' + error.message);
-                    } finally {
-                        // Reset button state
-                        confirmRedemptionBtn.disabled = false;
-                        confirmRedemptionBtn.innerHTML = '<i class="fas fa-check"></i> Confirm Redemption';
-                    }
-                });
+                    });
+                }
             } catch (error) {
                 console.error('Error initializing coupon redemption functionality:', error);
                 // This ensures that even if the coupon feature fails, it doesn't break other features

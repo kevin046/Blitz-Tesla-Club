@@ -5,6 +5,7 @@ html {
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
     touch-action: manipulation;
+    height: 100%;
 }
 
 body {
@@ -18,6 +19,8 @@ body {
     overflow-y: auto;
     margin: 0;
     padding: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Better touch targets for mobile */
@@ -40,12 +43,26 @@ input[type="radio"] {
     [style*="min-height: 100vh"] {
         min-height: -webkit-fill-available;
     }
+    
+    body {
+        height: -webkit-fill-available;
+    }
+    
+    main {
+        flex: 1 0 auto;
+    }
 }
 
 /* Better spacing on mobile */
 main {
     padding-bottom: env(safe-area-inset-bottom, 20px);
-    padding-top: env(safe-area-inset-top, 20px);
+    padding-top: calc(env(safe-area-inset-top, 20px) + 60px); /* Add space for fixed nav */
+    flex: 1 0 auto; /* This ensures main takes up available space */
+    min-height: 60vh; /* Minimum height for main content */
+}
+
+footer {
+    flex-shrink: 0; /* Prevent footer from shrinking */
 }
 
 /* Mobile Menu Improvements */
@@ -125,11 +142,17 @@ p, li, h1, h2, h3, h4, h5, h6 {
 
 /* Improve fixed navbar on mobile */
 nav {
-    position: sticky;
+    position: fixed !important; /* Force fixed positioning */
     top: 0;
-    z-index: 100;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
+    padding-top: env(safe-area-inset-top);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Add shadow to make it stand out */
+    transform: translateZ(0); /* Hardware acceleration */
+    will-change: transform; /* Optimize for animations */
 }
 
 /* Improve mobile menu animation */
@@ -309,5 +332,28 @@ img {
     .fixed-top,
     nav {
         padding-top: max(15px, env(safe-area-inset-top));
+    }
+}
+
+/* Fix layout for specific page types */
+.events-page main,
+.news-page main,
+.about-page main {
+    padding-top: calc(env(safe-area-inset-top, 20px) + 70px);
+    min-height: 70vh;
+}
+
+/* Handle small content pages - ensure footer stays at bottom */
+@media (min-height: 700px) {
+    .events-page main,
+    .news-page main {
+        min-height: 70vh;
+    }
+}
+
+@media (max-height: 699px) {
+    .events-page main,
+    .news-page main {
+        min-height: 85vh; /* More space on smaller screens */
     }
 } 

@@ -17,6 +17,97 @@
     <link rel="apple-touch-icon" href="https://i.postimg.cc/BvmtNLtB/logo.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="navigation.js" defer></script>
+    <style>
+        /* Fix for hamburger menu showing in desktop view */
+        .menu-toggle {
+            display: none !important; /* Force hide on all screens by default */
+        }
+        
+        @media (max-width: 768px) {
+            .menu-toggle {
+                display: flex !important; /* Only show on mobile */
+            }
+        }
+        
+        /* Page-specific styles to ensure footer stays at bottom */
+        body.news-page {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .news-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 80px 20px 40px;
+            min-height: 70vh; /* Ensure minimum height */
+        }
+        
+        .news-header {
+            text-align: center;
+            padding: 40px 0;
+        }
+        
+        .news-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #171a20;
+        }
+        
+        .news-header p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            color: #393c41;
+        }
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .news-card {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .news-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .news-placeholder {
+            text-align: center;
+            padding: 40px;
+            background: rgba(23, 26, 32, 0.05);
+            border-radius: 12px;
+            margin: 30px 0;
+        }
+
+        .news-placeholder h2 {
+            color: #171a20;
+            margin-bottom: 15px;
+        }
+
+        .news-placeholder p {
+            color: #393c41;
+            margin-bottom: 20px;
+        }
+
+        /* Ensure nav is fixed properly */
+        nav {
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+    </style>
 </head>
 <body class="news-page">
     <nav>
@@ -34,8 +125,17 @@
         </ul>
     </nav>
 
-    <main>
-        <!-- Rest of your existing content -->
+    <main class="news-container">
+        <header class="news-header">
+            <h1>Latest News</h1>
+            <p>Stay updated with the latest happenings in our Tesla community</p>
+        </header>
+
+        <div class="news-placeholder">
+            <h2>News Articles Coming Soon</h2>
+            <p>We're working on bringing you the latest news and updates about Tesla and our club activities. Check back soon for updates!</p>
+            <a href="contact.html" class="btn">Contact Us with News Tips</a>
+        </div>
     </main>
 
     <footer>

@@ -1328,10 +1328,13 @@
                 editProfileModal.style.display = 'block';
             });
             
-            // Close modal when clicking the X
-            document.querySelector('.close-modal').addEventListener('click', () => {
-                editProfileModal.style.display = 'none';
-            });
+            // Close modal when clicking the X - FIXED to use modal-specific close button
+            const editProfileCloseBtn = editProfileModal.querySelector('.close-modal');
+            if (editProfileCloseBtn) {
+                editProfileCloseBtn.addEventListener('click', () => {
+                    editProfileModal.style.display = 'none';
+                });
+            }
             
             // Close modal when clicking outside
             window.addEventListener('click', (e) => {

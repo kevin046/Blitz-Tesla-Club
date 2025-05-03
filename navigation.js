@@ -1,11 +1,3 @@
-// Initialize Supabase client once globally
-if (typeof window.supabaseClient === 'undefined') {
-    window.supabaseClient = supabase.createClient(
-        'https://qhkcrrphsjpytdfqfamq.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI'
-    );
-}
-
 // Function to initialize navigation
 async function initializeNavigation() {
     if (typeof window.supabaseClient === 'undefined') {
@@ -242,8 +234,33 @@ function preventScroll(e) {
 
 // Initialize navigation when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize navigation
-    initializeNavigation();
+    if (!window.supabase) return;
+    
+    // Check for existing client in both window and global scope
+    if (!window.supabaseClient && typeof supabase !== 'undefined') {
+        console.log('Initializing Supabase client');
+        window.supabaseClient = supabase.createClient(
+            'https://qhkcrrphsjpytdfqfamq.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI',
+            {
+                auth: {
+                    storage: localStorage,
+                    autoRefreshToken: true,
+                    persistSession: true,
+                    detectSessionInUrl: true,
+                    flowType: 'pkce'
+                }
+            }
+        );
+    }
+    
+    // Add ready state check
+    document.addEventListener('supabase:ready', initializeNavigation);
+    setTimeout(() => {
+        if (window.supabaseClient) {
+            document.dispatchEvent(new Event('supabase:ready'));
+        }
+    }, 100);
     
     // Ensure consistent URL casing for page links
     const links = document.querySelectorAll('a');
@@ -268,6 +285,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Export for use in other files
 window.initializeNavigation = initializeNavigation;
-window.supabaseClient = supabaseClient;
 window.toggleMobileMenu = toggleMobileMenu;
 window.closeMobileMenu = closeMobileMenu; 

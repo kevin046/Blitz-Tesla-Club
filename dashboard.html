@@ -876,7 +876,26 @@
             background: rgba(255, 255, 255, 0.05);
             border-radius: 8px;
         }
+
+        /* … your existing styles … */
+        .badge.upcoming {
+            background: #ffca28;
+            color: #1a1a1a;
+            padding: 2px 6px;
+            margin-left: 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            vertical-align: middle;
+        }
     </style>
+    <!-- Add this in the head section -->
+    <script>
+    // Global Supabase initialization
+    window.supabaseClient = supabase.createClient(
+        'https://qhkcrrphsjpytdfqfamq.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI'
+    );
+    </script>
 </head>
 <body class="dashboard-page">
     <!-- Standard Navigation -->
@@ -993,13 +1012,16 @@
                 </div>
                 <div class="card-content">
                     <div class="quick-links-grid">
-                        <a href="#" class="quick-link-item">
+                        <a href="events.html" id="registerEvent" class="quick-link-item">
                             <i class="fas fa-calendar-plus"></i>
                             <span>Register for Event</span>
                         </a>
-                        <a href="#" class="quick-link-item">
+                        <a href="javascript:void(0)" id="viewInvoices" class="quick-link-item">
                             <i class="fas fa-file-invoice"></i>
-                            <span>View Invoices</span>
+                            <span>
+                              View Invoices 
+                              <small class="badge upcoming">Coming Soon</small>
+                            </span>
                         </a>
                         <a href="#" class="quick-link-item" id="accountSettingsBtn">
                             <i class="fas fa-cog"></i>
@@ -1070,21 +1092,998 @@
 
     <!-- Keep your existing script -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Wait for Supabase to load
-            const checkSupabase = setInterval(() => {
-                if (typeof supabase !== 'undefined' && typeof window.supabaseClient !== 'undefined') {
-                    clearInterval(checkSupabase);
-                    initializeDashboard();
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check for any pending account deletion requests
+            const pendingDeletion = localStorage.getItem('pendingAccountDeletion');
+            const deletionTime = localStorage.getItem('deletionRequestTime');
+            
+            if (pendingDeletion && navigator.onLine && window.location.protocol !== 'file:') {
+                console.log('Found pending account deletion request from:', deletionTime);
+                
+                try {
+                    // Check if we're on localhost or a deployed server
+                    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                    const apiUrl = isLocalhost
+                        ? 'http://localhost:3000/api/cleanup-orphaned-users'
+                        : '/api/cleanup-orphaned-users';
+                    
+                    console.log('Processing pending deletion via API:', apiUrl);
+                    
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            user_id: pendingDeletion
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        console.log('Successfully processed pending account deletion');
+                        // Clear the pending deletion
+                        localStorage.removeItem('pendingAccountDeletion');
+                        localStorage.removeItem('deletionRequestTime');
+                    } else {
+                        console.warn('Could not process pending deletion - will try again later');
+                    }
+                } catch (error) {
+                    console.error('Error processing pending deletion:', error);
                 }
-            }, 100);
+            }
+            
+            // Initialize navigation first - let the navigation.js handle all menu functionality
+            console.log('Waiting for navigation.js to initialize...');
+            
+            // Check if user is logged in
+            const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+            
+            console.log('Session:', session);
+            
+            if (!session) {
+                window.location.href = 'login.html';
+                return;
+            }
 
-            function initializeDashboard() {
-                // Dashboard initialization code
-                window.supabaseClient.auth.getUser().then(({ data: { user } }) => {
-                    if (!user) window.location.href = 'login.html';
-                    // Rest of dashboard code...
+                // Get user profile
+                const { data: userData, error: profileError } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                .eq('email', session.user.email)
+                    .single();
+
+            console.log('Fetching profile for email:', session.user.email);
+                console.log('Profile query result:', { profile: userData, profileError });
+
+            let profile;
+
+            if (profileError && profileError.code === 'PGRST116') {
+                // Profile doesn't exist, create one
+                console.log('No profile found, creating new profile...');
+                
+                // Generate sequential member ID
+                const memberId = await generateSequentialMemberId();
+                
+                const { data: newProfile, error: createError } = await supabaseClient
+                        .from('profiles')
+                    .insert([
+                        {
+                            id: session.user.id,
+                            email: session.user.email,
+                            full_name: session.user.user_metadata?.full_name || session.user.email.split('@')[0],
+                            username: session.user.email.split('@')[0],
+                            membership_status: 'pending',
+                            membership_type: 'standard',
+                            member_id: memberId,
+                            created_at: new Date().toISOString()
+                        }
+                    ])
+                        .select()
+                        .single();
+
+                if (createError) {
+                    console.error('Error creating profile:', createError);
+                    throw createError;
+                }
+
+                console.log('New profile created:', newProfile);
+                    profile = newProfile;
+            } else if (profileError) {
+                console.error('Error fetching profile:', profileError);
+                throw profileError;
+                } else {
+                    profile = userData;
+                }
+
+            // Make profile available globally for other functions
+            window.userProfile = profile;
+
+            console.log('Using profile:', profile);
+
+            // Update user info
+            document.getElementById('userFullName').textContent = profile.full_name || 'Member';
+            const statusElement = document.getElementById('membershipStatus');
+            if (statusElement) {
+                statusElement.textContent = profile.membership_status ? 
+                    profile.membership_status.charAt(0).toUpperCase() + profile.membership_status.slice(1) : 
+                    'Pending';
+                statusElement.dataset.status = profile.membership_status || 'pending';
+            }
+
+            // Update member stats
+            const memberSince = document.getElementById('memberSince');
+            if (memberSince) {
+                memberSince.textContent = profile.created_at ? 
+                    new Date(profile.created_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    }) : 'Not Available';
+            }
+
+            const memberId = document.getElementById('memberId');
+            if (memberId) {
+                // Check multiple sources for member ID in order of preference
+                const storedMemberId = localStorage.getItem('userMemberId');
+                const displayMemberId = profile.member_id || 
+                                       session.user.user_metadata?.member_id || 
+                                       storedMemberId || 
+                                       'Not Available';
+                
+                console.log('Member ID sources:', {
+                    profile: profile.member_id,
+                    metadata: session.user.user_metadata?.member_id,
+                    localStorage: storedMemberId
                 });
+                
+                // Set the member ID on the profile if it's missing but available elsewhere
+                if (!profile.member_id && (session.user.user_metadata?.member_id || storedMemberId)) {
+                    const memberId = session.user.user_metadata?.member_id || storedMemberId;
+                    console.log('Updating missing profile member_id with:', memberId);
+                    
+                    // Update the profile with the member ID
+                    supabaseClient
+                        .from('profiles')
+                        .update({ 
+                            member_id: memberId,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', session.user.id)
+                        .then(response => {
+                            if (response.error) {
+                                console.error('Error updating profile with member ID:', response.error);
+                            } else {
+                                console.log('Profile updated with member ID:', memberId);
+                            }
+                        });
+                }
+                
+                memberId.textContent = displayMemberId;
+            }
+
+            const eventsAttended = document.getElementById('eventsAttended');
+            if (eventsAttended) {
+                eventsAttended.textContent = profile.events_attended || '0';
+            }
+
+            // Function to update status display
+            const updateStatusDisplay = async () => {
+                try {
+                    // Fetch latest profile data from Supabase using email only
+                    const { data: latestProfile, error: profileError } = await supabaseClient
+                        .from('profiles')
+                    .select('*')
+                        .eq('email', session.user.email)
+                        .single();
+
+                    if (profileError) {
+                        console.error('Error fetching latest profile:', profileError);
+                        return;
+                    }
+
+                    if (!latestProfile) {
+                        console.warn('No profile data found');
+                        return;
+                    }
+
+                    console.log('Latest profile data:', latestProfile);
+
+                    const verificationStatus = document.getElementById('verificationStatus');
+                    const statusElement = document.getElementById('membershipStatus');
+
+                    if (!verificationStatus || !statusElement) {
+                        console.warn('Status elements not found');
+                        return;
+                    }
+
+                    // Use the latest profile data
+                    if (latestProfile.membership_status === 'active') {
+                        verificationStatus.innerHTML = `
+                            <span class="badge success">
+                                <i class="fas fa-check-circle"></i>
+                                Email verified
+                            </span>
+                        `;
+                        statusElement.textContent = 'Active';
+                        statusElement.className = 'status-active';
+                } else {
+                        verificationStatus.innerHTML = `
+                            <span class="badge warning">
+                                <i class="fas fa-envelope"></i>
+                                Please verify your email
+                                <button id="resendVerification" class="resend-btn">
+                                    <i class="fas fa-redo"></i> Resend Verification
+                                </button>
+                            </span>
+                        `;
+                        statusElement.textContent = 'Pending';
+                        statusElement.className = 'status-pending';
+                    }
+
+                    // Update the global profile data
+                    window.userProfile = latestProfile;
+            } catch (error) {
+                    console.error('Error updating status display:', error);
+                }
+            };
+
+            // Initial status update
+            await updateStatusDisplay();
+
+            // Add periodic status check
+            setInterval(updateStatusDisplay, 30000);
+
+            // Handle logout - KEEP THIS OUTSIDE OF TRY/CATCH BLOCKS
+            const logoutButtons = document.querySelectorAll('#logoutBtn, #footerLogoutBtn');
+            logoutButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    // Call our direct logout function
+                    window.performLogout();
+                });
+            });
+
+            // Add this after profile data is loaded
+            const membershipCardBtn = document.getElementById('membershipCardBtn');
+            const modal = document.getElementById('membershipCardModal');
+            const closeModalBtn = document.querySelector('.close-modal');
+
+            membershipCardBtn.addEventListener('click', () => {
+                // Format date for card display
+                const formattedDate = profile.created_at ? 
+                    new Date(profile.created_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    }) : 'Not Available';
+
+                // Get the member ID from all possible sources
+                const storedMemberId = localStorage.getItem('userMemberId');
+                const cardMemberId = profile.member_id || 
+                                  session.user.user_metadata?.member_id || 
+                                  storedMemberId || 
+                                  'Not Available';
+                
+                console.log('Member ID for card display:', {
+                    profileId: profile.member_id,
+                    metadataId: session.user.user_metadata?.member_id,
+                    localStorageId: storedMemberId,
+                    using: cardMemberId
+                });
+
+                // Update card info
+                document.getElementById('cardFullName').textContent = profile.full_name;
+                document.getElementById('cardMemberId').textContent = cardMemberId;
+                document.getElementById('cardMemberSince').textContent = formattedDate;
+                document.getElementById('cardMembershipStatus').textContent = 
+                    profile.membership_type.charAt(0).toUpperCase() + profile.membership_type.slice(1);
+
+                // Set card style based on membership type
+                const cardElement = document.querySelector('.membership-card');
+                cardElement.dataset.type = profile.membership_type;
+
+                // Generate QR code
+                const qrData = JSON.stringify({
+                    id: profile.id,
+                    memberId: cardMemberId,
+                    type: profile.membership_type,
+                    name: profile.full_name,
+                    since: formattedDate,
+                    verified: true
+                });
+                
+                const qrCanvas = document.getElementById('memberQRCode');
+                // Clear previous QR code if any
+                const context = qrCanvas.getContext('2d');
+                context.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
+                
+                QRCode.toCanvas(qrCanvas, qrData, {
+                    width: 120,
+                    margin: 0,
+                    color: {
+                        dark: '#171a20',
+                        light: '#ffffff'
+                    }
+                });
+
+                modal.classList.add('show');
+            });
+
+            // Close modal when clicking the X button
+            if (closeModalBtn) {
+                closeModalBtn.addEventListener('click', () => {
+                    modal.classList.remove('show');
+                });
+            }
+
+            // Close modal when clicking outside
+            window.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('show');
+                }
+            });
+
+            // Close modal with Escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && modal.classList.contains('show')) {
+                    modal.classList.remove('show');
+                }
+            });
+
+            // Handle account settings
+            const accountSettingsBtn = document.getElementById('accountSettingsBtn');
+            const editProfileModal = document.getElementById('editProfileModal');
+            const modalEditProfileForm = document.getElementById('modalEditProfileForm');
+            const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+            
+            // Show modal when Account Settings link is clicked
+            accountSettingsBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Populate account information
+                document.getElementById('modalUserEmail').textContent = profile.email;
+                document.getElementById('modalMemberId').textContent = profile.member_id;
+                document.getElementById('modalMemberSince').textContent = profile.created_at ? 
+                    new Date(profile.created_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    }) : 'Not Available';
+                document.getElementById('modalMembershipStatus').textContent = 
+                    profile.membership_status.charAt(0).toUpperCase() + profile.membership_status.slice(1);
+                
+                // Populate new fields
+                // Phone number
+                document.getElementById('modalPhoneNumber').textContent = profile.phone_number || 'Not provided';
+                
+                // Date of birth
+                if (profile.date_of_birth) {
+                    // Parse date in local timezone
+                    const [year, month, day] = profile.date_of_birth.split('-');
+                    const dobDate = new Date(year, month - 1, day);
+                    
+                    // Format with ordinal suffix
+                    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                    const dateString = dobDate.toLocaleDateString('en-US', options);
+                    const dayWithSuffix = dateString.replace(/(\d+),/, (_, day) => {
+                        return getOrdinalSuffix(day) + ',';
+                    });
+                    
+                    document.getElementById('modalDateOfBirth').textContent = dayWithSuffix;
+                } else {
+                    document.getElementById('modalDateOfBirth').textContent = 'Not provided';
+                }
+                
+                // Car models
+                const carModelsContainer = document.getElementById('modalCarModels');
+                carModelsContainer.innerHTML = '';
+                
+                if (profile.car_models && Array.isArray(profile.car_models) && profile.car_models.length > 0) {
+                    profile.car_models.forEach(model => {
+                        const badge = document.createElement('div');
+                        badge.className = 'car-model-badge';
+                        badge.innerHTML = `<i class="fas fa-car"></i> ${model}`;
+                        carModelsContainer.appendChild(badge);
+                    });
+                } else {
+                    carModelsContainer.innerHTML = '<p>No Tesla models provided</p>';
+                }
+                
+                // Address
+                const addressContainer = document.getElementById('modalAddress');
+                
+                if (profile.address) {
+                    try {
+                        const addr = profile.address;
+                        addressContainer.innerHTML = `
+                            <address>
+                                ${addr.street}<br>
+                                ${addr.city}, ${addr.province}<br>
+                                ${addr.postal_code}<br>
+                                Canada
+                            </address>
+                        `;
+                    } catch(e) {
+                        // Fallback for old format
+                        addressContainer.innerHTML = profile.address;
+                    }
+                } else {
+                    addressContainer.innerHTML = `
+                        <p>No address provided</p>
+                        <button type="button" class="edit-info-btn" id="editProfileInfoBtn">
+                            <i class="fas fa-pencil-alt"></i> Add Information
+                        </button>
+                    `;
+                }
+                
+                // Add handler for edit info button
+                const editInfoBtn = document.getElementById('editProfileInfoBtn');
+                if (editInfoBtn) {
+                    editInfoBtn.addEventListener('click', () => {
+                        // Close the current modal
+                        editProfileModal.style.display = 'none';
+                        // Redirect to profile completion page
+                        window.location.href = 'profile-completion.html';
+                    });
+                }
+                
+                editProfileModal.style.display = 'block';
+            });
+            
+            // Close modal when clicking the X - FIXED to use modal-specific close button
+            const editProfileCloseBtn = editProfileModal.querySelector('.close-modal');
+            if (editProfileCloseBtn) {
+                editProfileCloseBtn.addEventListener('click', () => {
+                    editProfileModal.style.display = 'none';
+                });
+            }
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', (e) => {
+                if (e.target === editProfileModal) {
+                    editProfileModal.style.display = 'none';
+                }
+            });
+            
+            // Close modal with Escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && editProfileModal.classList.contains('show')) {
+                    editProfileModal.style.display = 'none';
+                }
+            });
+
+            // Handle password update
+            modalEditProfileForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const currentPassword = document.getElementById('modalCurrentPassword').value;
+                const newPassword = document.getElementById('modalNewPassword').value;
+                const confirmPassword = document.getElementById('modalConfirmPassword').value;
+                
+                if (!currentPassword) {
+                    alert('Please enter your current password');
+                    return;
+                }
+                
+                if (newPassword !== confirmPassword) {
+                    alert('Passwords do not match');
+                    return;
+                }
+                
+                // Password validation
+                if (newPassword.length < 8) {
+                    alert('Password must be at least 8 characters long');
+                    return;
+                }
+                
+                const submitButton = modalEditProfileForm.querySelector('button[type="submit"]');
+                const originalButtonText = submitButton.innerHTML;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+                submitButton.disabled = true;
+                
+                try {
+                    // First verify the current password by signing in
+                    const { data: signInData, error: signInError } = await supabaseClient.auth.signInWithPassword({
+                        email: window.userProfile.email,
+                        password: currentPassword
+                    });
+                    
+                    if (signInError) {
+                        throw new Error('Current password is incorrect');
+                    }
+                    
+                    // Update password using Supabase auth
+                    const { error } = await supabaseClient.auth.updateUser({
+                        password: newPassword
+                    });
+                    
+                    if (error) throw error;
+                    
+                    // Show success message
+                    alert('Password updated successfully');
+                    
+                    // Reset form and close modal
+                    modalEditProfileForm.reset();
+                    editProfileModal.style.display = 'none';
+                    
+                    // Optionally force re-login
+                    if (confirm('Your password has been updated successfully. For security reasons, would you like to log out and sign in with your new password?')) {
+                        await supabaseClient.auth.signOut();
+                        window.location.href = 'login.html';
+                    }
+                } catch (error) {
+                    console.error('Error updating password:', error);
+                    
+                    // Show specific error message based on the error
+                    if (error.message.includes('Password should be at least')) {
+                        alert('Password must be at least 8 characters long');
+                    } else if (error.message.includes('expired')) {
+                        alert('Your session has expired. Please log in again to change your password.');
+                        await supabaseClient.auth.signOut();
+                        window.location.href = 'login.html';
+                    } else if (error.message.includes('incorrect')) {
+                        alert('Current password is incorrect');
+                    } else {
+                        alert('Failed to update password: ' + error.message);
+                    }
+                } finally {
+                    // Restore button state
+                    submitButton.innerHTML = originalButtonText;
+                    submitButton.disabled = false;
+                }
+            });
+            
+            // Handle account deletion
+            deleteAccountBtn.addEventListener('click', async () => {
+                // Safety confirmation
+                const confirmDelete = confirm("Are you sure you want to delete your account? This action cannot be undone.");
+                if (!confirmDelete) return;
+                
+                // Get confirmation through text entry
+                const deletePrompt = prompt("To confirm deletion, please type 'delete'");
+                if (deletePrompt?.toLowerCase() !== 'delete') {
+                    alert("Account deletion cancelled. Please type 'delete' to confirm.");
+                    return;
+                }
+                
+                try {
+                    // Show loading state
+                    deleteAccountBtn.disabled = true;
+                    deleteAccountBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+                    
+                    // Get the current user and profile
+                    const { data: { user } } = await supabaseClient.auth.getUser();
+                    if (!user) {
+                        alert("You must be logged in to delete your account.");
+                        deleteAccountBtn.disabled = false;
+                        deleteAccountBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete Account';
+                        return;
+                    }
+                    
+                    console.log(`Deleting account for user: ${user.id}`);
+                    
+                    // Step 1: Delete profile data first (this part works)
+                    const { error: profileError } = await supabaseClient
+                    .from('profiles')
+                        .delete()
+                        .eq('id', user.id);
+
+                if (profileError) {
+                        console.error("Error deleting profile:", profileError);
+                        throw new Error(`Failed to delete profile data: ${profileError.message}`);
+                    }
+                    
+                console.log("Profile data deleted successfully");
+                
+                    // Step 2: Delete any related data (with better error handling)
+                    try {
+                        const { error: regError } = await supabaseClient
+                            .from('event_registrations')
+                            .delete()
+                            .eq('user_id', user.id);
+                            
+                        if (regError && !regError.message?.includes('not found')) {
+                            console.warn("Error deleting event registrations:", regError);
+                        } else {
+                            console.log("Event registrations deleted or none found");
+                        }
+                    } catch (err) {
+                        console.log("Event registrations table may not exist:", err.message);
+                    }
+                    
+                    // Step 3: Tell the user what happened - be honest about limitations
+                    alert(
+                        "Your profile data has been deleted, but your account will remain in our authentication system. " +
+                        "You will be signed out now. If you need complete removal from our systems, please contact our support team."
+                    );
+                    
+                    // Step 4: Sign out the user
+                    await supabaseClient.auth.signOut();
+                    
+                    // Step 5: Clear storage
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    
+                    // Redirect to homepage
+                    window.location.href = 'index.html';
+                    
+                } catch (error) {
+                    console.error("Error during account deletion:", error);
+                    
+                    // Reset button state
+                    deleteAccountBtn.disabled = false;
+                    deleteAccountBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete Account';
+                    
+                    // Show error
+                    alert(`There was an error deleting your account: ${error.message}`);
+                }
+            });
+            
+            // Password visibility toggle
+            document.querySelectorAll('.toggle-password').forEach(button => {
+                button.addEventListener('click', function() {
+                    const input = this.previousElementSibling;
+                    const icon = this.querySelector('i');
+                    
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                } else {
+                        input.type = 'password';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                });
+            });
+
+            // Password strength meter
+            const passwordInput = document.getElementById('modalNewPassword');
+            const strengthMeter = document.querySelector('.password-strength-meter');
+            const strengthBar = document.getElementById('strengthBar');
+            const strengthText = document.getElementById('strengthText');
+
+            passwordInput.addEventListener('input', function() {
+                const password = this.value;
+                
+                // Show strength meter only if password has some value
+                if (password.length > 0) {
+                    strengthMeter.style.display = 'block';
+                } else {
+                    strengthMeter.style.display = 'none';
+                    return;
+                }
+                
+                // Calculate password strength
+                let strength = 0;
+                
+                // Basic requirements
+                if (password.length >= 8) strength += 1; // Length
+                if (/[A-Z]/.test(password)) strength += 1; // Uppercase
+                if (/[a-z]/.test(password)) strength += 1; // Lowercase
+                if (/[0-9]/.test(password)) strength += 1; // Numbers
+                if (/[^A-Za-z0-9]/.test(password)) strength += 1; // Special chars
+                
+                // Update strength indicator
+                strengthBar.className = 'strength-bar';
+                
+                if (strength < 3) {
+                    strengthBar.classList.add('strength-weak');
+                    strengthText.textContent = 'Weak';
+                    strengthText.style.color = '#dc3545';
+                } else if (strength < 5) {
+                    strengthBar.classList.add('strength-medium');
+                    strengthText.textContent = 'Medium';
+                    strengthText.style.color = '#ffc107';
+                } else {
+                    strengthBar.classList.add('strength-strong');
+                    strengthText.textContent = 'Strong';
+                    strengthText.style.color = '#28a745';
+                }
+            });
+
+            // Check if coming from verification success
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('verified') === 'true') {
+                await updateStatusDisplay();
+                // Clear the URL parameters
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            if (profile.membership_status === 'pending') {
+                verificationStatus.innerHTML = `
+                    <span class="badge warning">
+                        <i class="fas fa-envelope"></i>
+                        Please verify your email
+                        <button id="resendVerification" class="resend-btn">
+                            <i class="fas fa-redo"></i> Resend Verification
+                        </button>
+                    </span>
+                `;
+
+                // Add click handler for resend button
+                const resendBtn = document.getElementById('resendVerification');
+                resendBtn.addEventListener('click', async () => {
+                    try {
+                        // Generate verification token
+                        const verificationToken = crypto.randomUUID();
+                        console.log('Generated token:', verificationToken);
+
+                        // Store token temporarily in localStorage
+                        localStorage.setItem('verificationToken', verificationToken);
+                        localStorage.setItem('tokenExpiry', new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString());
+
+                        // Get base URL for verification link
+                        const baseUrl = window.location.href.split('/').slice(0, -1).join('/');
+                        const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}`;
+
+                        // Send verification email using FormSubmit
+                        const formData = new FormData();
+                        formData.append('email', profile.email);
+                        formData.append('_captcha', 'false');
+                        formData.append('_template', 'box');
+                        formData.append('_subject', 'Verify Your Blitz T Club Membership');
+                        formData.append('_autoresponse', 'Thank you for verifying your email. Your Blitz T Club membership will be activated shortly.');
+                        formData.append('message', `Welcome to Blitz T Club!
+
+Member ID: ${profile.member_id}
+
+Please click the link below to verify your email and activate your membership:
+${verificationUrl}
+
+Important Notes:
+- This verification link will expire in 24 hours
+- Please verify on the same device you're currently using
+- After verification, your membership will be activated instantly
+
+Next Steps:
+1. Click the verification link above
+2. Your membership will be activated instantly
+3. Access your digital membership card
+4. Start enjoying member benefits
+
+If you can't click the link, copy and paste this URL into your browser:
+${verificationUrl}
+
+If you didn't request this email, please ignore it.
+
+Best regards,
+Blitz T Club Team`);
+
+                        // Send the verification email
+                        const emailResponse = await fetch(`https://formsubmit.co/ajax/${profile.email}`, {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json'
+                            },
+                            body: formData
+                        });
+
+                        if (!emailResponse.ok) {
+                            const responseText = await emailResponse.text();
+                            console.error('FormSubmit response:', responseText);
+                            throw new Error('Failed to send verification email');
+                        }
+
+                        // Store verification data in localStorage
+                        localStorage.setItem('pendingVerificationEmail', profile.email);
+                        localStorage.setItem('pendingMemberId', profile.member_id);
+                        localStorage.setItem('registrationTime', new Date().toISOString());
+
+                        // Redirect to verification sent page
+                        window.location.href = 'verification-sent.html';
+
+                    } catch (error) {
+                        console.error('Error sending verification:', error);
+                        alert('Failed to send verification email. Please try again.');
+                    }
+                });
+            }
+
+            // Initialize coupon status if needed
+            async function initializeCouponStatus() {
+                try {
+                    // Only proceed if all required DOM elements are found
+                    if (!couponStatus || !couponRedeemed || !redeemCouponBtn || !redemptionDate || 
+                        !redemptionModal || !cancelRedemptionBtn || !confirmRedemptionBtn) {
+                        console.warn('Some coupon elements not found, skipping coupon initialization');
+                        return;
+                    }
+
+                    // Check if coupon_redeemed exists in profile data
+                    if (profile.coupon_redeemed === undefined) {
+                        console.log('Coupon feature not fully set up in the database');
+                        
+                        // Try to update the profile with the field if it's missing
+                        try {
+                            // Initialize coupon_redeemed field to false (for existing users)
+                            const { error: updateError } = await supabaseClient
+                                .from('profiles')
+                                .update({ coupon_redeemed: false })
+                                .eq('id', session.user.id);
+                            
+                            if (updateError) {
+                                if (updateError.message && updateError.message.includes('column "coupon_redeemed" does not exist')) {
+                                    console.error('Coupon column does not exist in the database:', updateError);
+                                    throw new Error('Database schema needs to be updated for coupon feature');
+                                } else {
+                                    console.error('Error updating coupon status:', updateError);
+                                }
+                            } else {
+                                // Update was successful, so update local profile data
+                                profile.coupon_redeemed = false;
+                                console.log('Successfully initialized coupon_redeemed field');
+                            }
+                        } catch (error) {
+                            console.error('Error initializing coupon status:', error);
+                            // For admin users, show an alert about the missing column
+                            if (profile.email && (profile.email.includes('admin') || profile.email === 'linkevin046@gmail.com')) {
+                                alert('Admin notice: The coupon_redeemed column is missing in the profiles table. Please run the SQL to add it.');
+                            }
+                        }
+                    }
+                    
+                    updateCouponDisplay();
+                } catch (error) {
+                    console.error('Error initializing coupon status:', error);
+                }
+            }
+
+            // Handle coupon redemption functionality - WRAP IN TRY/CATCH
+            try {
+                const couponStatus = document.getElementById('couponStatus');
+                const couponRedeemed = document.getElementById('couponRedeemed');
+                const couponBadge = document.getElementById('couponBadge');
+                const redeemCouponBtn = document.getElementById('redeemCouponBtn');
+                const redemptionDate = document.getElementById('redemptionDate');
+                const redemptionModal = document.getElementById('redemptionModal');
+                const cancelRedemptionBtn = document.getElementById('cancelRedemptionBtn');
+                const confirmRedemptionBtn = document.getElementById('confirmRedemptionBtn');
+                
+                // Update coupon display based on redemption status
+                function updateCouponDisplay() {
+                    if (profile.coupon_redeemed) {
+                        couponStatus.style.display = 'none';
+                        couponRedeemed.style.display = 'block';
+                        
+                        // Display redemption date if available
+                        if (profile.coupon_redeemed_at) {
+                            const formattedDate = new Date(profile.coupon_redeemed_at).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            });
+                            redemptionDate.textContent = formattedDate;
+                        } else {
+                            redemptionDate.textContent = 'Not available';
+                        }
+                    } else {
+                        couponStatus.style.display = 'block';
+                        couponRedeemed.style.display = 'none';
+                    }
+                }
+                
+                // Initialize coupon status
+                if (couponStatus && couponRedeemed && redeemCouponBtn) {
+                    await initializeCouponStatus();
+                    
+                    // Handle redeem button click
+                    redeemCouponBtn.addEventListener('click', () => {
+                        // Show redemption confirmation modal
+                        redemptionModal.classList.add('show');
+                    });
+                    
+                    // Close modal when clicking the cancel button
+                    cancelRedemptionBtn.addEventListener('click', () => {
+                        redemptionModal.classList.remove('show');
+                    });
+                    
+                    // Close modal when clicking the X button
+                    redemptionModal.querySelector('.close-modal').addEventListener('click', () => {
+                        redemptionModal.classList.remove('show');
+            });
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', (e) => {
+                        if (e.target === redemptionModal) {
+                            redemptionModal.classList.remove('show');
+                        }
+                    });
+                    
+                    // Handle redemption confirmation
+                    confirmRedemptionBtn.addEventListener('click', async () => {
+                        try {
+                            // Disable button to prevent multiple clicks
+                            confirmRedemptionBtn.disabled = true;
+                            confirmRedemptionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                            
+                            // Get latest profile info to ensure we have accurate data
+                            const { data: latestProfile, error: profileError } = await supabaseClient
+                                .from('profiles')
+                                .select('*')
+                                .eq('uid', session.user.id)
+                                .single();
+                            
+                            if (profileError) {
+                                throw new Error('Failed to fetch profile data: ' + profileError.message);
+                            }
+                            
+                            // Check if coupon_redeemed exists in the profile, if not it means the column hasn't been added
+                            if (latestProfile.coupon_redeemed === undefined) {
+                                throw new Error('Coupon feature is not available. Please contact the administrator.');
+                            }
+                            
+                            // Double-check if coupon has already been redeemed
+                            if (latestProfile.coupon_redeemed === true) {
+                                alert('Your coupon has already been redeemed.');
+                                redemptionModal.classList.remove('show');
+                    return;
+                }
+                
+                            // Update profile to mark coupon as redeemed
+                            const redemptionTimestamp = new Date().toISOString();
+                            const { error: updateError } = await supabaseClient
+                                .from('profiles')
+                                .update({
+                                    coupon_redeemed: true,
+                                    coupon_redeemed_at: redemptionTimestamp,
+                                    updated_at: redemptionTimestamp
+                                })
+                                .eq('uid', session.user.id);
+                            
+                            if (updateError) {
+                                // If the update fails because the column doesn't exist, provide a meaningful error
+                                if (updateError.message && updateError.message.includes('column "coupon_redeemed" does not exist')) {
+                                    throw new Error('Coupon feature is not fully set up. The database needs to be updated.');
+                        } else {
+                                    throw new Error('Failed to update redemption status: ' + updateError.message);
+                                }
+                            }
+                            
+                            // Update local profile data
+                            profile.coupon_redeemed = true;
+                            profile.coupon_redeemed_at = redemptionTimestamp;
+                            
+                            // Update display
+                            updateCouponDisplay();
+                            
+                            // Close modal
+                            redemptionModal.classList.remove('show');
+                            
+                            // Show success message
+                            alert('Coupon redeemed successfully! You can collect your club event item at the next event.');
+                            
+                } catch (error) {
+                            console.error('Error redeeming coupon:', error);
+                            alert('Error redeeming coupon: ' + error.message);
+                        } finally {
+                            // Reset button state
+                            confirmRedemptionBtn.disabled = false;
+                            confirmRedemptionBtn.innerHTML = '<i class="fas fa-check"></i> Confirm Redemption';
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error initializing coupon redemption functionality:', error);
+                // This ensures that even if the coupon feature fails, it doesn't break other features
+            }
+
+            // Remove duplicate session declaration and use existing session
+            if (session?.user) {
+                const { data: profile } = await supabaseClient
+                    .from('profiles')
+                    .select('id, address, phone, updated_at, uid')
+                    .eq('uid', session.user.id)
+                    .single();
+
+                const requiredFields = ['first_name', 'last_name', 'phone', 'street', 'city', 'province', 'postal_code'];
+                const isComplete = requiredFields.every(field => profile?.[field]?.trim() !== '');
+
+                if (!isComplete) {
+                    sessionStorage.setItem('returnPath', window.location.pathname);
+                    window.location.href = '/update-profile.html?mandatory=true';
+                    window.history.replaceState(null, null, window.location.href);
+                }
             }
         });
     </script>
@@ -1260,18 +2259,22 @@
 
     <!-- Add event listener to ensure consistent menu initialization -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Initialize mobile menu after short delay
-            setTimeout(() => {
-                if (typeof initializeMobileMenu === 'function') {
-                    initializeMobileMenu();
-                }
-            }, 300);
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Ensuring mobile menu consistency across pages');
             
-            // Ensure consistent menu behavior
-            const menuToggle = document.querySelector('.menu-toggle');
-            if (menuToggle) {
-                menuToggle.addEventListener('click', toggleMobileMenu);
+            // Force consistent class names to match index.html
+            document.body.classList.remove('nav-open');
+            
+            const navLinks = document.querySelector('.nav-links');
+            if (navLinks) {
+                navLinks.classList.remove('active');
+            }
+            
+            // Re-initialize navigation if available
+            if (typeof window.initializeNavigation === 'function') {
+                setTimeout(function() {
+                    window.initializeNavigation();
+                }, 100);
             }
         });
     </script>
@@ -1622,6 +2625,44 @@
 
         // Initialize when DOM is ready
         document.addEventListener('DOMContentLoaded', initAddressComponents);
+    </script>
+
+    <!-- Add this at the BOTTOM of the file before closing body tag -->
+    <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Initialize Supabase first
+        if (!window.supabaseClient) {
+            window.supabaseClient = supabase.createClient(
+                'https://qhkcrrphsjpytdfqfamq.supabase.co',
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI'
+            );
+        }
+
+        // Safe form initialization
+        const initForm = () => {
+            const form = document.getElementById('accountUpdateForm');
+            if (form) {
+                form.addEventListener('submit', handleFormSubmit);
+            } else {
+                console.warn('Account form not found');
+            }
+        };
+
+        // Initialize after DOM load
+        initForm();
+    });
+    </script>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const invoicesLink = document.getElementById('viewInvoices');
+        if (invoicesLink) {
+          invoicesLink.addEventListener('click', e => {
+            e.preventDefault();
+            alert('The "View Invoices" feature is coming soon!');
+          });
+        }
+      });
     </script>
 </body>
 </html> 

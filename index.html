@@ -16,6 +16,11 @@
     <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
     <link rel="apple-touch-icon" href="https://i.postimg.cc/BvmtNLtB/logo.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Remove the early initialization and rely on navigation.js
+        // Keep only: 
+        window.supabaseClient = window.supabaseClient || null;
+    </script>
     <script src="navigation.js" defer></script>
     <style>
         /* Additional optimizations for home page */
@@ -601,76 +606,6 @@
                 <i class="fas fa-chevron-down"></i>
             </div>
         </section>
-
-        <section class="events-container">
-            <div class="section-header">
-                <h1>Tesla Light Show Spectacular</h1>
-                <div class="header-decoration"></div>
-                <p class="lead">Join us for an exclusive after-dark experience showcasing Tesla's cutting-edge light synchronization technology</p>
-            </div>
-
-            <div class="featured-event">
-                <div class="event-hero">
-                    <img src="https://i.ibb.co/fVDDp9tN/1011165571a04d4f8b1852fd1d061a5b.jpg?width=1200" 
-                         alt="Tesla light show" 
-                         class="event-image"
-                         loading="lazy">
-                    
-                    <div class="event-highlights">
-                        <div class="highlight-card">
-                            <i class="fas fa-calendar-alt"></i>
-                            <h3>May 2, 2025</h3>
-                            <p>8:00 PM - Midnight</p>
-                        </div>
-                        <div class="highlight-card">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <h3>Tesla HQ Arena</h3>
-                            <p>Palo Alto, CA</p>
-                        </div>
-                        <div class="highlight-card">
-                            <i class="fas fa-clock"></i>
-                            <h3>45 Min Show</h3>
-                            <p>+ 2hr Afterparty</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="event-content">
-                    <div class="event-grid">
-                        <div class="detail-card">
-                            <h2>Experience Includes</h2>
-                            <ul class="feature-list">
-                                <li><i class="fas fa-lightbulb"></i>Custom light choreography</li>
-                                <li><i class="fas fa-music"></i>Spatial audio experience</li>
-                                <li><i class="fas fa-car"></i>Model showcase parade</li>
-                                <li><i class="fas fa-cocktail"></i>Premium lounge access</li>
-                            </ul>
-                        </div>
-                        
-                        <div>
-                            <h2>Event Details</h2>
-                            <p>This immersive experience features:</p>
-                            <ul class="feature-list">
-                                <li><i class="fas fa-check"></i>300+ synchronized Teslas</li>
-                                <li><i class="fas fa-check"></i>Drone light accompaniment</li>
-                                <li><i class="fas fa-check"></i>Exclusive owner meetups</li>
-                                <li><i class="fas fa-check"></i>Tech demo stations</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="dashboard-section">
-            <h2><i class="fas fa-calendar-star"></i> Your Event Registrations</h2>
-            <div class="registrations-container" id="eventRegistrations">
-                <!-- Dynamic content will be inserted here -->
-            </div>
-            <a href="events.html" class="btn primary-btn">
-                <i class="fas fa-plus-circle"></i> Register for More Events
-            </a>
-        </section>
     </main>
 
     <footer>
@@ -725,128 +660,15 @@
     </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Check for any pending account deletion requests
-            const pendingDeletion = localStorage.getItem('pendingAccountDeletion');
-            const deletionTime = localStorage.getItem('deletionRequestTime');
+        document.addEventListener('supabase:ready', () => {
+            // Your dependent code here
+            console.log('Supabase client ready:', window.supabaseClient);
             
-            if (pendingDeletion && navigator.onLine && window.location.protocol !== 'file:') {
-                console.log('Found pending account deletion request from:', deletionTime);
-                
-                try {
-                    // Check if we're on localhost or a deployed server
-                    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                    const apiUrl = isLocalhost
-                        ? 'http://localhost:3000/api/cleanup-orphaned-users'
-                        : '/api/cleanup-orphaned-users';
-                    
-                    console.log('Processing pending deletion via API:', apiUrl);
-                    
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            user_id: pendingDeletion
-                        })
-                    });
-                    
-                    if (response.ok) {
-                        console.log('Successfully processed pending account deletion');
-                        // Clear the pending deletion
-                        localStorage.removeItem('pendingAccountDeletion');
-                        localStorage.removeItem('deletionRequestTime');
-                    } else {
-                        console.warn('Could not process pending deletion - will try again later');
-                    }
-                } catch (error) {
-                    console.error('Error processing pending deletion:', error);
-                }
-            }
-
-            // Enhanced profile completion check
-            const { data: { session } } = await supabase.auth.getSession();
-            
-            if (session?.user) {
-                try {
-                    const { data: profile, error } = await supabase
-                        .from('profiles')
-                        .select('first_name, last_name, phone, street, city, province, postal_code')
-                        .eq('user_id', session.user.id)
-                        .single();
-
-                    // Define mandatory fields
-                    const requiredFields = [
-                        'first_name',
-                        'last_name',
-                        'phone',
-                        'street',
-                        'city',
-                        'province',
-                        'postal_code'
-                    ];
-
-                    // Check if any required field is missing or empty
-                    const isProfileComplete = requiredFields.every(field => 
-                        profile?.[field]?.trim() !== ''
-                    );
-
-                    if (!isProfileComplete) {
-                        // Store intended destination
-                        sessionStorage.setItem('returnPath', window.location.pathname);
-                        window.location.href = '/update-profile.html?mandatory=true';
-                        window.history.replaceState(null, null, window.location.href);
-                        return;
-                    }
-            
-                    // If coming from profile update, clear the return path
-                    sessionStorage.removeItem('returnPath');
-
-                } catch (error) {
-                    console.error('Profile check error:', error);
-                    window.location.href = '/update-profile.html?mandatory=true';
-                    return;
-                }
+            // Move any auth-dependent code from line 704 here
+            if(window.supabaseClient?.auth) {
+                // Your existing auth code
             }
         });
-
-        function updateProfileDisplay() {
-            const profile = window.userProfile;
-            
-            // Address components with fallbacks
-            const addressComponents = {
-                street: profile.street || null,
-                city: profile.city || null,
-                province: profile.province ? 
-                    document.querySelector(`#editProvince option[value="${profile.province}"]`)?.textContent || 
-                    profile.province.toUpperCase() : null,
-                postalCode: profile.postal_code ? 
-                    profile.postal_code.replace(/([A-Z]\d[A-Z]) ?(\d[A-Z]\d)/, '$1 $2') : null
-            };
-
-            const addressContainer = document.getElementById('modalAddress');
-            
-            if (addressComponents.street || addressComponents.city || addressComponents.province || addressComponents.postalCode) {
-                addressContainer.innerHTML = `
-                    <div class="address-display">
-                        ${addressComponents.street ? `<div class="address-line"><strong>${addressComponents.street}</strong></div>` : ''}
-                        <div class="city-province">
-                            ${[addressComponents.city, addressComponents.province].filter(Boolean).join(', ')}
-                        </div>
-                        ${addressComponents.postalCode ? `<div class="postal-code">${addressComponents.postalCode}</div>` : ''}
-                        <div class="country">Canada</div>
-                    </div>
-                `;
-            } else {
-                addressContainer.innerHTML = `
-                    <div class="address-missing">
-                        <i class="fas fa-exclamation-circle"></i>
-                        Complete your address information
-                    </div>
-                `;
-            }
-        }
     </script>
 </body>
 </html> 

@@ -931,25 +931,31 @@
                 // Registration data
                 const { data, error } = await supabaseClient.auth.signUp({
                     email: document.getElementById('email').value,
-                    password: document.getElementById('password').value,
-                    options: {
-                        data: {
-                            full_name: document.getElementById('fullName').value,
-                            phone: phoneNumber,
-                            address: {
-                                street: document.getElementById('street').value,
-                                city: document.getElementById('city').value,
-                                province: document.getElementById('province').value,
-                                postal_code: document.getElementById('postalCode').value.replace(/\s/g, '')
-                            },
-                            car_models: Array.from(document.querySelectorAll('input[name="carModels"]:checked'))
-                                          .map(cb => cb.value),
-                            date_of_birth: dateOfBirth
-                        }
-                    }
+                    password: document.getElementById('password').value
                 });
 
                 if (error) throw error;
+                
+                // Explicit profile creation
+                const { error: profileError } = await supabaseClient
+                    .from('profiles')
+                    .insert({
+                        id: data.user.id,
+                        first_name: document.getElementById('fullName').value.split(' ')[0],
+                        last_name: document.getElementById('fullName').value.split(' ').slice(1).join(' '),
+                        phone: phoneNumber,
+                        address: {
+                            street: document.getElementById('street').value,
+                            city: document.getElementById('city').value,
+                            province: document.getElementById('province').value,
+                            postal_code: document.getElementById('postalCode').value.replace(/\s/g, '')
+                        },
+                        car_models: Array.from(document.querySelectorAll('input[name="carModels"]:checked'))
+                                      .map(cb => cb.value),
+                        date_of_birth: dateOfBirth
+                    });
+
+                if (profileError) throw profileError;
                 
                 // Add email to localStorage before redirect
                 localStorage.setItem('pendingVerificationEmail', document.getElementById('email').value);

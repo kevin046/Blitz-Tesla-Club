@@ -34,7 +34,8 @@
             
             .event-image {
                 width: 100%;
-                height: 250px;
+                height: auto;
+                max-height: none;
             }
         }
         
@@ -78,18 +79,16 @@
         }
 
         .event-card {
-            background: #fff;
-            border-radius: 12px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
             overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            margin-bottom: 2rem;
-            position: relative;
+            margin-bottom: 2.5rem;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .event-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
         }
 
         .event-placeholder {
@@ -120,29 +119,102 @@
         }
 
         .event-header {
-            display: flex;
-            gap: 2rem;
-            margin-bottom: 1.5rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2.5rem;
+            padding: 2rem;
+            align-items: start;
         }
 
-        .image-container {
-            width: 50%;
-            position: relative;
-            overflow: hidden;
-            border-radius: 12px;
+        .event-image-container {
+            flex: 1;
+            height: 600px;
+            margin-right: 2rem;
+            background-color: #f8f9fa;
+            background-image: url('https://i.ibb.co/XfYYsDp5/1011165571a04d4f8b1852fd1d061a5b.jpg');
+            background-position: center;
+            background-size: contain;
+            background-repeat: no-repeat;
         }
 
-        .event-image {
+        .event-main-image {
             width: 100%;
+            max-width: 100%;
             height: auto;
+            border-radius: 8px;
             object-fit: contain;
-            aspect-ratio: 16/9;
         }
 
-        .event-map {
-            margin-top: 1.5rem;
+        .event-details {
+            flex: 1;
+            padding: 2rem;
+        }
+
+        .event-title {
+            font-size: 2.25rem;
+            color: #171a20;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .event-meta-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.25rem;
+            background: rgba(23,26,32,0.03);
             border-radius: 8px;
-            overflow: hidden;
+        }
+
+        .meta-icon {
+            font-size: 1.25rem;
+            color: #00e676;
+        }
+
+        .meta-content strong {
+            display: block;
+            color: #171a20;
+            margin-bottom: 0.25rem;
+        }
+
+        .meta-content span {
+            color: #5c5e62;
+            font-size: 0.95rem;
+        }
+
+        .event-description {
+            border-top: 1px solid rgba(0,0,0,0.08);
+            padding-top: 2rem;
+        }
+
+        .event-description h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1.25rem;
+            color: #171a20;
+        }
+
+        .feature-list {
+            display: grid;
+            gap: 1rem;
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: rgba(0,230,118,0.03);
+            border-radius: 6px;
+            border: 1px solid rgba(0,230,118,0.1);
         }
 
         .event-actions {
@@ -181,13 +253,32 @@
         }
 
         @media (max-width: 768px) {
-            .image-container {
-                width: 100%;
+            .event-header {
+                grid-template-columns: 1fr;
+                padding: 1.5rem;
             }
             
-            .event-image {
-                height: auto;
-                max-height: 400px;
+            .event-meta-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .event-title {
+                font-size: 1.75rem;
+            }
+            
+            .event-container {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            
+            .event-image-container {
+                height: 500px;
+                margin-right: 0;
+                margin-bottom: 1.5rem;
+            }
+            
+            .event-main-image {
+                max-width: 90%;
             }
         }
 
@@ -352,6 +443,97 @@
                 height: 4px;
             }
         }
+
+        .image-link {
+            display: block;
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            background: #f5f5f5;
+        }
+
+        .image-link img {
+            width: 100%;
+            height: auto;
+            max-height: 80vh;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            image-rendering: high-quality;
+            filter: blur(0);
+            backface-visibility: hidden;
+        }
+
+        .image-link:hover img {
+            transform: scale(1.03);
+        }
+
+        /* Make the date/time/location text dark so it's visible */
+        .event-meta p {
+            color: #171a20 !important;
+        }
+
+        /* Enlarge the image on desktop viewports */
+        @media (min-width: 769px) {
+            .image-container {
+                width: 100% !important;
+            }
+            .event-image {
+                width: 100%;
+                height: auto;
+                max-height: none;
+                object-fit: contain;
+            }
+        }
+
+        .event-container {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+            margin: 20px 0;
+        }
+
+        .event-main-image {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .event-image-container {
+                padding: 0 15px;
+            }
+        }
+
+        img {
+            width: auto !important;
+            height: auto !important;
+            max-width: 100% !important;
+            max-height: 80vh !important;
+            object-fit: contain !important;
+        }
+
+        .info-image {
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        @media (max-width: 768px) {
+            .event-container {
+                flex-direction: column;
+            }
+            
+            .event-image-container {
+                flex: 0 0 100%;
+                max-width: none;
+                margin-right: 0;
+                margin-bottom: 2rem;
+            }
+        }
     </style>
 </head>
 <body class="events-page">
@@ -379,26 +561,48 @@
         <!-- Tesla Light Show Event Card -->
         <div class="event-card featured-event">
             <div class="event-header">
-                <div class="image-container">
-                    <img src="https://i.ibb.co/XfYYsDp5/1011165571a04d4f8b1852fd1d061a5b.jpg" 
-                         alt="Tesla Light Show Group" 
-                         class="event-image"
-                         loading="lazy">
-                </div>
+                <div class="event-image-container"></div>
+                
                 <div class="event-details">
-                    <h2>Tesla Light Show Spectacular</h2>
-                    <div class="event-meta">
-                        <p><i class="fas fa-calendar-day"></i> May 30, 2025 @ 8:00 PM</p>
-                        <p><i class="fas fa-map-marker-alt"></i> Golf IT Up Parking Lot</p>
-                        <p>2910 Steeles Ave East, Thornhill, ON</p>
+                    <h1 class="event-title">Tesla Light Show Spectacular</h1>
+                    
+                    <div class="event-meta-grid">
+                        <div class="meta-item">
+                            <i class="fas fa-calendar-day meta-icon"></i>
+                            <div class="meta-content">
+                                <strong>Event Date</strong>
+                                <span>May 30, 2025 @ 8:00 PM EST</span>
+                            </div>
+                        </div>
+                        
+                        <div class="meta-item">
+                            <i class="fas fa-map-marker-alt meta-icon"></i>
+                            <div class="meta-content">
+                                <strong>Location</strong>
+                                <span>Golf IT Up Parking Lot<br>2910 Steeles Ave East, Thornhill, ON</span>
+                            </div>
+                        </div>
                     </div>
+
                     <div class="event-description">
-                        <p>Connect with fellow Tesla enthusiasts at our premier light show event:</p>
-                        <ul>
-                            <li>Member networking & social gatherings</li>
-                            <li>Group light choreography sessions</li>
-                            <li>Technical workshops & demonstrations</li>
-                            <li>Exclusive owner meet-and-greets</li>
+                        <h3>Event Highlights</h3>
+                        <ul class="feature-list">
+                            <li>
+                                <i class="fas fa-lightbulb text-accent"></i>
+                                Custom light choreography
+                            </li>
+                            <li>
+                                <i class="fas fa-users"></i>
+                                Member networking sessions
+                            </li>
+                            <li>
+                                <i class="fas fa-wrench"></i>
+                                Technical workshops
+                            </li>
+                            <li>
+                                <i class="fas fa-camera"></i>
+                                Professional photo ops
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -614,8 +818,30 @@
             
             if (!model) return alert('Please select a Tesla model');
             
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            
+            const { data: { user }, error: userErr } = await supabaseClient.auth.getUser();
+            if (userErr || !user) {
+                console.error('Auth error:', userErr);
+                return alert('Please login before registering a vehicle.');
+            }
+
+            // ▶▶ LIMIT to max 2 cars per member per event
+            const { data: existingRegs, error: fetchErr } = await supabaseClient
+                .from('event_registrations')
+                .select('id', { count: 'exact' })
+                .eq('user_id', user.id)
+                .eq('event_id', EVENT_ID)
+                .is('cancelled_at', null);
+
+            if (fetchErr) {
+                console.error('Error fetching registrations count:', fetchErr);
+                return alert('Unable to verify your existing registrations. Try again later.');
+            }
+
+            if ((existingRegs?.length ?? 0) >= 2) {
+                return alert('You may only register up to 2 vehicles for this event.');
+            }
+
+            // proceed with upsert
             const { data, error } = await supabaseClient
                 .from('event_registrations')
                 .upsert({

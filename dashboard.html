@@ -887,6 +887,61 @@
             font-size: 0.75rem;
             vertical-align: middle;
         }
+
+        /* Add to existing dashboard styles */
+        .status-indicators {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;  /* Vertical centering */
+            justify-content: center;  /* Horizontal centering */
+            margin: 1rem 0;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            background: #f8f9fa;
+        }
+
+        .status-icon {
+            font-size: 1.2rem;
+        }
+
+        /* Ensure text alignment */
+        .status-text {
+            color: #333; /* Changed from white to dark grey */
+            font-weight: 500;
+            margin: 0;
+        }
+
+        /* If using status badges */
+        .status-badge {
+            color: #333 !important; /* Force text color */
+            background-color: #f8f9fa;
+        }
+
+        .upcoming-events {
+            position: relative;
+            padding-right: 120px; /* Space for button */
+        }
+
+        .upcoming-events .btn-small {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 8px 15px;
+            font-size: 0.9rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
     </style>
     <!-- Add this in the head section -->
     <script>
@@ -2663,6 +2718,27 @@ Blitz T Club Team`);
           });
         }
       });
+    </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const user = await supabaseClient.auth.getUser();
+        if (!user.data.user) return;
+
+        // Fetch event registrations
+        const { data: registrations } = await supabaseClient
+            .from('event_registrations')
+            .select('event_id, events(status)')
+            .eq('user_id', user.data.user.id);
+
+        // Count attended events (status = 'completed')
+        const attended = registrations.filter(r => r.events?.status === 'completed').length;
+        document.getElementById('eventsAttended').textContent = attended;
+
+        // Count upcoming events (status = 'upcoming')
+        const upcoming = registrations.filter(r => r.events?.status === 'upcoming').length;
+        document.getElementById('upcomingEvents').textContent = upcoming;
+    });
     </script>
 </body>
 </html> 

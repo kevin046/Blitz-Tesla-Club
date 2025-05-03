@@ -556,12 +556,15 @@
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI'
         );
 
+        // Change all instances of 'lightshow-2025' to 'Lightshow-05302025'
+        const EVENT_ID = 'Lightshow-05302025';
+
         // Modified registration count display
         const updateRegistrationCount = async () => {
             const { data, error } = await supabaseClient
                 .from('event_registrations')
                 .select('vehicle_model')
-                .eq('event_id', 'lightshow-2025')
+                .eq('event_id', EVENT_ID)
                 .is('cancelled_at', null);
 
             if (error) {
@@ -617,7 +620,7 @@
                 .from('event_registrations')
                 .upsert({
                     user_id: user.id,
-                    event_id: 'lightshow-2025',
+                    event_id: EVENT_ID,
                     vehicle_model: model,
                     registered_at: new Date().toISOString()
                 });
@@ -667,7 +670,7 @@
                     cancellation_reason: reason
                 })
                 .eq('user_id', user.id)
-                .eq('event_id', 'lightshow-2025');
+                .eq('event_id', EVENT_ID);
 
             if (error) {
                 alert('Cancellation failed: ' + error.message);

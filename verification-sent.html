@@ -328,153 +328,47 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="navigation.js" defer></script>
     <script>
-        // Initialize Supabase client with the current project credentials
-        const SUPABASE_URL = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            console.log('Verification sent page loaded');
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const email = urlParams.get('email');
             
-            // Display user's email
-            const userEmail = localStorage.getItem('pendingVerificationEmail');
-            if (userEmail) {
-                document.getElementById('userEmail').textContent = userEmail;
-                console.log('Pending verification for email:', userEmail);
+            if (email) {
+                document.getElementById('userEmail').textContent = email;
+                localStorage.setItem('pendingVerificationEmail', email);
             } else {
-                console.warn('No pending verification email found in localStorage');
-                document.getElementById('userEmail').textContent = 'your registered email';
-            }
-            
-            // Get the registration time
-            const registrationTime = localStorage.getItem('registrationTime');
-            if (registrationTime) {
-                const regTime = new Date(registrationTime);
-                const now = new Date();
-                const hoursSinceReg = Math.round((now - regTime) / (1000 * 60 * 60));
-                
-                if (hoursSinceReg > 23) {
-                    // Add warning about expiration if close to 24 hours
-                    const verificationInfo = document.querySelector('.verification-info');
-                    const warningElement = document.createElement('p');
-                    warningElement.innerHTML = `<i class="fas fa-exclamation-circle" style="color: #ff5555;"></i> <span style="color: #ff5555;">Warning:</span> Your verification link is about to expire (or has expired). Please request a new link.`;
-                    verificationInfo.prepend(warningElement);
+                const storedEmail = localStorage.getItem('pendingVerificationEmail');
+                if (storedEmail) {
+                    document.getElementById('userEmail').textContent = storedEmail;
+                } else {
+                    document.getElementById('resend-container').style.display = 'none';
+                    document.getElementById('no-email-warning').style.display = 'block';
                 }
-            }
-
-            // Handle resend button click
-            const resendButton = document.getElementById('resendButton');
-            const timerElement = document.getElementById('resendTimer');
-            
-            resendButton.addEventListener('click', async () => {
-                console.log('Resend button clicked');
-                resendButton.disabled = true;
-                resendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-                
-                try {
-                    const email = localStorage.getItem('pendingVerificationEmail');
-                    if (!email) {
-                        console.error('No email found in localStorage for resend');
-                        alert('No email found to resend verification. Please register again.');
-                        window.location.href = 'register.html';
-                        return;
-                    }
-
-                    // Get absolute redirect URL
-                    const redirectTo = window.location.origin + '/verification-success.html';
-                    console.log('Resend with redirect URL:', redirectTo);
-                    
-                    // Update registration time in localStorage for expiry tracking
-                    localStorage.setItem('registrationTime', new Date().toISOString());
-                    
-                    // Resend email verification using Supabase
-                    const { data, error } = await supabaseClient.auth.resend({
-                        type: 'signup',
-                        email: email,
-                        options: {
-                            emailRedirectTo: redirectTo
-                        }
-                    });
-
-                    if (error) {
-                        console.error('Error resending verification email:', error);
-                        throw error;
-                    }
-                    
-                    console.log('Resend verification response:', data);
-
-                    // Update button state
-                    resendButton.disabled = true;
-                    resendButton.innerHTML = '<i class="fas fa-check"></i> Email Sent';
-                    
-                    // Add success message
-                    alert('Verification email has been resent. Please check your inbox and spam folder.');
-                    
-                    // Start countdown timer
-                    let timeLeft = 60;
-                    timerElement.textContent = `Resend available in ${timeLeft}s`;
-                    
-                    const timer = setInterval(() => {
-                        timeLeft--;
-                        timerElement.textContent = `Resend available in ${timeLeft}s`;
-                        if (timeLeft <= 0) {
-                            clearInterval(timer);
-                            resendButton.disabled = false;
-                            resendButton.innerHTML = '<i class="fas fa-redo"></i> Resend Email';
-                            timerElement.textContent = '';
-                        }
-                    }, 1000);
-
-                } catch (error) {
-                    console.error('Error sending verification:', error);
-                    resendButton.disabled = false;
-                    resendButton.innerHTML = '<i class="fas fa-redo"></i> Resend Email';
-                    
-                    // Show error message with more details
-                    let errorMessage = 'Failed to resend verification email. ';
-                    
-                    if (error.message) {
-                        errorMessage += error.message;
-                    } else {
-                        errorMessage += 'Please try again or contact support.';
-                    }
-                    
-                    alert(errorMessage);
-                }
-            });
-            
-            // Check if we need to show debug info
-            const showDebug = new URLSearchParams(window.location.search).get('debug') === 'true';
-            if (showDebug) {
-                console.log('Debug mode enabled');
-                
-                // Create debug section
-                const debugSection = document.createElement('div');
-                debugSection.className = 'debug-section';
-                debugSection.innerHTML = `
-                    <h3>Debug Information</h3>
-                    <p>Supabase URL: ${SUPABASE_URL}</p>
-                    <p>Redirect URL: ${window.location.origin}/verification-success.html</p>
-                    <p>Registration Time: ${localStorage.getItem('registrationTime') || 'Not set'}</p>
-                    <p>Pending Email: ${localStorage.getItem('pendingVerificationEmail') || 'Not set'}</p>
-                    <p>Pending Member ID: ${localStorage.getItem('pendingMemberId') || 'Not set'}</p>
-                    <button id="testSupabaseBtn" class="btn">Test Supabase Connection</button>
-                `;
-                
-                document.querySelector('.verification-box').appendChild(debugSection);
-                
-                // Add test button functionality
-                document.getElementById('testSupabaseBtn').addEventListener('click', async () => {
-                    try {
-                        const { data, error } = await supabaseClient.from('profiles').select('count').limit(1);
-                        if (error) throw error;
-                        alert('Supabase connection successful. Data: ' + JSON.stringify(data));
-                    } catch (error) {
-                        alert('Supabase connection failed: ' + error.message);
-                    }
-                });
             }
         });
+
+        async function resendVerification() {
+            const email = localStorage.getItem('pendingVerificationEmail') || 
+                         new URLSearchParams(window.location.search).get('email');
+            
+            if (!email) {
+                alert('No email found for verification');
+                return;
+            }
+
+            try {
+                const supabase = window.supabaseClient;
+                const { error } = await supabase.auth.resend({
+                    type: 'signup',
+                    email: email
+                });
+
+                if (error) throw error;
+                alert('Verification email resent successfully!');
+            } catch (error) {
+                console.error('Resend error:', error);
+                alert(`Error resending email: ${error.message}`);
+            }
+        }
     </script>
 </body>
 </html> 

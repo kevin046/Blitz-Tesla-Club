@@ -354,6 +354,221 @@
                 display: flex !important; /* Only show on mobile */
             }
         }
+
+        .address-fields {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 480px) {
+            .address-fields {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            #street { grid-column: 1 / -1; }
+            #city { grid-column: 1 / 2; }
+            #province { grid-column: 2 / 3; }
+            #postalCode { grid-column: 1 / 2; }
+        }
+
+        #province {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+        }
+
+        /* Address Form Section */
+        .address-form-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+
+        .form-field label i {
+            margin-right: 8px;
+            color: #4CAF50;
+        }
+
+        .postal-code-field {
+            position: relative;
+        }
+
+        .postal-code-field:after {
+            content: "🇨🇦";
+            position: absolute;
+            right: 15px;
+            top: 38px;
+            font-size: 1.2em;
+        }
+
+        /* Address Display */
+        .address-display {
+            font-size: 15px;
+            line-height: 1.6;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        .address-line {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .city-province {
+            color: #b0bec5;
+            margin-bottom: 3px;
+        }
+
+        .postal-code {
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+            color: #81d4fa;
+            margin: 8px 0;
+        }
+
+        .country {
+            color: #a5d6a7;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .address-missing {
+            background: rgba(255, 183, 77, 0.1);
+            color: #ffb74d;
+            padding: 12px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Modern Event Styling */
+        .events-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .section-header h1 {
+            font-size: 2.5rem;
+            color: #171a20;
+            margin-bottom: 1rem;
+        }
+
+        .header-decoration {
+            width: 60px;
+            height: 4px;
+            background: #00e676;
+            margin: 0 auto;
+        }
+
+        .featured-event {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .event-hero {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .event-image {
+            width: 100%;
+            height: 500px;
+            object-fit: cover;
+            object-position: center 30%;
+            filter: brightness(0.95);
+            border-radius: 16px 16px 0 0;
+        }
+
+        .event-highlights {
+            position: absolute;
+            bottom: -2rem;
+            left: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 2rem;
+        }
+
+        .highlight-card {
+            background: rgba(255,255,255,0.95);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            flex: 1;
+            text-align: center;
+        }
+
+        .highlight-card i {
+            font-size: 2rem;
+            color: #00e676;
+            margin-bottom: 1rem;
+        }
+
+        .event-content {
+            padding: 3rem;
+        }
+
+        .event-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-top: 2rem;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .feature-list i {
+            color: #00e676;
+            width: 30px;
+            text-align: center;
+        }
+
+        .detail-card {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .map-container {
+            height: 300px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .lead {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            color: #444;
+            margin-bottom: 2rem;
+        }
     </style>
 </head>
 <body class="home-page">
@@ -385,6 +600,76 @@
             <div class="scroll-indicator">
                 <i class="fas fa-chevron-down"></i>
             </div>
+        </section>
+
+        <section class="events-container">
+            <div class="section-header">
+                <h1>Tesla Light Show Spectacular</h1>
+                <div class="header-decoration"></div>
+                <p class="lead">Join us for an exclusive after-dark experience showcasing Tesla's cutting-edge light synchronization technology</p>
+            </div>
+
+            <div class="featured-event">
+                <div class="event-hero">
+                    <img src="https://i.ibb.co/fVDDp9tN/1011165571a04d4f8b1852fd1d061a5b.jpg?width=1200" 
+                         alt="Tesla light show" 
+                         class="event-image"
+                         loading="lazy">
+                    
+                    <div class="event-highlights">
+                        <div class="highlight-card">
+                            <i class="fas fa-calendar-alt"></i>
+                            <h3>May 2, 2025</h3>
+                            <p>8:00 PM - Midnight</p>
+                        </div>
+                        <div class="highlight-card">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <h3>Tesla HQ Arena</h3>
+                            <p>Palo Alto, CA</p>
+                        </div>
+                        <div class="highlight-card">
+                            <i class="fas fa-clock"></i>
+                            <h3>45 Min Show</h3>
+                            <p>+ 2hr Afterparty</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="event-content">
+                    <div class="event-grid">
+                        <div class="detail-card">
+                            <h2>Experience Includes</h2>
+                            <ul class="feature-list">
+                                <li><i class="fas fa-lightbulb"></i>Custom light choreography</li>
+                                <li><i class="fas fa-music"></i>Spatial audio experience</li>
+                                <li><i class="fas fa-car"></i>Model showcase parade</li>
+                                <li><i class="fas fa-cocktail"></i>Premium lounge access</li>
+                            </ul>
+                        </div>
+                        
+                        <div>
+                            <h2>Event Details</h2>
+                            <p>This immersive experience features:</p>
+                            <ul class="feature-list">
+                                <li><i class="fas fa-check"></i>300+ synchronized Teslas</li>
+                                <li><i class="fas fa-check"></i>Drone light accompaniment</li>
+                                <li><i class="fas fa-check"></i>Exclusive owner meetups</li>
+                                <li><i class="fas fa-check"></i>Tech demo stations</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="dashboard-section">
+            <h2><i class="fas fa-calendar-star"></i> Your Event Registrations</h2>
+            <div class="registrations-container" id="eventRegistrations">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+            <a href="events.html" class="btn primary-btn">
+                <i class="fas fa-plus-circle"></i> Register for More Events
+            </a>
         </section>
     </main>
 
@@ -479,7 +764,89 @@
                     console.error('Error processing pending deletion:', error);
                 }
             }
+
+            // Enhanced profile completion check
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (session?.user) {
+                try {
+                    const { data: profile, error } = await supabase
+                        .from('profiles')
+                        .select('first_name, last_name, phone, street, city, province, postal_code')
+                        .eq('user_id', session.user.id)
+                        .single();
+
+                    // Define mandatory fields
+                    const requiredFields = [
+                        'first_name',
+                        'last_name',
+                        'phone',
+                        'street',
+                        'city',
+                        'province',
+                        'postal_code'
+                    ];
+
+                    // Check if any required field is missing or empty
+                    const isProfileComplete = requiredFields.every(field => 
+                        profile?.[field]?.trim() !== ''
+                    );
+
+                    if (!isProfileComplete) {
+                        // Store intended destination
+                        sessionStorage.setItem('returnPath', window.location.pathname);
+                        window.location.href = '/update-profile.html?mandatory=true';
+                        window.history.replaceState(null, null, window.location.href);
+                        return;
+                    }
+            
+                    // If coming from profile update, clear the return path
+                    sessionStorage.removeItem('returnPath');
+
+                } catch (error) {
+                    console.error('Profile check error:', error);
+                    window.location.href = '/update-profile.html?mandatory=true';
+                    return;
+                }
+            }
         });
+
+        function updateProfileDisplay() {
+            const profile = window.userProfile;
+            
+            // Address components with fallbacks
+            const addressComponents = {
+                street: profile.street || null,
+                city: profile.city || null,
+                province: profile.province ? 
+                    document.querySelector(`#editProvince option[value="${profile.province}"]`)?.textContent || 
+                    profile.province.toUpperCase() : null,
+                postalCode: profile.postal_code ? 
+                    profile.postal_code.replace(/([A-Z]\d[A-Z]) ?(\d[A-Z]\d)/, '$1 $2') : null
+            };
+
+            const addressContainer = document.getElementById('modalAddress');
+            
+            if (addressComponents.street || addressComponents.city || addressComponents.province || addressComponents.postalCode) {
+                addressContainer.innerHTML = `
+                    <div class="address-display">
+                        ${addressComponents.street ? `<div class="address-line"><strong>${addressComponents.street}</strong></div>` : ''}
+                        <div class="city-province">
+                            ${[addressComponents.city, addressComponents.province].filter(Boolean).join(', ')}
+                        </div>
+                        ${addressComponents.postalCode ? `<div class="postal-code">${addressComponents.postalCode}</div>` : ''}
+                        <div class="country">Canada</div>
+                    </div>
+                `;
+            } else {
+                addressContainer.innerHTML = `
+                    <div class="address-missing">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Complete your address information
+                    </div>
+                `;
+            }
+        }
     </script>
 </body>
 </html> 

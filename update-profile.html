@@ -1,0 +1,38 @@
+// After successful profile update submission:
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.has('mandatory')) {
+    const returnPath = sessionStorage.getItem('returnPath') || '/dashboard.html';
+    window.location.href = returnPath;
+} 
+
+<!-- In your HTML where the reminder button exists -->
+<a href="dashboard.html" id="remindLaterBtn" class="btn btn-secondary">
+    Remind Me Later
+</a>
+
+<script>
+    // Show reminder button only for non-mandatory updates
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('mandatory')) {
+        document.getElementById('remindLaterBtn').style.display = 'none';
+    }
+</script> 
+
+<script>
+    // In your form submission success handler
+    const { error } = await supabase.from('profiles').upsert(profileData);
+    if (!error) {
+        // Check if this was a mandatory update
+        const isMandatory = new URLSearchParams(window.location.search).has('mandatory');
+        
+        if (isMandatory) {
+            // Redirect back to original path
+            const returnPath = sessionStorage.getItem('returnPath') || '/dashboard.html';
+            sessionStorage.removeItem('returnPath');
+            window.location.href = returnPath;
+        } else {
+            // Regular update flow
+            showSuccessMessage('Profile updated successfully!');
+        }
+    }
+</script> 

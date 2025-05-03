@@ -771,6 +771,111 @@
         .redemption-modal .confirm-btn:hover {
             background: #15803d;
         }
+
+        /* Car models display styling */
+        .car-models-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 5px 0;
+        }
+        
+        .car-model-badge {
+            background: rgba(0, 123, 255, 0.2);
+            color: #fff;
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .car-model-badge i {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        /* Address display styling */
+        .address-display {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            color: #fff;
+            line-height: 1.6;
+            transition: all 0.3s ease;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .address-display address {
+            font-style: normal;
+            margin: 0;
+        }
+        
+        .edit-info-btn {
+            margin-top: 15px;
+            background: transparent;
+            border: 1px solid #007bff;
+            color: #007bff;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .edit-info-btn:hover {
+            background: rgba(0, 123, 255, 0.1);
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+
+        .address-fields {
+            grid-column: 1 / -1;
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+
+        .address-fields #editStreet {
+            grid-column: 1 / -1;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .icon-btn {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .icon-btn i {
+            margin-right: 6px;
+        }
+
+        #addressUpdateForm {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body class="dashboard-page">
@@ -880,7 +985,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Quick Links Card -->
             <div class="dashboard-card">
                 <div class="card-header">
@@ -1018,15 +1123,15 @@
                 return;
             }
 
-            // Get user profile
-            const { data: userData, error: profileError } = await supabaseClient
-                .from('profiles')
-                .select('*')
+                // Get user profile
+                const { data: userData, error: profileError } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
                 .eq('email', session.user.email)
-                .single();
+                    .single();
 
             console.log('Fetching profile for email:', session.user.email);
-            console.log('Profile query result:', { profile: userData, profileError });
+                console.log('Profile query result:', { profile: userData, profileError });
 
             let profile;
 
@@ -1038,7 +1143,7 @@
                 const memberId = await generateSequentialMemberId();
                 
                 const { data: newProfile, error: createError } = await supabaseClient
-                    .from('profiles')
+                        .from('profiles')
                     .insert([
                         {
                             id: session.user.id,
@@ -1051,8 +1156,8 @@
                             created_at: new Date().toISOString()
                         }
                     ])
-                    .select()
-                    .single();
+                        .select()
+                        .single();
 
                 if (createError) {
                     console.error('Error creating profile:', createError);
@@ -1060,13 +1165,13 @@
                 }
 
                 console.log('New profile created:', newProfile);
-                profile = newProfile;
+                    profile = newProfile;
             } else if (profileError) {
                 console.error('Error fetching profile:', profileError);
                 throw profileError;
-            } else {
-                profile = userData;
-            }
+                } else {
+                    profile = userData;
+                }
 
             // Make profile available globally for other functions
             window.userProfile = profile;
@@ -1145,7 +1250,7 @@
                     // Fetch latest profile data from Supabase using email only
                     const { data: latestProfile, error: profileError } = await supabaseClient
                         .from('profiles')
-                        .select('*')
+                    .select('*')
                         .eq('email', session.user.email)
                         .single();
 
@@ -1179,7 +1284,7 @@
                         `;
                         statusElement.textContent = 'Active';
                         statusElement.className = 'status-active';
-                    } else {
+                } else {
                         verificationStatus.innerHTML = `
                             <span class="badge warning">
                                 <i class="fas fa-envelope"></i>
@@ -1195,7 +1300,7 @@
 
                     // Update the global profile data
                     window.userProfile = latestProfile;
-                } catch (error) {
+            } catch (error) {
                     console.error('Error updating status display:', error);
                 }
             };
@@ -1325,6 +1430,81 @@
                 document.getElementById('modalMembershipStatus').textContent = 
                     profile.membership_status.charAt(0).toUpperCase() + profile.membership_status.slice(1);
                 
+                // Populate new fields
+                // Phone number
+                document.getElementById('modalPhoneNumber').textContent = profile.phone_number || 'Not provided';
+                
+                // Date of birth
+                if (profile.date_of_birth) {
+                    // Parse date in local timezone
+                    const [year, month, day] = profile.date_of_birth.split('-');
+                    const dobDate = new Date(year, month - 1, day);
+                    
+                    // Format with ordinal suffix
+                    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                    const dateString = dobDate.toLocaleDateString('en-US', options);
+                    const dayWithSuffix = dateString.replace(/(\d+),/, (_, day) => {
+                        return getOrdinalSuffix(day) + ',';
+                    });
+                    
+                    document.getElementById('modalDateOfBirth').textContent = dayWithSuffix;
+                } else {
+                    document.getElementById('modalDateOfBirth').textContent = 'Not provided';
+                }
+                
+                // Car models
+                const carModelsContainer = document.getElementById('modalCarModels');
+                carModelsContainer.innerHTML = '';
+                
+                if (profile.car_models && Array.isArray(profile.car_models) && profile.car_models.length > 0) {
+                    profile.car_models.forEach(model => {
+                        const badge = document.createElement('div');
+                        badge.className = 'car-model-badge';
+                        badge.innerHTML = `<i class="fas fa-car"></i> ${model}`;
+                        carModelsContainer.appendChild(badge);
+                    });
+                } else {
+                    carModelsContainer.innerHTML = '<p>No Tesla models provided</p>';
+                }
+                
+                // Address
+                const addressContainer = document.getElementById('modalAddress');
+                
+                if (profile.address) {
+                    try {
+                        const addr = profile.address;
+                        addressContainer.innerHTML = `
+                            <address>
+                                ${addr.street}<br>
+                                ${addr.city}, ${addr.province}<br>
+                                ${addr.postal_code}<br>
+                                Canada
+                            </address>
+                        `;
+                    } catch(e) {
+                        // Fallback for old format
+                        addressContainer.innerHTML = profile.address;
+                    }
+                } else {
+                    addressContainer.innerHTML = `
+                        <p>No address provided</p>
+                        <button type="button" class="edit-info-btn" id="editProfileInfoBtn">
+                            <i class="fas fa-pencil-alt"></i> Add Information
+                        </button>
+                    `;
+                }
+                
+                // Add handler for edit info button
+                const editInfoBtn = document.getElementById('editProfileInfoBtn');
+                if (editInfoBtn) {
+                    editInfoBtn.addEventListener('click', () => {
+                        // Close the current modal
+                        editProfileModal.style.display = 'none';
+                        // Redirect to profile completion page
+                        window.location.href = 'profile-completion.html';
+                    });
+                }
+                
                 editProfileModal.style.display = 'block';
             });
             
@@ -1343,6 +1523,13 @@
                 }
             });
             
+            // Close modal with Escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && editProfileModal.classList.contains('show')) {
+                    editProfileModal.style.display = 'none';
+                }
+            });
+
             // Handle password update
             modalEditProfileForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -1455,17 +1642,17 @@
                     
                     // Step 1: Delete profile data first (this part works)
                     const { error: profileError } = await supabaseClient
-                        .from('profiles')
+                    .from('profiles')
                         .delete()
                         .eq('id', user.id);
-                    
-                    if (profileError) {
+
+                if (profileError) {
                         console.error("Error deleting profile:", profileError);
                         throw new Error(`Failed to delete profile data: ${profileError.message}`);
                     }
                     
-                    console.log("Profile data deleted successfully");
-                    
+                console.log("Profile data deleted successfully");
+                
                     // Step 2: Delete any related data (with better error handling)
                     try {
                         const { error: regError } = await supabaseClient
@@ -1520,7 +1707,7 @@
                         input.type = 'text';
                         icon.classList.remove('fa-eye');
                         icon.classList.add('fa-eye-slash');
-                    } else {
+                } else {
                         input.type = 'password';
                         icon.classList.remove('fa-eye-slash');
                         icon.classList.add('fa-eye');
@@ -1772,10 +1959,10 @@ Blitz T Club Team`);
                     // Close modal when clicking the X button
                     redemptionModal.querySelector('.close-modal').addEventListener('click', () => {
                         redemptionModal.classList.remove('show');
-                    });
-                    
-                    // Close modal when clicking outside
-                    window.addEventListener('click', (e) => {
+            });
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', (e) => {
                         if (e.target === redemptionModal) {
                             redemptionModal.classList.remove('show');
                         }
@@ -1792,7 +1979,7 @@ Blitz T Club Team`);
                             const { data: latestProfile, error: profileError } = await supabaseClient
                                 .from('profiles')
                                 .select('*')
-                                .eq('id', session.user.id)
+                                .eq('uid', session.user.id)
                                 .single();
                             
                             if (profileError) {
@@ -1808,9 +1995,9 @@ Blitz T Club Team`);
                             if (latestProfile.coupon_redeemed === true) {
                                 alert('Your coupon has already been redeemed.');
                                 redemptionModal.classList.remove('show');
-                                return;
-                            }
-                            
+                    return;
+                }
+                
                             // Update profile to mark coupon as redeemed
                             const redemptionTimestamp = new Date().toISOString();
                             const { error: updateError } = await supabaseClient
@@ -1820,13 +2007,13 @@ Blitz T Club Team`);
                                     coupon_redeemed_at: redemptionTimestamp,
                                     updated_at: redemptionTimestamp
                                 })
-                                .eq('id', session.user.id);
+                                .eq('uid', session.user.id);
                             
                             if (updateError) {
                                 // If the update fails because the column doesn't exist, provide a meaningful error
                                 if (updateError.message && updateError.message.includes('column "coupon_redeemed" does not exist')) {
                                     throw new Error('Coupon feature is not fully set up. The database needs to be updated.');
-                                } else {
+                        } else {
                                     throw new Error('Failed to update redemption status: ' + updateError.message);
                                 }
                             }
@@ -1844,7 +2031,7 @@ Blitz T Club Team`);
                             // Show success message
                             alert('Coupon redeemed successfully! You can collect your club event item at the next event.');
                             
-                        } catch (error) {
+                } catch (error) {
                             console.error('Error redeeming coupon:', error);
                             alert('Error redeeming coupon: ' + error.message);
                         } finally {
@@ -1858,6 +2045,24 @@ Blitz T Club Team`);
                 console.error('Error initializing coupon redemption functionality:', error);
                 // This ensures that even if the coupon feature fails, it doesn't break other features
             }
+
+            // Remove duplicate session declaration and use existing session
+            if (session?.user) {
+                const { data: profile } = await supabaseClient
+                    .from('profiles')
+                    .select('id, address, phone, updated_at, uid')
+                    .eq('uid', session.user.id)
+                    .single();
+
+                const requiredFields = ['first_name', 'last_name', 'phone', 'street', 'city', 'province', 'postal_code'];
+                const isComplete = requiredFields.every(field => profile?.[field]?.trim() !== '');
+
+                if (!isComplete) {
+                    sessionStorage.setItem('returnPath', window.location.pathname);
+                    window.location.href = '/update-profile.html?mandatory=true';
+                    window.history.replaceState(null, null, window.location.href);
+                }
+            }
         });
     </script>
 
@@ -1865,33 +2070,33 @@ Blitz T Club Team`);
     <div id="membershipCardModal" class="modal">
         <div class="modal-content membership-card">
             <button class="close-modal">&times;</button>
-            <div class="card-header">
-                <div class="header-text">
+                <div class="card-header">
+                    <div class="header-text">
                     <h2>Blitz T Club</h2>
-                </div>
+                    </div>
                 <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo">
-            </div>
-            <div class="member-info">
-                <h3 id="cardFullName"></h3>
-                <div class="info-row">
+                    </div>
+                    <div class="member-info">
+                        <h3 id="cardFullName"></h3>
+                        <div class="info-row">
                     <span class="label">Member ID</span>
-                    <span id="cardMemberId"></span>
-                </div>
-                <div class="info-row">
+                            <span id="cardMemberId"></span>
+                        </div>
+                        <div class="info-row">
                     <span class="label">Member Since</span>
-                    <span id="cardMemberSince"></span>
-                </div>
-                <div class="info-row">
+                            <span id="cardMemberSince"></span>
+                        </div>
+                        <div class="info-row">
                     <span class="label">Status</span>
-                    <span id="cardMembershipStatus"></span>
-                </div>
-            </div>
-            <div class="card-footer">
-                <div class="qr-section">
-                    <canvas class="qr-code" id="memberQRCode"></canvas>
-                    <div class="qr-text">
-                        <i class="fas fa-qrcode"></i>
-                        <small>Scan to verify membership</small>
+                            <span id="cardMembershipStatus"></span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="qr-section">
+                            <canvas class="qr-code" id="memberQRCode"></canvas>
+                            <div class="qr-text">
+                                <i class="fas fa-qrcode"></i>
+                                <small>Scan to verify membership</small>
                     </div>
                 </div>
             </div>
@@ -1926,6 +2131,41 @@ Blitz T Club Team`);
                             <span class="info-label">Membership Status</span>
                             <span class="info-value" id="modalMembershipStatus"></span>
                         </div>
+                        <div class="info-item">
+                            <span class="info-label">Phone Number</span>
+                            <span class="info-value" id="modalPhoneNumber"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Date of Birth</span>
+                            <span class="info-value" id="modalDateOfBirth"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3><i class="fas fa-car"></i> Your Tesla Models</h3>
+                    <div class="car-models-list" id="modalCarModels">
+                        <!-- Car models will be inserted here dynamically -->
+                    </div>
+                </div>
+                
+                <!-- Address Display Section -->
+                <div class="settings-section">
+                    <div class="section-header">
+                        <h3><i class="fas fa-home"></i> Home Address</h3>
+                        <button class="btn icon-btn" id="editAddressBtn">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                    </div>
+                    
+                    <div class="address-content">
+                        <div class="address-display" id="modalAddress">
+                            <!-- Dynamic content will load here -->
+                        </div>
+                        
+                        <form id="addressUpdateForm" style="display: none;">
+                            <!-- Keep your existing form fields here -->
+                        </form>
                     </div>
                 </div>
 
@@ -1935,20 +2175,20 @@ Blitz T Club Team`);
                     <form id="modalEditProfileForm">
                         <!-- Add hidden username field for accessibility -->
                         <input type="hidden" id="modalUsername" name="username" autocomplete="username">
-                        <div class="form-group">
+                <div class="form-group">
                             <label for="modalCurrentPassword">Current Password</label>
-                            <div class="password-input-container">
+                    <div class="password-input-container">
                                 <input type="password" id="modalCurrentPassword" name="currentPassword" 
                                     placeholder="Enter current password" autocomplete="current-password"
                                     class="modern-input">
-                                <button type="button" class="toggle-password">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="form-group">
+                        <button type="button" class="toggle-password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
                             <label for="modalNewPassword">New Password</label>
-                            <div class="password-input-container">
+                    <div class="password-input-container">
                                 <input type="password" id="modalNewPassword" name="newPassword" 
                                     placeholder="Enter new password" autocomplete="new-password"
                                     class="modern-input">
@@ -1970,17 +2210,17 @@ Blitz T Club Team`);
                                 <input type="password" id="modalConfirmPassword" name="confirmPassword" 
                                     placeholder="Confirm new password" autocomplete="new-password"
                                     class="modern-input">
-                                <button type="button" class="toggle-password">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="button-group">
+                        <button type="button" class="toggle-password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="button-group">
                             <button type="submit" class="btn primary-btn">
                                 <i class="fas fa-save"></i> Update Password
-                            </button>
-                        </div>
-                    </form>
+                    </button>
+                </div>
+            </form>
                 </div>
 
                 <!-- Danger Zone Section -->
@@ -2040,5 +2280,329 @@ Blitz T Club Team`);
             </div>
         </div>
     </div>
+
+    <!-- Add this after the password change handler -->
+    <script>
+        document.getElementById('profileUpdateForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Get current session
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) {
+                alert('Session expired - please login again');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const formData = {
+                first_name: document.getElementById('editFirstName').value.trim(),
+                last_name: document.getElementById('editLastName').value.trim(),
+                phone: document.getElementById('editPhone').value.trim(),
+                street: document.getElementById('editStreet').value.trim(),
+                city: document.getElementById('editCity').value.trim(),
+                province: document.getElementById('editProvince').value,
+                postal_code: document.getElementById('editPostalCode').value.toUpperCase().trim()
+            };
+
+            // Basic validation
+            if (!formData.first_name || !formData.last_name) {
+                alert('Please enter both first and last name');
+                return;
+            }
+
+            if (!/^\d{10}$/.test(formData.phone)) {
+                alert('Please enter a valid 10-digit phone number');
+                return;
+            }
+
+            if (!/^[A-Z]\d[A-Z] \d[A-Z]\d$/.test(formData.postal_code)) {
+                alert('Please enter a valid postal code (A1A 1A1 format)');
+                return;
+            }
+
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+            try {
+                const { error } = await supabaseClient
+                    .from('profiles')
+                    .update({
+                        street: formData.street,
+                        city: formData.city,
+                        province: formData.province,
+                        postal_code: formData.postal_code
+                    })
+                    .eq('id', user.id);
+
+                if (error) throw error;
+
+                // Update local profile data
+                Object.assign(window.userProfile, formData);
+                
+                // Check if all mandatory fields are now complete
+                const requiredFields = ['first_name', 'last_name', 'phone', 'street', 'city', 'province', 'postal_code'];
+                const isComplete = requiredFields.every(field => formData[field]?.trim() !== '');
+                
+                if (isComplete) {
+                    // Remove mandatory update requirement
+                    sessionStorage.removeItem('returnPath');
+                    window.history.replaceState(null, null, window.location.pathname);
+                }
+
+                alert('Profile updated successfully!');
+                // Refresh displayed data
+                updateProfileDisplay();
+            } catch (error) {
+                console.error('Profile update error:', error);
+                alert('Error updating profile: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+            }
+        });
+
+        // Add this function to update displayed profile info
+        function updateProfileDisplay() {
+            const profile = window.userProfile;
+            const address = profile.address || {};
+            
+            // Province code to name mapping
+            const provinceMap = {
+                'AB': 'Alberta', 'BC': 'British Columbia', 'MB': 'Manitoba',
+                'NB': 'New Brunswick', 'NL': 'Newfoundland and Labrador',
+                'NS': 'Nova Scotia', 'ON': 'Ontario', 'PE': 'Prince Edward Island',
+                'QC': 'Quebec', 'SK': 'Saskatchewan', 'NT': 'Northwest Territories',
+                'NU': 'Nunavut', 'YT': 'Yukon'
+            };
+            const provinceName = provinceMap[address.province] || address.province || '';
+
+            const addressParts = [
+                address.street,
+                [address.city, provinceName].filter(Boolean).join(', '), 
+                address.postal_code,
+                'Canada'
+            ].filter(part => part && part.trim() !== '');
+            
+            // Check if address exists
+            const hasAddress = address.street && address.city && 
+                              address.province && address.postal_code;
+
+            const addressContainer = document.getElementById('modalAddress');
+            
+            if (hasAddress) {
+                addressContainer.innerHTML = `
+                    <address>
+                        ${addressParts.join('<br>')}<br>
+                        Canada
+                    </address>
+                `;
+            } else {
+                addressContainer.innerHTML = `
+                    <div class="address-missing">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Complete your address in profile settings
+                    </div>
+                `;
+            }
+            
+            // Update other profile fields
+            document.getElementById('userFullName').textContent = 
+                `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Anonymous User';
+            document.getElementById('modalPhoneNumber').textContent = 
+                profile.phone || 'Not provided';
+        }
+    </script>
+
+    <!-- Address editing functionality -->
+    <script>
+        // Safe event listener initialization
+        function initAddressEditing() {
+            const editAddressBtn = document.getElementById('editAddressBtn');
+            
+            if (editAddressBtn) {
+                editAddressBtn.addEventListener('click', () => {
+                    // Show the form and hide the display
+                    document.getElementById('addressUpdateForm').style.display = 'block';
+                    document.getElementById('modalAddress').style.display = 'none';
+                    
+                    const profile = window.userProfile;
+                    const address = profile.address || {};
+                    
+                    // Populate form fields
+                    document.getElementById('editModalStreet').value = address.street || '';
+                    document.getElementById('editModalCity').value = address.city || '';
+                    document.getElementById('editModalProvince').value = address.province || '';
+                    document.getElementById('editModalPostalCode').value = address.postal_code || '';
+                });
+            } else {
+                console.error('CRITICAL: Edit address button missing from DOM');
+                // Create button dynamically as fallback
+                const newBtn = document.createElement('button');
+                newBtn.id = 'editAddressBtn';
+                newBtn.className = 'btn icon-btn';
+                newBtn.innerHTML = '<i class="fas fa-edit"></i> Edit';
+                newBtn.onclick = () => {
+                    document.getElementById('addressUpdateForm').style.display = 'block';
+                    document.getElementById('modalAddress').style.display = 'none';
+                };
+                document.querySelector('.section-header').appendChild(newBtn);
+            }
+        }
+
+        // Initialize cancel button
+        function initCancelButton() {
+            const cancelEditBtn = document.getElementById('cancelEditAddress');
+            
+            if (cancelEditBtn) {
+                cancelEditBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById('addressUpdateForm').style.display = 'none';
+                    document.getElementById('modalAddress').style.display = 'block';
+                });
+            }
+        }
+
+        // Initialize form submission
+        function initAddressFormSubmission() {
+            const addressForm = document.getElementById('addressUpdateForm');
+            
+            if (addressForm) {
+                addressForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    try {
+                        const { data: { user } } = await supabaseClient.auth.getUser();
+                        if (!user) throw new Error('User not authenticated');
+
+                        const formData = {
+                            address: {
+                                street: document.getElementById('editModalStreet').value.trim(),
+                                city: document.getElementById('editModalCity').value.trim(),
+                                province: document.getElementById('editModalProvince').value,
+                                postal_code: document.getElementById('editModalPostalCode').value
+                                    .toUpperCase()
+                                    .replace(/\s/g, '')
+                                    .replace(/([A-Z]\d[A-Z])(\d[A-Z]\d)/, '$1 $2')
+                            }
+                        };
+
+                        // Validation checks
+                        if (!formData.address.street || !formData.address.city || 
+                            !formData.address.province || !formData.address.postal_code) {
+                            alert('Please fill all address fields');
+                            return;
+                        }
+
+                        const { error } = await supabaseClient
+                            .from('profiles')
+                            .update({ address: formData.address })
+                            .eq('uid', user.id);
+
+                        if (error) throw error;
+
+                        // Update local profile and refresh display
+                        window.userProfile.address = formData.address;
+                        updateProfileDisplay();
+                        
+                        // Show success and hide form
+                        alert('Address updated successfully!');
+                        document.getElementById('addressUpdateForm').style.display = 'none';
+                        document.getElementById('modalAddress').style.display = 'block';
+
+                    } catch (error) {
+                        console.error('Address update failed:', error);
+                        alert('Error saving address: ' + error.message);
+                    }
+                });
+            }
+        }
+
+        // Initialize all address components when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            // First try
+            initAddressEditing();
+            initCancelButton();
+            initAddressFormSubmission();
+            
+            // Periodic check for 5 seconds
+            const interval = setInterval(() => {
+                if(document.getElementById('editAddressBtn')) {
+                    initAddressEditing();
+                    clearInterval(interval);
+                }
+            }, 200);
+            
+            setTimeout(() => clearInterval(interval), 5000);
+        });
+     </script>
+
+    <!-- Move this script block BEFORE any code that uses getOrdinalSuffix -->
+    <script>
+        // Add the getOrdinalSuffix function here
+        function getOrdinalSuffix(day) {
+            const dayNum = parseInt(day);
+            if (dayNum > 3 && dayNum < 21) return day + 'th';
+            switch (dayNum % 10) {
+                case 1: return day + 'st';
+                case 2: return day + 'nd';
+                case 3: return day + 'rd';
+                default: return day + 'th';
+            }
+        }
+
+        function updateProfileDisplay() {
+            // ... existing code ...
+        }
+    </script>
+
+    <!-- Replace the existing address-related scripts with this -->
+    <script>
+        // Replace the existing address-related scripts with this
+        function initAddressComponents() {
+            // Create button if missing
+            if (!document.getElementById('editAddressBtn')) {
+                const btnHTML = `
+                    <button class="btn icon-btn" id="editAddressBtn">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                `;
+                const header = document.querySelector('.settings-section .section-header');
+                if (header) header.insertAdjacentHTML('beforeend', btnHTML);
+            }
+
+            // Initialize event listeners
+            const initAddressEditing = () => {
+                const btn = document.getElementById('editAddressBtn');
+                if (btn && !btn._initialized) {
+                    btn._initialized = true;
+                    btn.addEventListener('click', () => {
+                        document.getElementById('addressUpdateForm').style.display = 'block';
+                        document.getElementById('modalAddress').style.display = 'none';
+                        // Populate form fields
+                        const address = window.userProfile?.address || {};
+                        document.getElementById('editModalStreet').value = address.street || '';
+                        document.getElementById('editModalCity').value = address.city || '';
+                        document.getElementById('editModalProvince').value = address.province || '';
+                        document.getElementById('editModalPostalCode').value = address.postal_code || '';
+                    });
+                }
+            };
+
+            // Initialize with retries
+            const initWithRetry = (attempt = 0) => {
+                if (attempt > 5) return;
+                initAddressEditing();
+                if (!document.getElementById('editAddressBtn')) {
+                    setTimeout(() => initWithRetry(attempt + 1), 300);
+                }
+            };
+
+            initWithRetry();
+        }
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', initAddressComponents);
+    </script>
 </body>
 </html> 

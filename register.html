@@ -18,6 +18,69 @@
         .d-none {
             display: none !important;
         }
+        
+        /* Checkbox group styling */
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 10px 0;
+        }
+        
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .checkbox-option input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #4CAF50;
+        }
+        
+        .checkbox-option label {
+            color: #ddd;
+            cursor: pointer;
+            display: inline-block;
+            font-weight: normal;
+            margin: 0;
+            padding-left: 5px;
+        }
+        
+        /* Textarea styling */
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        textarea:focus {
+            border-color: #4CAF50;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+        
+        /* Date input styling */
+        input[type="date"] {
+            appearance: none;
+            position: relative;
+            background: rgba(0, 0, 0, 0.3) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>') no-repeat 95% 50%;
+            padding-right: 30px !important;
+        }
+        
+        /* Phone input styling */
+        input[type="tel"] {
+            letter-spacing: 1px;
+        }
     </style>
 </head>
 <body class="login-page">
@@ -108,6 +171,107 @@
                            placeholder="Enter your email"
                            autocomplete="email">
                     <small class="form-hint">We'll send a verification link to this email</small>
+                    <div class="form-validation-icon"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="phoneNumber">
+                        <i class="fas fa-phone"></i>
+                        Phone Number
+                    </label>
+                    <input type="tel" id="phoneNumber" name="phoneNumber" required
+                           placeholder="(123)-456-7890"
+                           pattern="^\(\d{3}\)-\d{3}-\d{4}$">
+                    <small class="form-hint">Phone number in format (xxx)-xxx-xxxx</small>
+                    <div class="form-validation-icon"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="dateOfBirth">
+                        <i class="fas fa-birthday-cake"></i>
+                        Date of Birth
+                    </label>
+                    <input type="date" id="dateOfBirth" name="dateOfBirth" required>
+                    <small class="form-hint">Birthday surprises await our members!</small>
+                    <div class="form-validation-icon"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-car"></i>
+                        Tesla Models You Own
+                    </label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-option">
+                            <input type="checkbox" id="model3" name="carModels" value="Model 3">
+                            <label for="model3">Model 3</label>
+                        </div>
+                        <div class="checkbox-option">
+                            <input type="checkbox" id="model3Highland" name="carModels" value="Model 3 (Highland)">
+                            <label for="model3Highland">Model 3 (Highland)</label>
+                        </div>
+                        <div class="checkbox-option">
+                            <input type="checkbox" id="modelY" name="carModels" value="Model Y">
+                            <label for="modelY">Model Y</label>
+                        </div>
+                        <div class="checkbox-option">
+                            <input type="checkbox" id="modelYJuniper" name="carModels" value="Model Y (Juniper)">
+                            <label for="modelYJuniper">Model Y (Juniper)</label>
+                        </div>
+                        <div class="checkbox-option">
+                            <input type="checkbox" id="modelS" name="carModels" value="Model S">
+                            <label for="modelS">Model S</label>
+                        </div>
+                        <div class="checkbox-option">
+                            <input type="checkbox" id="modelX" name="carModels" value="Model X">
+                            <label for="modelX">Model X</label>
+                        </div>
+                        <div class="checkbox-option">
+                            <input type="checkbox" id="cybertruck" name="carModels" value="Cybertruck">
+                            <label for="cybertruck">Cybertruck</label>
+                        </div>
+                    </div>
+                    <small class="form-hint">Select all that apply. You must own at least one Tesla vehicle.</small>
+                    <div class="form-validation-icon"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="address">
+                        <i class="fas fa-home"></i>
+                        Home Address (Canadian Format)
+                    </label>
+                    <div class="address-fields">
+                        <input type="text" id="street" name="street" required 
+                               placeholder="Street Address (e.g., 123-456 Main St)"
+                               pattern="^\d+[A-Za-z]?(\s-\s|\s)\d+\s.+$">
+                        
+                        <input type="text" id="city" name="city" required
+                               placeholder="City (e.g., Toronto)"
+                               pattern="[A-Za-z -]+">
+                        
+                        <select id="province" name="province" required>
+                            <option value="">Select Province/Territory</option>
+                            <option value="AB">Alberta</option>
+                            <option value="BC">British Columbia</option>
+                            <option value="MB">Manitoba</option>
+                            <option value="NB">New Brunswick</option>
+                            <option value="NL">Newfoundland and Labrador</option>
+                            <option value="NT">Northwest Territories</option>
+                            <option value="NS">Nova Scotia</option>
+                            <option value="NU">Nunavut</option>
+                            <option value="ON">Ontario</option>
+                            <option value="PE">Prince Edward Island</option>
+                            <option value="QC">Quebec</option>
+                            <option value="SK">Saskatchewan</option>
+                            <option value="YT">Yukon</option>
+                        </select>
+
+                        <input type="text" id="postalCode" name="postalCode" required
+                               placeholder="Postal Code (e.g., K1A 0B1)"
+                               pattern="^[A-Za-z]\d[A-Za-z][ ]?\d[A-Za-z]\d$"
+                               title="Canadian postal code format (A1A 1A1)">
+                    </div>
+                    <small class="form-hint">We'll only use this for membership purposes</small>
                     <div class="form-validation-icon"></div>
                 </div>
 
@@ -364,6 +528,30 @@
             // Use the supabaseClient that's already defined above
             console.log('Form initialization started');
             
+            // Phone number formatter
+            const phoneNumberInput = document.getElementById('phoneNumber');
+            if (phoneNumberInput) {
+                phoneNumberInput.addEventListener('input', function(e) {
+                    const value = e.target.value.replace(/\D/g, '');
+                    if (value.length <= 10) {
+                        let formattedNumber = '';
+                        if (value.length > 3) {
+                            formattedNumber += `(${value.substring(0, 3)})-`;
+                            if (value.length > 6) {
+                                formattedNumber += `${value.substring(3, 6)}-${value.substring(6, 10)}`;
+                            } else {
+                                formattedNumber += value.substring(3);
+                            }
+                        } else {
+                            if (value.length > 0) {
+                                formattedNumber += `(${value}`;
+                            }
+                        }
+                        e.target.value = formattedNumber;
+                    }
+                });
+            }
+            
             // Password strength meter functionality
             const passwordInput = document.getElementById('password');
             const strengthMeter = document.getElementById('strengthMeter');
@@ -435,10 +623,21 @@
                     const password = document.getElementById('password').value;
                     const confirmPassword = document.getElementById('confirmPassword').value;
                     const fullName = document.getElementById('fullName').value.trim();
+                    const phoneNumber = document.getElementById('phoneNumber').value.trim();
+                    const dateOfBirth = document.getElementById('dateOfBirth').value;
+                    const street = document.getElementById('street').value.trim();
+                    const city = document.getElementById('city').value.trim();
+                    const province = document.getElementById('province').value;
+                    const postalCode = document.getElementById('postalCode').value.toUpperCase();
+                    
+                    // Get selected car models
+                    const carModelsElements = document.querySelectorAll('input[name="carModels"]:checked');
+                    const carModels = Array.from(carModelsElements).map(el => el.value);
+                    
                     const termsChecked = document.getElementById('terms').checked;
 
                     // Validate form
-                    if (!email || !password || !confirmPassword || !fullName) {
+                    if (!email || !password || !confirmPassword || !fullName || !phoneNumber || !dateOfBirth || !street || !city || !province || !postalCode) {
                         throw new Error('Please fill in all required fields.');
                     }
 
@@ -452,6 +651,42 @@
 
                     if (password.length < 6) {
                         throw new Error('Password must be at least 6 characters long.');
+                    }
+                    
+                    // Phone number validation
+                    if (!/^\(\d{3}\)-\d{3}-\d{4}$/.test(phoneNumber)) {
+                        throw new Error('Please enter a valid phone number in format (xxx)-xxx-xxxx');
+                    }
+                    
+                    // Date of birth validation
+                    if (!dateOfBirth) {
+                        throw new Error('Please enter your date of birth');
+                    } else {
+                        const birthDate = new Date(dateOfBirth);
+                        const now = new Date();
+                        
+                        if (isNaN(birthDate.getTime())) {
+                            throw new Error('Please enter a valid date of birth');
+                        } else if (birthDate > now) {
+                            throw new Error('Date of birth cannot be in the future');
+                        } else {
+                            // Calculate age
+                            const age = Math.floor((now - birthDate) / (365.25 * 24 * 60 * 60 * 1000));
+                            
+                            if (age < 16) {
+                                throw new Error('You must be at least 16 years old to register');
+                            }
+                        }
+                    }
+                    
+                    // Car models validation
+                    if (carModels.length === 0) {
+                        throw new Error('Please select at least one Tesla model');
+                    }
+                    
+                    // Address validation
+                    if (!street || !city || !province || !postalCode) {
+                        throw new Error('Please enter your complete home address');
                     }
 
                     // Generate sequential Member ID - ensure this runs before signup
@@ -514,6 +749,10 @@
                                         member_id: memberId,
                                         membership_status: 'pending',
                                         membership_type: 'standard',
+                                        phone_number: phoneNumber,
+                                        date_of_birth: dateOfBirth,
+                                        address: `${street}, ${city}, ${province}, ${postalCode}`,
+                                        car_models: carModels,
                                         created_at: new Date().toISOString()
                                     }
                                 ]);
@@ -661,6 +900,40 @@
                     footer.style.paddingBottom = 'env(safe-area-inset-bottom)';
                 }
             }
+        });
+
+        // Canadian postal code validation
+        function isValidCanadianPostalCode(postalCode) {
+            return /^[A-Za-z]\d[A-Za-z][ ]?\d[A-Za-z]\d$/.test(postalCode);
+        }
+
+        // Province validation
+        const validProvinces = ['AB','BC','MB','NB','NL','NT','NS','NU','ON','PE','QC','SK','YT'];
+
+        // In form submission handler
+        const province = document.getElementById('province').value;
+        const postalCode = document.getElementById('postalCode').value.toUpperCase();
+
+        if (!validProvinces.includes(province)) {
+            showMessage('Please select a valid Canadian province/territory');
+            return;
+        }
+
+        if (!isValidCanadianPostalCode(postalCode)) {
+            showMessage('Please enter a valid Canadian postal code (e.g., K1A 0B1)');
+            return;
+        }
+
+        // Format postal code with space
+        const formattedPostalCode = postalCode.replace(/([A-Za-z]\d[A-Za-z])(\d[A-Za-z]\d)/, '$1 $2');
+
+        // Add to input event listeners
+        document.getElementById('postalCode').addEventListener('input', function(e) {
+            let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            if (value.length > 3) {
+                value = value.substring(0,3) + ' ' + value.substring(3);
+            }
+            e.target.value = value.substring(0,7);
         });
     </script>
 </body>

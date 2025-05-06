@@ -751,17 +751,23 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', async () => {
-        const modal = document.getElementById('registrationModal');
-        const closeBtn = document.querySelector('.close');
-        
-        // Initialize Supabase client
-        const supabaseClient = supabase.createClient(
-            'https://qhkcrrphsjpytdfqfamq.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI'
-        );
+        // Wait for Supabase client initialization
+        await new Promise(resolve => {
+            if (window.supabaseClient) return resolve();
+            document.addEventListener('supabase:ready', resolve);
+        });
 
-        // Change all instances of 'lightshow-2025' to 'Lightshow-05302025'
-        const EVENT_ID = 'Lightshow-05302025';
+        // Now safely use the client
+        const supabaseClient = window.supabaseClient;
+        
+        // Get actual UUID from your database
+        const EVENT_ID = 'fdee67a0-1234-5678-9abc-1d39527f8a7e'; // REAL UUID HERE
+
+        // Add null check for safety
+        if (!supabaseClient?.from) {
+            console.error('Supabase client not properly initialized');
+            return;
+        }
 
         // Modified registration count display
         const updateRegistrationCount = async () => {
@@ -800,67 +806,86 @@
         document.getElementById('eventRegisterBtn').addEventListener('click', async () => {
             const { data: { user } } = await supabaseClient.auth.getUser();
             if (!user) return alert('Please login to register');
-            modal.style.display = 'block';
+            document.getElementById('registrationModal').style.display = 'block';
         });
 
-        closeBtn.addEventListener('click', () => {
-            modal.style.display = 'none';
+        document.querySelector('.close').addEventListener('click', () => {
+            document.getElementById('registrationModal').style.display = 'none';
         });
 
         window.addEventListener('click', (e) => {
-            if (e.target === modal) modal.style.display = 'none';
+            if (e.target === document.getElementById('registrationModal')) document.getElementById('registrationModal').style.display = 'none';
         });
 
-        // Form submission
+        // Modified registration handler
         document.getElementById('registrationForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const model = document.getElementById('teslaModel').value;
             
             if (!model) return alert('Please select a Tesla model');
             
-            const { data: { user }, error: userErr } = await supabaseClient.auth.getUser();
-            if (userErr || !user) {
-                console.error('Auth error:', userErr);
-                return alert('Please login before registering a vehicle.');
-            }
+            try {
+                const { data: { user }, error: userErr } = await supabaseClient.auth.getUser();
+                if (userErr || !user) throw new Error('Not authenticated');
 
-            // ▶▶ LIMIT to max 2 cars per member per event
-            const { data: existingRegs, error: fetchErr } = await supabaseClient
-                .from('event_registrations')
-                .select('id', { count: 'exact' })
-                .eq('user_id', user.id)
-                .eq('event_id', EVENT_ID)
-                .is('cancelled_at', null);
+                // First verify event exists
+                const { data: eventData, error: eventError } = await supabaseClient
+                    .from('events')
+                    .select('id')
+                    .eq('id', EVENT_ID)
+                    .limit(1);
 
-            if (fetchErr) {
-                console.error('Error fetching registrations count:', fetchErr);
-                return alert('Unable to verify your existing registrations. Try again later.');
-            }
+                if (eventError) {
+                    console.error('Event verification failed:', eventError);
+                    return alert('Error verifying event');
+                }
 
-            if ((existingRegs?.length ?? 0) >= 2) {
-                return alert('You may only register up to 2 vehicles for this event.');
-            }
+                if (!eventData || eventData.length === 0) {
+                    return alert('This event does not exist');
+                }
 
-            // proceed with upsert
-            const { data, error } = await supabaseClient
-                .from('event_registrations')
-                .upsert({
-                    user_id: user.id,
-                    event_id: EVENT_ID,
-                    vehicle_model: model,
-                    registered_at: new Date().toISOString()
-                });
+                // Check existing registrations
+                const { data: existingRegs, error: fetchErr } = await supabaseClient
+                    .from('event_registrations')
+                    .select('id', { count: 'exact' })
+                    .eq('user_id', user.id)
+                    .eq('event_id', EVENT_ID)
+                    .is('cancelled_at', null);
 
-            if (error) {
-                console.error('Registration error:', error);
+                if (fetchErr) throw fetchErr;
+                if ((existingRegs?.length ?? 0) >= 2) {
+                    return alert('Max 2 vehicles per event');
+                }
+
+                // Insert new registration
+                const { error } = await supabaseClient
+                    .from('event_registrations')
+                    .insert({
+                        user_id: user.id,
+                        event_id: EVENT_ID,
+                        vehicle_model: model,
+                        registered_at: new Date().toISOString()
+                    });
+
+                if (error) {
+                    if (error.code === '23503') {
+                        alert('Error: Invalid event reference. Please contact support.');
+                    } else {
+                        alert('Registration failed: ' + error.message);
+                    }
+                    console.error('Registration error:', error);
+                    return;
+                }
+
+                document.getElementById('registrationModal').style.display = 'none';
+                await updateRegistrationCount();
+                alert(`Successfully registered your ${model}!`);
+                window.location.href = 'dashboard.html';
+
+            } catch (error) {
+                console.error('Registration process failed:', error);
                 alert('Registration failed: ' + error.message);
-                return;
             }
-
-            modal.style.display = 'none';
-            await updateRegistrationCount();
-            alert(`Successfully registered your ${model}! View your registrations on the dashboard.`);
-            window.location.href = 'dashboard.html';
         });
 
         // Initial count update

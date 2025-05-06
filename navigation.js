@@ -236,7 +236,7 @@ function preventScroll(e) {
 document.addEventListener('DOMContentLoaded', () => {
     if (!window.supabase) return;
     
-    // Check for existing client in both window and global scope
+    // Ensure single initialization
     if (!window.supabaseClient && typeof supabase !== 'undefined') {
         console.log('Initializing Supabase client');
         window.supabaseClient = supabase.createClient(
@@ -247,11 +247,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     storage: localStorage,
                     autoRefreshToken: true,
                     persistSession: true,
-                    detectSessionInUrl: true,
-                    flowType: 'pkce'
+                    detectSessionInUrl: true
                 }
             }
         );
+        console.log('Supabase client initialized');
+        document.dispatchEvent(new Event('supabase:ready'));
     }
     
     // Add ready state check

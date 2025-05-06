@@ -159,42 +159,7 @@
         </div>
     </footer>
     <script>
-        // Initialize Supabase client if not already initialized
-        document.addEventListener('DOMContentLoaded', () => {
-            if (!window.supabaseClient && typeof supabase !== 'undefined') {
-                window.supabaseClient = supabase.createClient(
-                    'https://qhkcrrphsjpytdfqfamq.supabase.co',
-                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI'
-                );
-                document.dispatchEvent(new Event('supabase:ready'));
-            }
-        });
-
-        document.addEventListener('supabase:ready', () => {
-            document.getElementById('loginForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-
-                if (!window.supabaseClient?.auth) {
-                    alert('Authentication system not ready. Please try again.');
-                    return;
-                }
-
-                const { data, error } = await window.supabaseClient.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-
-                if (error) {
-                    alert('Login failed: ' + error.message);
-                    return;
-                }
-
-                window.location.href = 'dashboard.html';
-            });
-        });
-
+        // Initialize Supabase client properly
         document.addEventListener('DOMContentLoaded', () => {
             // Password visibility toggle
             const passwordToggle = document.querySelector('.password-toggle');
@@ -209,6 +174,49 @@
                         : '<i class="fas fa-eye"></i>';
                 });
             }
+
+            // Initialize Supabase client
+            if (!window.supabaseClient && typeof supabase !== 'undefined') {
+                window.supabaseClient = supabase.createClient(
+                    'https://qhkcrrphsjpytdfqfamq.supabase.co',
+                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI',
+                    {
+                        auth: {
+                            storage: localStorage,
+                            autoRefreshToken: true,
+                            persistSession: true,
+                            detectSessionInUrl: true
+                        }
+                    }
+                );
+                console.log('Supabase client initialized');
+            }
+
+            // Handle login form submission
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+
+                if (!window.supabaseClient?.auth) {
+                    alert('Authentication system not ready. Please try again.');
+                    return;
+                }
+
+                try {
+                    const { data, error } = await window.supabaseClient.auth.signInWithPassword({
+                        email: email,
+                        password: password
+                    });
+
+                    if (error) throw error;
+                    
+                    window.location.href = 'dashboard.html';
+                } catch (error) {
+                    alert('Login failed: ' + error.message);
+                    console.error('Login error:', error);
+                }
+            });
         });
     </script>
 </body>

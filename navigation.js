@@ -1,3 +1,16 @@
+// Replace the top initialization with
+const supabaseClient = (() => {
+    try {
+        return supabase.createClient(
+            'https://qhkcrrphsjpytdfqfamq.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI'
+        );
+    } catch (error) {
+        console.error('Supabase initialization failed:', error);
+        return null;
+    }
+})();
+
 // Function to initialize navigation
 async function initializeNavigation() {
     if (typeof window.supabaseClient === 'undefined') {
@@ -237,9 +250,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!window.supabase) return;
     
     // Ensure single initialization
-    if (!window.supabaseClient && typeof supabase !== 'undefined') {
+    if (!window.supabaseClient && typeof supabaseClient !== 'undefined') {
         console.log('Initializing Supabase client');
-        window.supabaseClient = supabase.createClient(
+        window.supabaseClient = supabaseClient.createClient(
             'https://qhkcrrphsjpytdfqfamq.supabase.co',
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI',
             {
@@ -287,4 +300,18 @@ document.addEventListener('DOMContentLoaded', () => {
 // Export for use in other files
 window.initializeNavigation = initializeNavigation;
 window.toggleMobileMenu = toggleMobileMenu;
-window.closeMobileMenu = closeMobileMenu; 
+window.closeMobileMenu = closeMobileMenu;
+
+// Update existing logout function
+document.getElementById('footerLogoutBtn')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    if (!supabaseClient) return;
+    
+    try {
+        const { error } = await supabaseClient.auth.signOut();
+        if (error) throw error;
+        window.location.href = 'index.html';
+    } catch (error) {
+        console.error('Logout error:', error);
+    }
+}); 

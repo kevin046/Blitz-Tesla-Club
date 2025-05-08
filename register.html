@@ -676,8 +676,8 @@
 
                 if (error) throw error;
 
-                // Replace alert with redirect
-                window.location.href = 'verification-sent.html';
+                // Add email to redirect URL
+                window.location.href = `verification-sent.html?email=${encodeURIComponent(email)}`;
 
             } catch (error) {
                 console.error('Registration error:', error);

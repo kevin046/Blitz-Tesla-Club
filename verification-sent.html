@@ -336,19 +336,12 @@
                 document.getElementById('userEmail').textContent = email;
                 localStorage.setItem('pendingVerificationEmail', email);
             } else {
-                const storedEmail = localStorage.getItem('pendingVerificationEmail');
-                if (storedEmail) {
-                    document.getElementById('userEmail').textContent = storedEmail;
-                } else {
-                    document.getElementById('resend-container').style.display = 'none';
-                    document.getElementById('no-email-warning').style.display = 'block';
-                }
+                window.location.href = 'register.html'; // Redirect if no email
             }
         });
 
         async function resendVerification() {
-            const email = localStorage.getItem('pendingVerificationEmail') || 
-                         new URLSearchParams(window.location.search).get('email');
+            const email = new URLSearchParams(window.location.search).get('email');
             
             if (!email) {
                 alert('No email found for verification');
@@ -356,19 +349,24 @@
             }
 
             try {
-                const supabase = window.supabaseClient;
                 const { error } = await supabase.auth.resend({
                     type: 'signup',
-                    email: email
+                    email: email,
+                    options: {
+                        emailRedirectTo: window.location.origin + '/verify-success.html'
+                    }
                 });
 
                 if (error) throw error;
                 alert('Verification email resent successfully!');
             } catch (error) {
                 console.error('Resend error:', error);
-                alert(`Error resending email: ${error.message}`);
+                alert(`Error: ${error.message}`);
             }
         }
+
+        // Add event listener for resend button
+        document.getElementById('resendButton').addEventListener('click', resendVerification);
     </script>
 </body>
 </html> 

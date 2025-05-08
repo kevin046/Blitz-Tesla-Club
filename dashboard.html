@@ -1201,14 +1201,14 @@
             }
 
                 // Get user profile
-                const { data: userData, error: profileError } = await supabaseClient
+                const { data: profile, error: profileError } = await supabase
                     .from('profiles')
                     .select('*')
-                .eq('email', session.user.email)
+                    .eq('user_id', session.user.id)  // Use user_id instead of email
                     .single();
 
             console.log('Fetching profile for email:', session.user.email);
-                console.log('Profile query result:', { profile: userData, profileError });
+                console.log('Profile query result:', { profile, profileError });
 
             let profile;
 
@@ -1247,7 +1247,7 @@
                 console.error('Error fetching profile:', profileError);
                 throw profileError;
                 } else {
-                    profile = userData;
+                    profile = profile;
                 }
 
             // Make profile available globally for other functions
@@ -2726,9 +2726,16 @@ Blitz T Club Team`);
         if (!user.data.user) return;
 
         // Fetch event registrations
-        const { data: registrations } = await supabaseClient
+        const { data: registrations, error: regError } = await supabase
             .from('event_registrations')
-            .select('event_id, events(status)')
+            .select(`
+                event_id,
+                events (
+                    id, 
+                    name,
+                    status
+                )
+            `)
             .eq('user_id', user.data.user.id);
 
         // Count attended events (status = 'completed')

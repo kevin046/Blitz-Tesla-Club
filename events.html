@@ -709,16 +709,11 @@
                     <select class="modern-select" id="teslaModel" required>
                         <option value="">Choose Model</option>
                         <option value="Model 3">Model 3</option>
-                        <option value="Model 3 Highland">Model 3 (Highland)</option>
                         <option value="Model Y">Model Y</option>
-                        <option value="Model Y Juniper">Model Y (Juniper)</option>
                         <option value="Model S">Model S</option>
                         <option value="Model X">Model X</option>
                         <option value="Cybertruck">Cybertruck</option>
                     </select>
-                </div>
-                <div class="cancel-section">
-                    <p>Already registered? <a href="#" id="cancelRegistration">Cancel registration</a></p>
                 </div>
                 <button type="submit" class="btn primary-btn">
                     <i class="fas fa-check-circle"></i> Confirm Registration
@@ -751,60 +746,95 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', async () => {
-        // Wait for Supabase client initialization
+        // Wait for Supabase initialization
         await new Promise(resolve => {
             if (window.supabaseClient) return resolve();
             document.addEventListener('supabase:ready', resolve);
         });
 
-        // Now safely use the client
-        const supabaseClient = window.supabaseClient;
-        
-        // Get actual UUID from your database
-        const EVENT_ID = 'fdee67a0-1234-5678-9abc-1d39527f8a7e'; // REAL UUID HERE
+        const supabase = window.supabaseClient;
+        const EVENT_ID = 'fdee67a0-1234-5678-9abc-1d39527f8a7e';
 
-        // Add null check for safety
-        if (!supabaseClient?.from) {
-            console.error('Supabase client not properly initialized');
-            return;
-        }
-
-        // Modified registration count display
+        // Update registration display
         const updateRegistrationCount = async () => {
-            const { data, error } = await supabaseClient
-                .from('event_registrations')
-                .select('vehicle_model')
-                .eq('event_id', EVENT_ID)
-                .is('cancelled_at', null);
+            try {
+                const { data, error } = await supabase
+                    .from('event_registrations')
+                    .select('user_id, vehicle_model')
+                    .eq('event_id', EVENT_ID);
 
-            if (error) {
-                console.error('Error fetching registrations:', error);
-                return;
+                if (error) throw error;
+
+                // Update total count
+                document.getElementById('totalCount').textContent = data?.length || 0;
+
+                // Update model breakdown
+                const modelCounts = data?.reduce((acc, { vehicle_model }) => {
+                    acc[vehicle_model] = (acc[vehicle_model] || 0) + 1;
+                    return acc;
+                }, {});
+
+                const modelList = document.getElementById('modelList');
+                modelList.innerHTML = Object.entries(modelCounts || {})
+                    .map(([model, count]) => `
+                        <div class="model-item">
+                            <span class="model-name">${model}</span>
+                            <span class="model-count">(${count})</span>
+                        </div>
+                    `).join('') || '<div class="no-registrations">No registrations yet</div>';
+
+            } catch (error) {
+                console.error('Error updating counts:', error);
+                alert('Error loading registration data');
             }
-
-            const modelCounts = (data || []).reduce((acc, { vehicle_model }) => {
-                acc[vehicle_model] = (acc[vehicle_model] || 0) + 1;
-                return acc;
-            }, {});
-
-            // Update total count
-            const total = Object.values(modelCounts).reduce((sum, count) => sum + count, 0);
-            document.getElementById('totalCount').textContent = total;
-
-            // Update model list
-            const modelList = document.getElementById('modelList');
-            modelList.innerHTML = Object.entries(modelCounts)
-                .map(([model, count]) => `
-                    <div class="model-item">
-                        <div class="model-name">${model}</div>
-                        <div class="model-count">(${count})</div>
-                    </div>
-                `).join('') || '<div class="no-registrations">No registrations yet</div>';
         };
+
+        // Registration form handler
+        document.getElementById('registrationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const model = document.getElementById('teslaModel').value;
+
+            try {
+                // Verify user
+                const { data: { user }, error: authError } = await supabase.auth.getUser();
+                if (authError || !user) throw new Error('Please login to register');
+                if (!model) throw new Error('Please select a Tesla model');
+
+                // Check existing registrations
+                const { data: existing, error: fetchError } = await supabase
+                    .from('event_registrations')
+                    .select('id')
+                    .eq('user_id', user.id)
+                    .eq('event_id', EVENT_ID);
+
+                if (fetchError) throw fetchError;
+                if (existing?.length >= 2) return alert('Maximum 2 vehicles per member');
+
+                // Create registration
+                const { error } = await supabase
+                    .from('event_registrations')
+                    .insert([{
+                        user_id: user.id,
+                        event_id: EVENT_ID,
+                        vehicle_model: model
+                    }]);
+
+                if (error) throw error;
+
+                // Update UI and close modal
+                await updateRegistrationCount();
+                document.getElementById('registrationModal').style.display = 'none';
+                alert(`Successfully registered your ${model}!`);
+
+            } catch (error) {
+                console.error('Registration error:', error);
+                alert(error.message || 'Registration failed');
+            }
+        });
 
         // Modal handling
         document.getElementById('eventRegisterBtn').addEventListener('click', async () => {
-            const { data: { user } } = await supabaseClient.auth.getUser();
+            const { data: { user } } = await supabase.auth.getUser();
             if (!user) return alert('Please login to register');
             document.getElementById('registrationModal').style.display = 'block';
         });
@@ -813,125 +843,8 @@
             document.getElementById('registrationModal').style.display = 'none';
         });
 
-        window.addEventListener('click', (e) => {
-            if (e.target === document.getElementById('registrationModal')) document.getElementById('registrationModal').style.display = 'none';
-        });
-
-        // Modified registration handler
-        document.getElementById('registrationForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const model = document.getElementById('teslaModel').value;
-            
-            if (!model) return alert('Please select a Tesla model');
-            
-            try {
-                const { data: { user }, error: userErr } = await supabaseClient.auth.getUser();
-                if (userErr || !user) throw new Error('Not authenticated');
-
-                // First verify event exists
-                const { data: eventData, error: eventError } = await supabaseClient
-                    .from('events')
-                    .select('id')
-                    .eq('id', EVENT_ID)
-                    .limit(1);
-
-                if (eventError) {
-                    console.error('Event verification failed:', eventError);
-                    return alert('Error verifying event');
-                }
-
-                if (!eventData || eventData.length === 0) {
-                    return alert('This event does not exist');
-                }
-
-                // Check existing registrations
-                const { data: existingRegs, error: fetchErr } = await supabaseClient
-                    .from('event_registrations')
-                    .select('id', { count: 'exact' })
-                    .eq('user_id', user.id)
-                    .eq('event_id', EVENT_ID)
-                    .is('cancelled_at', null);
-
-                if (fetchErr) throw fetchErr;
-                if ((existingRegs?.length ?? 0) >= 2) {
-                    return alert('Max 2 vehicles per event');
-                }
-
-                // Insert new registration
-                const { error } = await supabaseClient
-                    .from('event_registrations')
-                    .insert({
-                        user_id: user.id,
-                        event_id: EVENT_ID,
-                        vehicle_model: model,
-                        registered_at: new Date().toISOString()
-                    });
-
-                if (error) {
-                    if (error.code === '23503') {
-                        alert('Error: Invalid event reference. Please contact support.');
-                    } else {
-                        alert('Registration failed: ' + error.message);
-                    }
-                    console.error('Registration error:', error);
-                    return;
-                }
-
-                document.getElementById('registrationModal').style.display = 'none';
-                await updateRegistrationCount();
-                alert(`Successfully registered your ${model}!`);
-                window.location.href = 'dashboard.html';
-
-            } catch (error) {
-                console.error('Registration process failed:', error);
-                alert('Registration failed: ' + error.message);
-            }
-        });
-
-        // Initial count update
+        // Initial load
         await updateRegistrationCount();
-
-        // Cancel registration handling
-        document.getElementById('cancelRegistration').addEventListener('click', async (e) => {
-            e.preventDefault();
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            if (!user) return alert('Please login to manage registrations');
-            
-            // Show cancel modal
-            document.getElementById('cancelModal').style.display = 'block';
-        });
-
-        // Close cancel modal
-        document.querySelector('.cancel-close').addEventListener('click', () => {
-            document.getElementById('cancelModal').style.display = 'none';
-        });
-
-        // Cancel form submission
-        document.getElementById('cancelForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const reason = document.getElementById('cancelReason').value;
-            if (!reason) return alert('Please select a cancellation reason');
-
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            
-            const { error } = await supabaseClient
-                .from('event_registrations')
-                .update({
-                    cancelled_at: new Date().toISOString(),
-                    cancellation_reason: reason
-                })
-                .eq('user_id', user.id)
-                .eq('event_id', EVENT_ID);
-
-            if (error) {
-                alert('Cancellation failed: ' + error.message);
-                return;
-            }
-
-            document.getElementById('cancelModal').style.display = 'none';
-            await updateRegistrationCount();
-            alert('Registration cancelled successfully');
-        });
     });
     </script>
 </body>

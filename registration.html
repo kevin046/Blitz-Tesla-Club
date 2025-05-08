@@ -1,9 +1,0 @@
--- For profiles table
-CREATE POLICY "User can view own profile" 
-ON profiles 
-FOR SELECT USING (auth.uid() = id);
-
--- For user_events table
-CREATE POLICY "User can view their events" 
-ON user_events 
-FOR SELECT USING (auth.uid() = user_id); 

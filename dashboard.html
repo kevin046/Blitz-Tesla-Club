@@ -1008,8 +1008,89 @@
     // Global Supabase initialization
     window.supabaseClient = supabase.createClient(
         'https://qhkcrrphsjpytdfqfamq.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI'
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI',
+        {
+            auth: {
+                persistSession: true,
+                autoRefreshToken: true
+            }
+        }
     );
+    </script>
+    <script>
+    // Moved and Enhanced sanitizeProfileData function
+    function sanitizeProfileData(rawProfile) {
+        console.log('[LOG] sanitizeProfileData received rawProfile:', JSON.stringify(rawProfile));
+        const source = rawProfile || {};
+        // Create a mutable copy. If source is an empty object, profile will be too.
+        const profile = JSON.parse(JSON.stringify(source));
+
+        // Full Name:
+        let tempFullName = source.full_name; // Prefer source.full_name from DB
+        if (typeof tempFullName === 'string') tempFullName = tempFullName.trim();
+        profile.full_name = tempFullName || ''; // Default to empty string
+
+        // Member ID:
+        let tempMemberId = source.member_id; // Prefer source.member_id from DB
+        if (typeof tempMemberId === 'string') tempMemberId = tempMemberId.trim();
+        let localStorageMemberId = localStorage.getItem('userMemberId');
+        if (typeof localStorageMemberId === 'string') localStorageMemberId = localStorageMemberId.trim();
+        profile.member_id = tempMemberId || localStorageMemberId || 'Not Available';
+
+        // Phone:
+        let tempPhone = source.phone_number || source.phone; // Prefer source.phone_number or source.phone from DB
+        if (typeof tempPhone === 'string') tempPhone = tempPhone.trim();
+        profile.phone = tempPhone || 'Not provided';
+
+        // Address fields: Now primarily working with a single full_address string
+        profile.full_address = (source.full_address || '').trim();
+
+        // Attempt to parse the full_address into components for form population and structured access
+        // This is a simple parser; a more robust one might be needed for varied formats.
+        let parsedStreet = '';
+        let parsedCity = '';
+        let parsedProvince = '';
+        let parsedPostalCode = '';
+
+        if (profile.full_address) {
+            const parts = profile.full_address.split(',').map(part => part.trim());
+            if (parts.length >= 1) parsedStreet = parts[0];
+            if (parts.length >= 2) parsedCity = parts[1];
+            if (parts.length >= 3) parsedProvince = parts[2];
+            if (parts.length >= 4) parsedPostalCode = parts[3];
+            // A more robust regex might be better if format is A1A 1A1 at the end
+            // For now, this simple split is used.
+        }
+
+        profile.street = parsedStreet;
+        profile.city = parsedCity;
+        profile.province = parsedProvince;
+        profile.postal_code = parsedPostalCode;
+        
+        profile.address = { // Keep the address object for internal consistency if needed by other parts
+            street: parsedStreet,
+            city: parsedCity,
+            province: parsedProvince,
+            postal_code: parsedPostalCode
+        };
+
+        console.log('[LOG] sanitizeProfileData returning profile:', JSON.stringify(profile));
+        return profile;
+    }
+
+    // Global Supabase initialization (if not already moved higher, this is a good place)
+    if (!window.supabaseClient) {
+        window.supabaseClient = supabase.createClient(
+            'https://qhkcrrphsjpytdfqfamq.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI',
+            {
+                auth: {
+                    persistSession: true,
+                    autoRefreshToken: true
+                }
+            }
+        );
+    }
     </script>
 </head>
 <body class="dashboard-page">
@@ -1264,20 +1345,19 @@
                 const { data: userData, error: profileError } = await supabaseClient
                     .from('profiles')
                     .select('*')
-                .eq('email', session.user.email)
+                .eq('email', session.user.email) // Consider changing to .eq('id', session.user.id) if email isn't unique or primary linkage
                     .single();
 
             console.log('Fetching profile for email:', session.user.email);
                 console.log('Profile query result:', { profile: userData, profileError });
 
-            let profile;
+            let profileDataToSanitize;
 
             if (profileError && profileError.code === 'PGRST116') {
                 // Profile doesn't exist, create one
                 console.log('No profile found, creating new profile...');
                 
-                // Generate sequential member ID
-                const memberId = `BTC${String(userData.id).padStart(4, '0').slice(-4)}`;
+                const memberId = await generateSequentialMemberId(); // Make sure this function is defined earlier
                 
                 const { data: newProfile, error: createError } = await supabaseClient
                         .from('profiles')
@@ -1289,7 +1369,7 @@
                             username: session.user.email.split('@')[0],
                             membership_status: 'pending',
                             membership_type: 'standard',
-                            member_id: memberId,
+                            member_id: memberId, // Use generated memberId
                             created_at: new Date().toISOString()
                         }
                     ])
@@ -1298,87 +1378,55 @@
 
                 if (createError) {
                     console.error('Error creating profile:', createError);
-                    throw createError;
+                    // It's critical to handle this error, e.g., by logging out or showing a message
+                    window.performLogout(); 
+                    return; // Stop execution if profile creation fails
                 }
-
-                console.log('New profile created:', newProfile);
-                    profile = newProfile;
+                profileDataToSanitize = newProfile;
+                console.log('New profile created (before sanitization):', newProfile);
             } else if (profileError) {
                 console.error('Error fetching profile:', profileError);
-                throw profileError;
+                window.performLogout(); // Log out user if profile can't be fetched
+                return; // Stop execution
                 } else {
-                    profile = userData;
-                }
+                profileDataToSanitize = userData;
+            }
 
-            // Make profile available globally for other functions
-            window.userProfile = profile;
+            // Sanitize and set the global user profile
+            console.log('[LOG] Data going into sanitizeProfileData (profileDataToSanitize):', JSON.stringify(profileDataToSanitize));
+            window.userProfile = sanitizeProfileData(profileDataToSanitize);
+            console.log('[LOG] Sanitized userProfile for display (window.userProfile):', JSON.stringify(window.userProfile));
 
-            console.log('Using profile:', profile);
-
-            // Update user info
-            document.getElementById('userFullName').textContent = profile.full_name || 'Member';
+            // Update user info on the page
+            document.getElementById('userFullName').textContent = window.userProfile.full_name || 'Member';
             const statusElement = document.getElementById('membershipStatus');
             if (statusElement) {
-                statusElement.textContent = profile.membership_status ? 
-                    profile.membership_status.charAt(0).toUpperCase() + profile.membership_status.slice(1) : 
+                statusElement.textContent = window.userProfile.membership_status ? 
+                    window.userProfile.membership_status.charAt(0).toUpperCase() + window.userProfile.membership_status.slice(1) : 
                     'Pending';
-                statusElement.dataset.status = profile.membership_status || 'pending';
+                statusElement.dataset.status = window.userProfile.membership_status || 'pending';
             }
 
             // Update member stats
-            const memberSince = document.getElementById('memberSince');
-            if (memberSince) {
-                memberSince.textContent = profile.created_at ? 
-                    new Date(profile.created_at).toLocaleDateString('en-US', {
+            const memberSinceEl = document.getElementById('memberSince');
+            if (memberSinceEl) {
+                memberSinceEl.textContent = window.userProfile.created_at ? 
+                    new Date(window.userProfile.created_at).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'
                     }) : 'Not Available';
             }
 
-            const memberId = document.getElementById('memberId');
-            if (memberId) {
-                // Check multiple sources for member ID in order of preference
-                const storedMemberId = localStorage.getItem('userMemberId');
-                const displayMemberId = profile.member_id || 
-                                       session.user.user_metadata?.member_id || 
-                                       storedMemberId || 
-                                       'Not Available';
-                
-                console.log('Member ID sources:', {
-                    profile: profile.member_id,
-                    metadata: session.user.user_metadata?.member_id,
-                    localStorage: storedMemberId
-                });
-                
-                // Set the member ID on the profile if it's missing but available elsewhere
-                if (!profile.member_id && (session.user.user_metadata?.member_id || storedMemberId)) {
-                    const memberId = session.user.user_metadata?.member_id || storedMemberId;
-                    console.log('Updating missing profile member_id with:', memberId);
-                    
-                    // Update the profile with the member ID
-                    supabaseClient
-                        .from('profiles')
-                        .update({ 
-                            member_id: memberId,
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', session.user.id)
-                        .then(response => {
-                            if (response.error) {
-                                console.error('Error updating profile with member ID:', response.error);
-                            } else {
-                                console.log('Profile updated with member ID:', memberId);
-                            }
-                        });
-                }
-                
-                memberId.textContent = displayMemberId;
+            // Member ID display in dashboard stats - uses sanitized value
+            const memberIdEl = document.getElementById('memberId');
+            if (memberIdEl) {
+                memberIdEl.textContent = window.userProfile.member_id || 'Not Available'; // Ensure fallback
             }
 
-            const eventsAttended = document.getElementById('eventsAttended');
-            if (eventsAttended) {
-                eventsAttended.textContent = profile.events_attended || '0';
+            const eventsAttendedEl = document.getElementById('eventsAttended');
+            if (eventsAttendedEl) {
+                eventsAttendedEl.textContent = window.userProfile.events_attended || '0';
             }
 
             // Function to update status display
@@ -1397,11 +1445,15 @@
                     }
 
                     if (!latestProfile) {
-                        console.warn('No profile data found');
+                        console.warn('No profile data found during status update');
                         return;
                     }
 
-                    console.log('Latest profile data:', latestProfile);
+                    console.log('[LOG] updateStatusDisplay fetched latestProfile:', JSON.stringify(latestProfile));
+
+                    // Update the global profile data - Sanitize it before assignment
+                    window.userProfile = sanitizeProfileData(latestProfile);
+                    console.log('[LOG] updateStatusDisplay RE-SANITIZED window.userProfile:', JSON.stringify(window.userProfile));
 
                     const verificationStatus = document.getElementById('verificationStatus');
                     const statusElement = document.getElementById('membershipStatus');
@@ -1411,8 +1463,8 @@
                         return;
                     }
 
-                    // Use the latest profile data
-                    if (latestProfile.membership_status === 'active') {
+                    // Use the now re-sanitized window.userProfile data for status display logic
+                    if (window.userProfile.membership_status === 'active') {
                         verificationStatus.innerHTML = `
                             <span class="badge success">
                                 <i class="fas fa-check-circle"></i>
@@ -1435,8 +1487,17 @@
                         statusElement.className = 'status-pending';
                     }
 
-                    // Update the global profile data
-                    window.userProfile = latestProfile;
+                    // Re-populate user's name in case it was affected, though unlikely here.
+                    // This is more of a safeguard. The primary population is during initial load.
+                    const userFullNameEl = document.getElementById('userFullName');
+                    if (userFullNameEl) {
+                        userFullNameEl.textContent = window.userProfile.full_name || 'Member';
+                    }
+                    // ALSO UPDATE MEMBER ID IN UI from updateStatusDisplay
+                    const memberIdEl = document.getElementById('memberId');
+                    if (memberIdEl) {
+                        memberIdEl.textContent = window.userProfile.member_id || 'Not Available';
+                    }
             } catch (error) {
                     console.error('Error updating status display:', error);
                 }
@@ -1465,8 +1526,8 @@
 
             membershipCardBtn.addEventListener('click', () => {
                 // Format date for card display
-                const formattedDate = profile.created_at ? 
-                    new Date(profile.created_at).toLocaleDateString('en-US', {
+                const formattedDate = window.userProfile.created_at ? 
+                    new Date(window.userProfile.created_at).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'
@@ -1474,35 +1535,35 @@
 
                 // Get the member ID from all possible sources
                 const storedMemberId = localStorage.getItem('userMemberId');
-                const cardMemberId = profile.member_id || 
+                const cardMemberId = window.userProfile.member_id || 
                                   session.user.user_metadata?.member_id || 
                                   storedMemberId || 
                                   'Not Available';
                 
                 console.log('Member ID for card display:', {
-                    profileId: profile.member_id,
+                    profileId: window.userProfile.member_id,
                     metadataId: session.user.user_metadata?.member_id,
                     localStorageId: storedMemberId,
                     using: cardMemberId
                 });
 
                 // Update card info
-                document.getElementById('cardFullName').textContent = profile.full_name;
+                document.getElementById('cardFullName').textContent = window.userProfile.full_name;
                 document.getElementById('cardMemberId').textContent = cardMemberId;
                 document.getElementById('cardMemberSince').textContent = formattedDate;
                 document.getElementById('cardMembershipStatus').textContent = 
-                    profile.membership_type.charAt(0).toUpperCase() + profile.membership_type.slice(1);
+                    window.userProfile.membership_type.charAt(0).toUpperCase() + window.userProfile.membership_type.slice(1);
 
                 // Set card style based on membership type
                 const cardElement = document.querySelector('.membership-card');
-                cardElement.dataset.type = profile.membership_type;
+                cardElement.dataset.type = window.userProfile.membership_type;
 
                 // Generate QR code
                 const qrData = JSON.stringify({
-                    id: profile.id,
+                    id: window.userProfile.id,
                     memberId: cardMemberId,
-                    type: profile.membership_type,
-                    name: profile.full_name,
+                    type: window.userProfile.membership_type,
+                    name: window.userProfile.full_name,
                     since: formattedDate,
                     verified: true
                 });
@@ -1555,35 +1616,32 @@
             accountSettingsBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 
-                // Populate account information
-                document.getElementById('modalUserEmail').textContent = profile.email;
-                document.getElementById('modalMemberId').textContent = profile.member_id;
-                document.getElementById('modalMemberSince').textContent = profile.created_at ? 
-                    new Date(profile.created_at).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                    }) : 'Not Available';
-                document.getElementById('modalMembershipStatus').textContent = 
-                    profile.membership_status.charAt(0).toUpperCase() + profile.membership_status.slice(1);
-                
-                // Populate new fields
-                // Phone number
-                document.getElementById('modalPhoneNumber').textContent = profile.phone_number || 'Not provided';
+                // Logs for debugging (can be removed later)
+                console.log('[LOG] Account Settings Modal: window.userProfile type:', typeof window.userProfile);
+                if (window.userProfile) {
+                    console.log('[LOG] Account Settings Modal: window.userProfile.address type:', typeof window.userProfile.address);
+                    console.log('[LOG] Account Settings Modal: window.userProfile.address value:', JSON.stringify(window.userProfile.address));
+                    console.log('[LOG] Account Settings Modal: window.userProfile keys:', Object.keys(window.userProfile).join(', '));
+                    console.log('[LOG] Account Settings Modal: window.userProfile.full_name:', window.userProfile.full_name);
+                    console.log('[LOG] Account Settings Modal: window.userProfile.member_id:', window.userProfile.member_id);
+                }
+
+                // Populate general account information
+                document.getElementById('modalUserEmail').textContent = window.userProfile?.email || 'Not available';
+                document.getElementById('modalMemberId').textContent = window.userProfile?.member_id || 'Not Available';
+                document.getElementById('modalMemberSince').textContent = window.userProfile?.created_at ? 
+                    new Date(window.userProfile.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Not Available';
+                document.getElementById('modalMembershipStatus').textContent = window.userProfile?.membership_status ?
+                    window.userProfile.membership_status.charAt(0).toUpperCase() + window.userProfile.membership_status.slice(1) : 'Pending';
+                document.getElementById('modalPhoneNumber').textContent = window.userProfile?.phone || 'Not provided'; // Uses sanitized phone
                 
                 // Date of birth
-                if (profile.date_of_birth) {
-                    // Parse date in local timezone
-                    const [year, month, day] = profile.date_of_birth.split('-');
+                if (window.userProfile?.date_of_birth) {
+                    const [year, month, day] = window.userProfile.date_of_birth.split('-');
                     const dobDate = new Date(year, month - 1, day);
-                    
-                    // Format with ordinal suffix
                     const options = { year: 'numeric', month: 'long', day: 'numeric' };
                     const dateString = dobDate.toLocaleDateString('en-US', options);
-                    const dayWithSuffix = dateString.replace(/(\d+),/, (_, day) => {
-                        return getOrdinalSuffix(day) + ',';
-                    });
-                    
+                    const dayWithSuffix = dateString.replace(/(\\d+),/, (_, dayNum) => getOrdinalSuffix(dayNum) + ',');
                     document.getElementById('modalDateOfBirth').textContent = dayWithSuffix;
                 } else {
                     document.getElementById('modalDateOfBirth').textContent = 'Not provided';
@@ -1591,10 +1649,9 @@
                 
                 // Car models
                 const carModelsContainer = document.getElementById('modalCarModels');
-                carModelsContainer.innerHTML = '';
-                
-                if (profile.car_models && Array.isArray(profile.car_models) && profile.car_models.length > 0) {
-                    profile.car_models.forEach(model => {
+                carModelsContainer.innerHTML = ''; // Clear previous
+                if (window.userProfile?.car_models && Array.isArray(window.userProfile.car_models) && window.userProfile.car_models.length > 0) {
+                    window.userProfile.car_models.forEach(model => {
                         const badge = document.createElement('div');
                         badge.className = 'car-model-badge';
                         badge.innerHTML = `<i class="fas fa-car"></i> ${model}`;
@@ -1604,42 +1661,162 @@
                     carModelsContainer.innerHTML = '<p>No Tesla models provided</p>';
                 }
                 
-                // Address
+                // Address Display Logic
                 const addressContainer = document.getElementById('modalAddress');
-                
-                if (profile.address) {
-                    try {
-                        const addr = profile.address;
-                        addressContainer.innerHTML = `
-                            <address>
-                                ${addr.street}<br>
-                                ${addr.city}, ${addr.province}<br>
-                                ${addr.postal_code}<br>
-                                Canada
-                            </address>
+                const addressUpdateForm = document.getElementById('addressUpdateForm');
+                // const userAddr = window.userProfile?.address; // We'll use window.userProfile.street etc. directly or from the guaranteed window.userProfile.address object
+
+                // Populate form fields (will be used when 'Edit' is clicked)
+                // These should refer to the top-level sanitized properties which are the source of truth,
+                // which are now parsed from full_address by sanitizeProfileData.
+                document.getElementById('editStreet').value = window.userProfile?.street || '';
+                document.getElementById('editCity').value = window.userProfile?.city || '';
+                document.getElementById('editProvince').value = window.userProfile?.province || '';
+                document.getElementById('editPostalCode').value = window.userProfile?.postal_code || '';
+
+                const displayAddress = () => {
+                    const fullAddressDisplay = window.userProfile?.full_address;
+                    if (fullAddressDisplay) {
+                        addressContainer.innerHTML = `<address>${fullAddressDisplay.replace(/\n/g, '<br>')}</address>
+                            <button type="button" class="edit-info-btn" id="editAddressBtn_modal" style="margin-top: 10px;">
+                                <i class="fas fa-edit"></i> Edit Address
+                            </button>
                         `;
-                    } catch(e) {
-                        // Fallback for old format
-                        addressContainer.innerHTML = profile.address;
+                        addressUpdateForm.style.display = 'none';
+                        addressContainer.style.display = 'block';
+
+                        const editBtn = document.getElementById('editAddressBtn_modal');
+                        if (editBtn) {
+                            editBtn.onclick = () => {
+                                // Populate form from parsed top-level fields
+                                document.getElementById('editStreet').value = window.userProfile?.street || '';
+                                document.getElementById('editCity').value = window.userProfile?.city || '';
+                                document.getElementById('editProvince').value = window.userProfile?.province || '';
+                                document.getElementById('editPostalCode').value = window.userProfile?.postal_code || '';
+                                addressUpdateForm.style.display = 'block';
+                                addressContainer.style.display = 'none';
+                            };
                     }
                 } else {
                     addressContainer.innerHTML = `
-                        <p>No address provided</p>
-                        <button type="button" class="edit-info-btn" id="editProfileInfoBtn">
-                            <i class="fas fa-pencil-alt"></i> Add Information
+                            <p>No address information on file.</p>
+                            <button type="button" class="edit-info-btn" id="addAddressInfoBtn_modal">
+                                <i class="fas fa-plus-circle"></i> Add Address Information
                         </button>
                     `;
-                }
+                        addressUpdateForm.style.display = 'none';
+                        addressContainer.style.display = 'block';
+
+                        const addBtn = document.getElementById('addAddressInfoBtn_modal');
+                        if (addBtn) {
+                            addBtn.onclick = () => {
+                                document.getElementById('editStreet').value = '';
+                                document.getElementById('editCity').value = '';
+                                document.getElementById('editProvince').value = '';
+                                document.getElementById('editPostalCode').value = '';
+                                addressUpdateForm.style.display = 'block';
+                                addressContainer.style.display = 'none';
+                            };
+                        }
+                    }
+                };
+
+                displayAddress(); // Initial display of address section
+
+                // Form submission logic for address
+                addressUpdateForm.onsubmit = async (event) => {
+                    event.preventDefault();
+                    const saveChangesBtn = addressUpdateForm.querySelector('button[type="submit"]');
+                    saveChangesBtn.disabled = true;
+                    saveChangesBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+                    const street = document.getElementById('editStreet').value.trim();
+                    const city = document.getElementById('editCity').value.trim();
+                    const province = document.getElementById('editProvince').value; // Select, no trim needed
+                    let postalCode = document.getElementById('editPostalCode').value.trim().toUpperCase();
+
+                    if (!street || !city || !province || !postalCode) {
+                        alert('Please fill in all address fields.');
+                        saveChangesBtn.disabled = false;
+                        saveChangesBtn.innerHTML = 'Save Changes';
+                        return;
+                    }
+
+                    // Canadian Postal Code Regex (flexible with or without space/hyphen)
+                    const postalCodeRegex = /^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/;
+                    if (!postalCodeRegex.test(postalCode)) {
+                        alert('Invalid Postal Code format. Please use A1A 1A1 or A1A1A1.');
+                        saveChangesBtn.disabled = false;
+                        saveChangesBtn.innerHTML = 'Save Changes';
+                        return;
+                    }
+                    // Format to A1A 1A1 for the postal code part of the string
+                    postalCode = postalCode.replace(/([A-Za-z]\d[A-Za-z])[\s\-]?(\d[A-Za-z]\d)/, '$1 $2');
+
+                    // Concatenate into a single full_address string
+                    // Note: This format should ideally match how it's parsed in sanitizeProfileData
+                    const newFullAddress = `${street}, ${city}, ${province}, ${postalCode}`;
+
+                    try {
+                        const updatesToSave = {
+                            full_address: newFullAddress, // Saving the single concatenated string
+                            updated_at: new Date().toISOString()
+                        };
+
+                        console.log('[VERY IMPORTANT LOG] Object being sent to Supabase update for address:', JSON.stringify(updatesToSave)); 
+
+                        const { data, error } = await supabaseClient
+                            .from('profiles')
+                            .update(updatesToSave) // Update the single full_address field
+                            .eq('id', session.user.id)
+                            .select() 
+                            .single();
+
+                        if (error) throw error;
+
+                        if (data) {
+                            // Update global userProfile with the new full_address
+                            window.userProfile.full_address = data.full_address;
+                            
+                            // Re-parse the new full_address to update component fields and the address object
+                            let ps = '', pc = '', pp = '', pzc = '';
+                            if (data.full_address) {
+                                const parts = data.full_address.split(',').map(part => part.trim());
+                                if (parts.length >= 1) ps = parts[0];
+                                if (parts.length >= 2) pc = parts[1];
+                                if (parts.length >= 3) pp = parts[2];
+                                if (parts.length >= 4) pzc = parts[3];
+                            }
+                            window.userProfile.street = ps;
+                            window.userProfile.city = pc;
+                            window.userProfile.province = pp;
+                            window.userProfile.postal_code = pzc;
+                            window.userProfile.address = { 
+                                street: ps,
+                                city: pc,
+                                province: pp,
+                                postal_code: pzc
+                            };
+                            window.userProfile.updated_at = data.updated_at;
+
+                            alert('Address updated successfully!');
+                            displayAddress(); // Refresh the address display
+                        }
+                    } catch (error) {
+                        console.error('Error updating address:', error);
+                        alert(`Error updating address: ${error.message}`);
+                    } finally {
+                        saveChangesBtn.disabled = false;
+                        saveChangesBtn.innerHTML = 'Save Changes';
+                    }
+                };
                 
-                // Add handler for edit info button
-                const editInfoBtn = document.getElementById('editProfileInfoBtn');
-                if (editInfoBtn) {
-                    editInfoBtn.addEventListener('click', () => {
-                        // Close the current modal
-                        editProfileModal.style.display = 'none';
-                        // Redirect to profile completion page
-                        window.location.href = 'profile-completion.html';
-                    });
+                // Setup for Cancel button (if it exists as part of the form)
+                const cancelBtn = document.getElementById('cancelAddressEditBtn');
+                if (cancelBtn) {
+                    cancelBtn.onclick = () => {
+                        displayAddress(); // Revert to showing address, hide form
+                    };
                 }
                 
                 editProfileModal.style.display = 'block';
@@ -1905,7 +2082,7 @@
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
 
-            if (profile.membership_status === 'pending') {
+            if (window.userProfile.membership_status === 'pending') {
                 verificationStatus.innerHTML = `
                     <span class="badge warning">
                         <i class="fas fa-envelope"></i>
@@ -1934,14 +2111,14 @@
 
                         // Send verification email using FormSubmit
                         const formData = new FormData();
-                        formData.append('email', profile.email);
+                        formData.append('email', window.userProfile.email);
                         formData.append('_captcha', 'false');
                         formData.append('_template', 'box');
                         formData.append('_subject', 'Verify Your Blitz T Club Membership');
                         formData.append('_autoresponse', 'Thank you for verifying your email. Your Blitz T Club membership will be activated shortly.');
                         formData.append('message', `Welcome to Blitz T Club!
 
-Member ID: ${profile.member_id}
+Member ID: ${window.userProfile.member_id}
 
 Please click the link below to verify your email and activate your membership:
 ${verificationUrl}
@@ -1966,7 +2143,7 @@ Best regards,
 Blitz T Club Team`);
 
                         // Send the verification email
-                        const emailResponse = await fetch(`https://formsubmit.co/ajax/${profile.email}`, {
+                        const emailResponse = await fetch(`https://formsubmit.co/ajax/${window.userProfile.email}`, {
                             method: 'POST',
                             headers: {
                                 'Accept': 'application/json'
@@ -1981,8 +2158,8 @@ Blitz T Club Team`);
                         }
 
                         // Store verification data in localStorage
-                        localStorage.setItem('pendingVerificationEmail', profile.email);
-                        localStorage.setItem('pendingMemberId', profile.member_id);
+                        localStorage.setItem('pendingVerificationEmail', window.userProfile.email);
+                        localStorage.setItem('pendingMemberId', window.userProfile.member_id);
                         localStorage.setItem('registrationTime', new Date().toISOString());
 
                         // Redirect to verification sent page
@@ -2006,7 +2183,7 @@ Blitz T Club Team`);
                     }
 
                     // Check if coupon_redeemed exists in profile data
-                    if (profile.coupon_redeemed === undefined) {
+                    if (window.userProfile.coupon_redeemed === undefined) {
                         console.log('Coupon feature not fully set up in the database');
                         
                         // Try to update the profile with the field if it's missing
@@ -2026,13 +2203,13 @@ Blitz T Club Team`);
                                 }
                             } else {
                                 // Update was successful, so update local profile data
-                                profile.coupon_redeemed = false;
+                                window.userProfile.coupon_redeemed = false;
                                 console.log('Successfully initialized coupon_redeemed field');
                             }
                         } catch (error) {
                             console.error('Error initializing coupon status:', error);
                             // For admin users, show an alert about the missing column
-                            if (profile.email && (profile.email.includes('admin') || profile.email === 'linkevin046@gmail.com')) {
+                            if (window.userProfile.email && (window.userProfile.email.includes('admin') || window.userProfile.email === 'linkevin046@gmail.com')) {
                                 alert('Admin notice: The coupon_redeemed column is missing in the profiles table. Please run the SQL to add it.');
                             }
                         }
@@ -2057,13 +2234,13 @@ Blitz T Club Team`);
                 
                 // Update coupon display based on redemption status
                 function updateCouponDisplay() {
-                    if (profile.coupon_redeemed) {
+                    if (window.userProfile.coupon_redeemed) {
                         couponStatus.style.display = 'none';
                         couponRedeemed.style.display = 'block';
                         
                         // Display redemption date if available
-                        if (profile.coupon_redeemed_at) {
-                            const formattedDate = new Date(profile.coupon_redeemed_at).toLocaleDateString('en-US', {
+                        if (window.userProfile.coupon_redeemed_at) {
+                            const formattedDate = new Date(window.userProfile.coupon_redeemed_at).toLocaleDateString('en-US', {
                                 year: 'numeric',
                                 month: 'long',
                                 day: 'numeric'
@@ -2155,8 +2332,8 @@ Blitz T Club Team`);
                             }
                             
                             // Update local profile data
-                            profile.coupon_redeemed = true;
-                            profile.coupon_redeemed_at = redemptionTimestamp;
+                            window.userProfile.coupon_redeemed = true;
+                            window.userProfile.coupon_redeemed_at = redemptionTimestamp;
                             
                             // Update display
                             updateCouponDisplay();
@@ -2182,30 +2359,48 @@ Blitz T Club Team`);
                 // This ensures that even if the coupon feature fails, it doesn't break other features
             }
 
-            // Remove duplicate session declaration and use existing session
-            if (session?.user) {
-                const { data: profile } = await supabaseClient
+             // Remove duplicate session declaration and use existing session
+             if (session?.user) {
+                const { data: profileData } = await supabaseClient // Renamed to avoid conflict with outer 'profile' variables
                     .from('profiles')
                     .select(`
                         id,
                         phone,
-                        street,
-                        city,
-                        province,
-                        postal_code,
+                        full_address, // Fetch full_address
                         updated_at
+                        // Removed first_name, last_name from select as they are not the focus for this mandatory redirect
                     `)
                     .eq('id', session.user.id)
                     .single();
 
-                const requiredFields = ['first_name', 'last_name', 'phone', 'street', 'city', 'province', 'postal_code'];
-                const isComplete = requiredFields.every(field => profile?.[field]?.trim() !== '');
+                // Updated requiredFields to focus on phone and full_address for this mandatory redirect check.
+                // update-profile.html should primarily be for ensuring these contact details are present.
+                const requiredFields = ['phone', 'full_address']; 
+                let isComplete = false;
+
+                /* Temporarily suspending mandatory profile completion redirect
+                if (profileData) {
+                    console.log('[Completeness Check] Fetched profileData for check:', JSON.stringify(profileData));
+                    isComplete = requiredFields.every(field => {
+                        const value = profileData[field];
+                        // Check if value is not null, not undefined, and not an empty string after trimming.
+                        return value !== null && typeof value !== 'undefined' && String(value).trim() !== '';
+                    });
+                } else {
+                    console.log('[Completeness Check] profileData was null or undefined when fetching for completeness.');
+                    // If profileData couldn't be fetched (e.g., network error, or RLS issue for this specific select)
+                    // then consider it incomplete to be safe, though this usually indicates a broader problem.
+                    isComplete = false; 
+                }
 
                 if (!isComplete) {
+                    console.log('[Completeness Check] Profile deemed INCOMPLETE. Redirecting to /profile-completion.html. Data used for check:', JSON.stringify(profileData));
                     sessionStorage.setItem('returnPath', window.location.pathname);
-                    window.location.href = '/update-profile.html?mandatory=true';
-                    window.history.replaceState(null, null, window.location.href);
+                    window.location.href = '/profile-completion.html?mandatory=true'; // UPDATED REDIRECT PATH
+                } else {
+                    console.log('[Completeness Check] Profile deemed COMPLETE. No redirect needed. Data used for check:', JSON.stringify(profileData));
                 }
+                */
             }
         });
     </script>
@@ -2324,10 +2519,20 @@ Blitz T Club Team`);
                                 <div class="form-group">
                                     <label for="editProvince">Province</label>
                                     <select id="editProvince" name="province" required class="modern-input">
-                                        <option value="">Select Province</option>
-                                        <option value="ON">Ontario</option>
+                                        <option value="">Select Province/Territory</option>
+                                        <option value="AB">Alberta</option>
                                         <option value="BC">British Columbia</option>
-                                        <!-- Add other provinces -->
+                                        <option value="MB">Manitoba</option>
+                                        <option value="NB">New Brunswick</option>
+                                        <option value="NL">Newfoundland and Labrador</option>
+                                        <option value="NS">Nova Scotia</option>
+                                        <option value="ON">Ontario</option>
+                                        <option value="PE">Prince Edward Island</option>
+                                        <option value="QC">Quebec</option>
+                                        <option value="SK">Saskatchewan</option>
+                                        <option value="NT">Northwest Territories</option>
+                                        <option value="NU">Nunavut</option>
+                                        <option value="YT">Yukon</option>
                                     </select>
                                 </div>
 
@@ -2335,8 +2540,12 @@ Blitz T Club Team`);
                                     <label for="editPostalCode">Postal Code</label>
                                     <input type="text" id="editPostalCode" name="postal_code" required
                                            class="modern-input" placeholder="A1A 1A1" 
-                                           pattern="[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d">
+                                           pattern="[A-Za-z]\d[A-Za-z] ?\d[A-Za-z]\d">
                                 </div>
+                            </div>
+                            <div class="form-actions" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                                <button type="button" id="cancelAddressEditBtn" class="btn secondary-btn">Cancel</button>
+                                <button type="submit" class="btn primary-btn">Save Changes</button>
                             </div>
                         </form>
                     </div>
@@ -2795,7 +3004,7 @@ Blitz T Club Team`);
         if (!window.supabaseClient) {
             window.supabaseClient = supabase.createClient(
                 'https://qhkcrrphsjpytdfqfamq.supabase.co',
-                'your-anon-key',
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI',
                 {
                     auth: {
                         persistSession: true,
@@ -2804,6 +3013,9 @@ Blitz T Club Team`);
                 }
             );
         }
+
+        // Check database structure
+        await checkDatabaseStructure();
 
         // Then initialize dashboard
         initializeDashboard();
@@ -2827,18 +3039,49 @@ Blitz T Club Team`);
         const user = await supabaseClient.auth.getUser();
         if (!user.data.user) return;
 
-        // Fetch event registrations
-        const { data: registrations } = await supabaseClient
+        // Initialize with empty array
+        let registrations = [];
+        
+        try {
+            // Attempt to fetch event registrations - FIXED QUERY SYNTAX
+            const response = await supabaseClient
             .from('event_registrations')
-            .select('event_id, events(status)')
+                .select('event_id')  // First get just the event IDs
             .eq('user_id', user.data.user.id);
 
-        // Count attended events (status = 'completed')
-        const attended = registrations.filter(r => r.events?.status === 'completed').length;
-        safeTextUpdate('eventsAttended', attended);
+            // Use response data if available
+            registrations = response?.data || [];
+            
+            // If we have registrations, try to get event data
+            if (registrations.length > 0) {
+                try {
+                    // Get all events (simpler approach to avoid 'in' operator issues)
+                    const { data: allEvents } = await supabaseClient
+                        .from('events')
+                        .select('id, status');
+                        
+                    // If we got events data, merge it with registrations
+                    if (allEvents && allEvents.length > 0) {
+                        registrations = registrations.map(reg => ({
+                            ...reg,
+                            events: allEvents.find(e => e.id === reg.event_id) || null
+                        }));
+                    }
+                } catch (eventError) {
+                    console.error('Error fetching events:', eventError);
+                    // Continue with just the registrations
+                }
+            }
+        } catch (queryError) {
+            console.error('Error fetching event registrations:', queryError);
+            // Continue with empty registrations array
+        }
 
-        // Count upcoming events (status = 'upcoming')
-        const upcoming = registrations.filter(r => r.events?.status === 'upcoming').length;
+        // Safely process the registrations
+        const attended = registrations.filter(r => r?.events?.status === 'completed').length;
+        const upcoming = registrations.filter(r => r?.events?.status === 'upcoming').length;
+        
+        safeTextUpdate('eventsAttended', attended);
         safeTextUpdate('upcomingEvents', upcoming);
     });
     </script>
@@ -3000,13 +3243,47 @@ Blitz T Club Team`);
     <script>
     async function updateEventStats() {
         try {
-            const { data: registrations } = await window.supabaseClient
+            // Initialize with empty array
+            let registrations = [];
+            
+            try {
+                // Attempt to fetch data - FIXED QUERY SYNTAX
+                const response = await window.supabaseClient
                 .from('event_registrations')
-                .select('event_id, events(status)')
+                    .select('event_id')  // First get just the event IDs
                 .eq('user_id', window.userProfile.id);
 
-            const attended = registrations.filter(r => r.events?.status === 'completed').length;
-            const upcoming = registrations.filter(r => r.events?.status === 'upcoming').length;
+                // Use response data if available
+                registrations = response?.data || [];
+                
+                // If we have registrations, try to get event data
+                if (registrations.length > 0) {
+                    try {
+                        // Get all events (simpler approach to avoid 'in' operator issues)
+                        const { data: allEvents } = await window.supabaseClient
+                            .from('events')
+                            .select('id, status');
+                            
+                        // If we got events data, merge it with registrations
+                        if (allEvents && allEvents.length > 0) {
+                            registrations = registrations.map(reg => ({
+                                ...reg,
+                                events: allEvents.find(e => e.id === reg.event_id) || null
+                            }));
+                        }
+                    } catch (eventError) {
+                        console.error('Error fetching events:', eventError);
+                        // Continue with just the registrations
+                    }
+                }
+            } catch (queryError) {
+                console.error('Error fetching event registrations:', queryError);
+                // Continue with empty registrations array
+            }
+
+            // Safely process the registrations (guaranteed to be an array now)
+            const attended = registrations.filter(r => r?.events?.status === 'completed').length;
+            const upcoming = registrations.filter(r => r?.events?.status === 'upcoming').length;
             
             safeTextUpdate('eventsAttended', attended);
             safeTextUpdate('upcomingEvents', upcoming);
@@ -3180,7 +3457,7 @@ Blitz T Club Team`);
     // When loading profile data
     function sanitizeProfileData(profile) {
         return {
-            ...profile,
+            ...(profile || {}),
             phone: profile?.phone || 'Not provided',
             street: profile?.street || '',
             city: profile?.city || '',
@@ -3190,7 +3467,7 @@ Blitz T Club Team`);
     }
 
     // Usage
-    window.userProfile = sanitizeProfileData(rawProfileData);
+    window.userProfile = sanitizeProfileData(window.userProfile || {});
     </script>
 
     <!-- Add this validation function -->
@@ -3238,5 +3515,58 @@ Blitz T Club Team`);
         });
     });
     </script>
+
+    <!-- Add this function to check database structure -->
+    <script>
+    // Add this function to check database structure
+    async function checkDatabaseStructure() {
+        try {
+            console.log('Checking database structure...');
+            
+            // Check if events table exists by trying to get a single row
+            const { data: eventCheck, error: eventError } = await window.supabaseClient
+                .from('events')
+                .select('id')
+                .limit(1);
+                
+            if (eventError) {
+                console.error('Error accessing events table:', eventError);
+                console.log('The events table might not exist or you might not have access to it.');
+                console.log('To fix this, create an events table with id and status columns.');
+                return false;
+            }
+            
+            console.log('Events table exists and is accessible.');
+            return true;
+        } catch (error) {
+            console.error('Error checking database structure:', error);
+            return false;
+        }
+    }
+
+    // Call this function when initializing the dashboard
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Initialize Supabase first
+        if (!window.supabaseClient) {
+            window.supabaseClient = supabase.createClient(
+                'https://qhkcrrphsjpytdfqfamq.supabase.co',
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI',
+                {
+                    auth: {
+                        persistSession: true,
+                        autoRefreshToken: true
+                    }
+                }
+            );
+        }
+
+        // Check database structure
+        await checkDatabaseStructure();
+
+        // Then initialize dashboard
+        initializeDashboard();
+    });
+    </script>
 </body>
+</html> 
 </html> 

@@ -916,14 +916,6 @@
         await updateRegistrationCount();
 
         // Cancel registration handling
-        document.getElementById('cancelRegistration').addEventListener('click', async (e) => {
-            e.preventDefault();
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            if (!user) return alert('Please login to manage registrations');
-            
-            // Show cancel modal
-            document.getElementById('cancelModal').style.display = 'block';
-        });
 
         // Close cancel modal
         document.querySelector('.cancel-close').addEventListener('click', () => {

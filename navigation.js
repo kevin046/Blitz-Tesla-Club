@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initializeSupabase();
         setupAuthStateListener();
         loadNavigation();
-        setupMobileMenu();
+        mobileMenu.init();
     } catch (error) {
         console.error('Navigation initialization error:', error);
     }
@@ -137,9 +137,6 @@ async function initializeNavigation() {
                 footer.style.paddingBottom = 'env(safe-area-inset-bottom)';
             }
         }
-
-        // Initialize the mobile menu
-        initializeMobileMenu();
     } catch (error) {
         console.error('Navigation initialization error:', error);
     }
@@ -232,11 +229,6 @@ const mobileMenu = {
     }
 };
 
-// Initialize on all pages
-document.addEventListener('DOMContentLoaded', () => {
-    mobileMenu.init();
-});
-
 // Add missing function definitions
 function updateAuthUI(isLoggedIn) {
     const loginItem = document.getElementById('loginBtn');
@@ -245,21 +237,12 @@ function updateAuthUI(isLoggedIn) {
     if (logoutItem) logoutItem.style.display = isLoggedIn ? 'block' : 'none';
 }
 
-function setupMobileMenu() {
-    const menuToggle = document.querySelector('.menu-toggle');
-    if (menuToggle) {
-        menuToggle.addEventListener('click', toggleMobileMenu);
-    }
-}
-
 // Rename initializeNavigation to loadNavigation to match the call
 const loadNavigation = initializeNavigation;
 
 // Update the export statements at the bottom
 window.initializeNavigation = initializeNavigation;
 window.supabaseClient = window.supabaseClient;
-window.toggleMobileMenu = toggleMobileMenu;
-window.closeMobileMenu = closeMobileMenu;
 
 // Initialize mobile menu functionality for all pages
 document.addEventListener('DOMContentLoaded', () => {

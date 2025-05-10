@@ -1,15 +1,47 @@
-// Replace the top initialization with
-const supabaseClient = (() => {
-    try {
-        return supabase.createClient(
+// Add proper Supabase initialization at the top
+const initializeSupabase = () => {
+    if (!window.supabaseClient) {
+        window.supabaseClient = supabase.createClient(
             'https://qhkcrrphsjpytdfqfamq.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI'
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI',
+            {
+                auth: {
+                    persistSession: true,
+                    autoRefreshToken: true
+                }
+            }
         );
-    } catch (error) {
-        console.error('Supabase initialization failed:', error);
-        return null;
     }
-})();
+    return window.supabaseClient;
+};
+
+// Update the auth state listener with error handling
+const setupAuthStateListener = () => {
+    try {
+        const supabase = initializeSupabase();
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN') {
+                updateAuthUI(true);
+            } else if (event === 'SIGNED_OUT') {
+                updateAuthUI(false);
+            }
+        });
+    } catch (error) {
+        console.error('Auth state listener error:', error);
+    }
+};
+
+// Update initialization sequence
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        initializeSupabase();
+        setupAuthStateListener();
+        loadNavigation();
+        setupMobileMenu();
+    } catch (error) {
+        console.error('Navigation initialization error:', error);
+    }
+});
 
 // Function to initialize navigation
 async function initializeNavigation() {
@@ -247,34 +279,8 @@ function preventScroll(e) {
 
 // Initialize navigation when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    if (!window.supabase) return;
-    
-    // Ensure single initialization
-    if (!window.supabaseClient && typeof supabaseClient !== 'undefined') {
-        console.log('Initializing Supabase client');
-        window.supabaseClient = supabaseClient.createClient(
-            'https://qhkcrrphsjpytdfqfamq.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI',
-            {
-                auth: {
-                    storage: localStorage,
-                    autoRefreshToken: true,
-                    persistSession: true,
-                    detectSessionInUrl: true
-                }
-            }
-        );
-        console.log('Supabase client initialized');
-        document.dispatchEvent(new Event('supabase:ready'));
-    }
-    
-    // Add ready state check
-    document.addEventListener('supabase:ready', initializeNavigation);
-    setTimeout(() => {
-        if (window.supabaseClient) {
-            document.dispatchEvent(new Event('supabase:ready'));
-        }
-    }, 100);
+    // Initialize navigation
+    initializeNavigation();
     
     // Ensure consistent URL casing for page links
     const links = document.querySelectorAll('a');
@@ -297,21 +303,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Export for use in other files
-window.initializeNavigation = initializeNavigation;
-window.toggleMobileMenu = toggleMobileMenu;
-window.closeMobileMenu = closeMobileMenu;
+// Add missing function definitions
+function updateAuthUI(isLoggedIn) {
+    const loginItem = document.getElementById('loginBtn');
+    const logoutItem = document.getElementById('logoutBtn');
+    if (loginItem) loginItem.style.display = isLoggedIn ? 'none' : 'block';
+    if (logoutItem) logoutItem.style.display = isLoggedIn ? 'block' : 'none';
+}
 
-// Update existing logout function
-document.getElementById('footerLogoutBtn')?.addEventListener('click', async (e) => {
-    e.preventDefault();
-    if (!supabaseClient) return;
-    
-    try {
-        const { error } = await supabaseClient.auth.signOut();
-        if (error) throw error;
-        window.location.href = 'index.html';
-    } catch (error) {
-        console.error('Logout error:', error);
+function setupMobileMenu() {
+    const menuToggle = document.querySelector('.menu-toggle');
+    if (menuToggle) {
+        menuToggle.addEventListener('click', toggleMobileMenu);
     }
-}); 
+}
+
+// Rename initializeNavigation to loadNavigation to match the call
+const loadNavigation = initializeNavigation;
+
+// Update the export statements at the bottom
+window.initializeNavigation = initializeNavigation;
+window.supabaseClient = window.supabaseClient;
+window.toggleMobileMenu = toggleMobileMenu;
+window.closeMobileMenu = closeMobileMenu; 

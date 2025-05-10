@@ -1201,14 +1201,14 @@
             }
 
                 // Get user profile
-                const { data: profile, error: profileError } = await supabase
+                const { data: userData, error: profileError } = await supabaseClient
                     .from('profiles')
                     .select('*')
-                    .eq('user_id', session.user.id)  // Use user_id instead of email
+                .eq('email', session.user.email)
                     .single();
 
             console.log('Fetching profile for email:', session.user.email);
-                console.log('Profile query result:', { profile, profileError });
+                console.log('Profile query result:', { profile: userData, profileError });
 
             let profile;
 
@@ -1247,7 +1247,7 @@
                 console.error('Error fetching profile:', profileError);
                 throw profileError;
                 } else {
-                    profile = profile;
+                    profile = userData;
                 }
 
             // Make profile available globally for other functions
@@ -2056,7 +2056,7 @@ Blitz T Club Team`);
                             const { data: latestProfile, error: profileError } = await supabaseClient
                                 .from('profiles')
                                 .select('*')
-                                .eq('uid', session.user.id)
+                                .eq('id', session.user.id)
                                 .single();
                             
                             if (profileError) {
@@ -2079,12 +2079,11 @@ Blitz T Club Team`);
                             const redemptionTimestamp = new Date().toISOString();
                             const { error: updateError } = await supabaseClient
                                 .from('profiles')
-                                .update({
+                                .update({ 
                                     coupon_redeemed: true,
-                                    coupon_redeemed_at: redemptionTimestamp,
-                                    updated_at: redemptionTimestamp
+                                    updated_at: new Date().toISOString()
                                 })
-                                .eq('uid', session.user.id);
+                                .eq('id', session.user.id);  // Use id instead of uid
                             
                             if (updateError) {
                                 // If the update fails because the column doesn't exist, provide a meaningful error
@@ -2127,8 +2126,17 @@ Blitz T Club Team`);
             if (session?.user) {
                 const { data: profile } = await supabaseClient
                     .from('profiles')
-                    .select('id, address, phone, updated_at, uid')
-                    .eq('uid', session.user.id)
+                    .select(`
+                        id,
+                        street,
+                        city,
+                        province,
+                        postal_code,
+                        phone,
+                        updated_at,
+                        membership_status
+                    `)
+                    .eq('id', session.user.id)
                     .single();
 
                 const requiredFields = ['first_name', 'last_name', 'phone', 'street', 'city', 'province', 'postal_code'];
@@ -2360,84 +2368,88 @@ Blitz T Club Team`);
 
     <!-- Add this after the password change handler -->
     <script>
-        document.getElementById('profileUpdateForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            // Get current session
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            if (!user) {
-                alert('Session expired - please login again');
-                window.location.href = 'login.html';
-                return;
-            }
-
-            const formData = {
-                first_name: document.getElementById('editFirstName').value.trim(),
-                last_name: document.getElementById('editLastName').value.trim(),
-                phone: document.getElementById('editPhone').value.trim(),
-                street: document.getElementById('editStreet').value.trim(),
-                city: document.getElementById('editCity').value.trim(),
-                province: document.getElementById('editProvince').value,
-                postal_code: document.getElementById('editPostalCode').value.toUpperCase().trim()
-            };
-
-            // Basic validation
-            if (!formData.first_name || !formData.last_name) {
-                alert('Please enter both first and last name');
-                return;
-            }
-
-            if (!/^\d{10}$/.test(formData.phone)) {
-                alert('Please enter a valid 10-digit phone number');
-                return;
-            }
-
-            if (!/^[A-Z]\d[A-Z] \d[A-Z]\d$/.test(formData.postal_code)) {
-                alert('Please enter a valid postal code (A1A 1A1 format)');
-                return;
-            }
-
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-
-            try {
-                const { error } = await supabaseClient
-                    .from('profiles')
-                    .update({
-                        street: formData.street,
-                        city: formData.city,
-                        province: formData.province,
-                        postal_code: formData.postal_code
-                    })
-                    .eq('id', user.id);
-
-                if (error) throw error;
-
-                // Update local profile data
-                Object.assign(window.userProfile, formData);
+        // Wrap event listener in null check
+        const profileForm = document.getElementById('profileUpdateForm');
+        if (profileForm) {
+            profileForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
                 
-                // Check if all mandatory fields are now complete
-                const requiredFields = ['first_name', 'last_name', 'phone', 'street', 'city', 'province', 'postal_code'];
-                const isComplete = requiredFields.every(field => formData[field]?.trim() !== '');
-                
-                if (isComplete) {
-                    // Remove mandatory update requirement
-                    sessionStorage.removeItem('returnPath');
-                    window.history.replaceState(null, null, window.location.pathname);
+                // Get current session
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                if (!user) {
+                    alert('Session expired - please login again');
+                    window.location.href = 'login.html';
+                    return;
                 }
 
-                alert('Profile updated successfully!');
-                // Refresh displayed data
-                updateProfileDisplay();
-            } catch (error) {
-                console.error('Profile update error:', error);
-                alert('Error updating profile: ' + error.message);
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
-            }
-        });
+                const formData = {
+                    first_name: document.getElementById('editFirstName').value.trim(),
+                    last_name: document.getElementById('editLastName').value.trim(),
+                    phone: document.getElementById('editPhone').value.trim(),
+                    street: document.getElementById('editStreet').value.trim(),
+                    city: document.getElementById('editCity').value.trim(),
+                    province: document.getElementById('editProvince').value,
+                    postal_code: document.getElementById('editPostalCode').value.toUpperCase().trim()
+                };
+
+                // Basic validation
+                if (!formData.first_name || !formData.last_name) {
+                    alert('Please enter both first and last name');
+                    return;
+                }
+
+                if (!/^\d{10}$/.test(formData.phone)) {
+                    alert('Please enter a valid 10-digit phone number');
+                    return;
+                }
+
+                if (!/^[A-Z]\d[A-Z] \d[A-Z]\d$/.test(formData.postal_code)) {
+                    alert('Please enter a valid postal code (A1A 1A1 format)');
+                    return;
+                }
+
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+                try {
+                    const { error } = await supabaseClient
+                        .from('profiles')
+                        .update({
+                            street: formData.street,
+                            city: formData.city,
+                            province: formData.province,
+                            postal_code: formData.postal_code
+                        })
+                        .eq('id', user.id);
+
+                    if (error) throw error;
+
+                    // Update local profile data
+                    Object.assign(window.userProfile, formData);
+                    
+                    // Check if all mandatory fields are now complete
+                    const requiredFields = ['first_name', 'last_name', 'phone', 'street', 'city', 'province', 'postal_code'];
+                    const isComplete = requiredFields.every(field => formData[field]?.trim() !== '');
+                    
+                    if (isComplete) {
+                        // Remove mandatory update requirement
+                        sessionStorage.removeItem('returnPath');
+                        window.history.replaceState(null, null, window.location.pathname);
+                    }
+
+                    alert('Profile updated successfully!');
+                    // Refresh displayed data
+                    updateProfileDisplay();
+                } catch (error) {
+                    console.error('Profile update error:', error);
+                    alert('Error updating profile: ' + error.message);
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+                }
+            });
+        }
 
         // Add this function to update displayed profile info
         function updateProfileDisplay() {
@@ -2574,7 +2586,7 @@ Blitz T Club Team`);
                         const { error } = await supabaseClient
                             .from('profiles')
                             .update({ address: formData.address })
-                            .eq('uid', user.id);
+                            .eq('id', user.id);
 
                         if (error) throw error;
 
@@ -2689,22 +2701,18 @@ Blitz T Club Team`);
         if (!window.supabaseClient) {
             window.supabaseClient = supabase.createClient(
                 'https://qhkcrrphsjpytdfqfamq.supabase.co',
-                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI'
+                'your-anon-key',
+                {
+                    auth: {
+                        persistSession: true,
+                        autoRefreshToken: true
+                    }
+                }
             );
         }
 
-        // Safe form initialization
-        const initForm = () => {
-            const form = document.getElementById('accountUpdateForm');
-            if (form) {
-                form.addEventListener('submit', handleFormSubmit);
-            } else {
-                console.warn('Account form not found');
-            }
-        };
-
-        // Initialize after DOM load
-        initForm();
+        // Then initialize dashboard
+        initializeDashboard();
     });
     </script>
 
@@ -2726,26 +2734,190 @@ Blitz T Club Team`);
         if (!user.data.user) return;
 
         // Fetch event registrations
-        const { data: registrations, error: regError } = await supabase
+        const { data: registrations } = await supabaseClient
             .from('event_registrations')
-            .select(`
-                event_id,
-                events (
-                    id, 
-                    name,
-                    status
-                )
-            `)
+            .select('event_id, events(status)')
             .eq('user_id', user.data.user.id);
 
         // Count attended events (status = 'completed')
         const attended = registrations.filter(r => r.events?.status === 'completed').length;
-        document.getElementById('eventsAttended').textContent = attended;
+        safeTextUpdate('eventsAttended', attended);
 
         // Count upcoming events (status = 'upcoming')
         const upcoming = registrations.filter(r => r.events?.status === 'upcoming').length;
-        document.getElementById('upcomingEvents').textContent = upcoming;
+        safeTextUpdate('upcomingEvents', upcoming);
     });
+    </script>
+
+    <script>
+    async function initializeDashboard() {
+        try {
+            // ... existing auth checks ...
+
+            // Initialize UI components in order
+            initializeProfileSection();
+            await loadUserEvents();
+            updateEventStats();
+
+        } catch (error) {
+            handleDashboardError(error);
+        }
+    }
+    </script>
+
+    <script>
+    async function generateSequentialMemberId() {
+        const { count } = await window.supabaseClient
+            .from('profiles')
+            .select('*', { count: 'exact', head: true });
+        
+        return `BTC${String(count + 1).padStart(5, '0')}`; // Removed dash and fixed to 5 digits
+    }
+    </script>
+
+    <!-- Replace email-based queries with UUID-based -->
+    <script>
+    document.querySelectorAll('[data-profile]').forEach(element => {
+        supabaseClient
+            .from('profiles')
+            .select('*')
+            .eq('id', window.user.id)  // Use UUID instead of email
+            .single()
+            .then(({ data }) => {
+                element.textContent = data?.full_name || 'Member';
+            });
+    });
+    </script>
+
+    <script>
+    function handleDashboardError(error) {
+        console.error('Dashboard Error:', error);
+        const errorContainer = document.getElementById('errorNotification');
+        if (errorContainer) {
+            errorContainer.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    ${error.message || 'An unexpected error occurred'}
+                </div>`;
+            errorContainer.style.display = 'block';
+            setTimeout(() => errorContainer.style.display = 'none', 5000);
+        }
+        if (error.message.includes('401')) window.location.href = 'login.html';
+    }
+    </script>
+
+    <!-- Wrap all textContent updates in null checks -->
+    <script>
+    function safeTextUpdate(elementId, text) {
+        const el = document.getElementById(elementId);
+        if (el) {
+            el.textContent = text || ''; // Handle undefined/null
+            el.style.visibility = text ? 'visible' : 'hidden';
+        }
+    }
+    </script>
+
+    <script>
+    function initializeProfileSection() {
+        const elements = {
+            profileName: document.getElementById('profileName'),
+            userFullName: document.getElementById('userFullName'),
+            memberId: document.getElementById('memberId'),
+            membershipStatus: document.getElementById('membershipStatus'),
+            memberSince: document.getElementById('memberSince')
+        };
+
+        if (!window.userProfile) return;
+
+        // Update text content safely
+        safeTextUpdate('profileName', window.userProfile.full_name || 'Member');
+        safeTextUpdate('userFullName', window.userProfile.full_name || '');
+        safeTextUpdate('memberId', window.userProfile.member_id || '');
+  
+        
+        // Format member since date
+        if (elements.memberSince && window.userProfile.created_at) {
+            const joinDate = new Date(window.userProfile.created_at);
+            elements.memberSince.textContent = joinDate.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+    }
+    </script>
+
+    <script>
+    async function loadUserEvents() {
+        try {
+            if (!window.userProfile?.id) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                if (!window.userProfile?.id) {
+                    throw new Error('User profile initialization delayed');
+                }
+            }
+            const eventsContainer = document.getElementById('upcomingEventsList');
+            if (eventsContainer) {
+                eventsContainer.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div>';
+            }
+
+            if (!window.userProfile?.id) {
+                throw new Error('User profile not initialized');
+            }
+
+            const { data: events, error } = await window.supabaseClient
+                .from('user_events')
+                .select('*')
+                .eq('user_id', window.userProfile.id);
+
+            if (error) throw error;
+            
+            if (eventsContainer) {
+                eventsContainer.innerHTML = events.length > 0 
+                    ? events.map(event => `
+                        <div class="event-item">
+                            <i class="fas fa-calendar-day"></i>
+                            <div class="event-details">
+                                <h3>${event.name}</h3>
+                                <p>${new Date(event.date).toLocaleDateString()}</p>
+                            </div>
+                        </div>
+                    `).join('')
+                    : '<p class="no-events">No upcoming events found</p>';
+            }
+        } catch (error) {
+            handleDashboardError(error);
+        }
+    }
+    </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof loadUserEvents === 'function') {
+            loadUserEvents();
+        } else {
+            console.error('loadUserEvents function not defined');
+        }
+    });
+    </script>
+
+    <script>
+    async function updateEventStats() {
+        try {
+            const { data: registrations } = await window.supabaseClient
+                .from('event_registrations')
+                .select('event_id, events(status)')
+                .eq('user_id', window.userProfile.id);
+
+            const attended = registrations.filter(r => r.events?.status === 'completed').length;
+            const upcoming = registrations.filter(r => r.events?.status === 'upcoming').length;
+            
+            safeTextUpdate('eventsAttended', attended);
+            safeTextUpdate('upcomingEvents', upcoming);
+        } catch (error) {
+            console.error('Event stats error:', error);
+        }
+    }
     </script>
 </body>
 </html> 

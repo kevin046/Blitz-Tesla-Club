@@ -243,9 +243,6 @@
             font-size: 12px;
             margin-top: 3px;
         }
-
-        .error { color: red; }
-        .success { color: green; }
     </style>
 </head>
 <body class="login-page">
@@ -308,7 +305,7 @@
                 </div>
             </div>
 
-            <form class="login-form" id="registrationForm" novalidate>
+            <form class="login-form" id="registerForm" novalidate>
                 <div class="form-group">
 
                 </div>
@@ -470,20 +467,20 @@
                             </div>
                             <select name="province" id="province" class="d-none" required>
                                 <option value="">Select Province</option>
-                                <option value="AB">Alberta</option>
-                                <option value="BC">British Columbia</option>
-                                <option value="MB">Manitoba</option>
-                                <option value="NB">New Brunswick</option>
-                                <option value="NL">Newfoundland and Labrador</option>
-                                <option value="NT">Northwest Territories</option>
-                                <option value="NS">Nova Scotia</option>
-                                <option value="NU">Nunavut</option>
-                                <option value="ON">Ontario</option>
-                                <option value="PE">Prince Edward Island</option>
-                                <option value="QC">Quebec</option>
-                                <option value="SK">Saskatchewan</option>
-                                <option value="YT">Yukon</option>
-                            </select>
+                            <option value="AB">Alberta</option>
+                            <option value="BC">British Columbia</option>
+                            <option value="MB">Manitoba</option>
+                            <option value="NB">New Brunswick</option>
+                            <option value="NL">Newfoundland and Labrador</option>
+                            <option value="NT">Northwest Territories</option>
+                            <option value="NS">Nova Scotia</option>
+                            <option value="NU">Nunavut</option>
+                            <option value="ON">Ontario</option>
+                            <option value="PE">Prince Edward Island</option>
+                            <option value="QC">Quebec</option>
+                            <option value="SK">Saskatchewan</option>
+                            <option value="YT">Yukon</option>
+                        </select>
                         </div>
 
                         <input type="text" id="postalCode" name="postalCode" required
@@ -501,13 +498,13 @@
                         Password
                     </label>
                     <div class="password-input">
-                        <input type="password" id="password" name="password" required
+                            <input type="password" id="password" name="password" required
                                pattern="^(?=.*[a-zA-Z])(?=.*\d).{8,}$"
                                title="Must contain at least 8 characters with letters and numbers">
                         <button type="button" class="toggle-password" aria-label="Show password">
                             <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
+                            </button>
+                        </div>
                     <small class="form-hint">Minimum 8 characters with letters and numbers</small>
                     <div class="form-validation-icon"></div>
                 </div>
@@ -609,206 +606,401 @@
     </footer>
 
     <script>
-        // Initialize Supabase
+        // Helper function to get API URL
+        function getApiUrl(endpoint) {
+            const isDevelopment = window.location.hostname === 'localhost';
+            const baseUrl = isDevelopment ? 'http://localhost:3000' : 'https://blitztclub.com';
+            return `${baseUrl}/api/${endpoint}`;
+        }
+
+        // Function to generate sequential member ID
+        async function generateSequentialMemberId() {
+            try {
+                console.log('Starting sequential Member ID generation...');
+                
+                // Query to get all Member IDs from profiles to find the highest one
+                const { data, error } = await supabaseClient
+                    .from('profiles')
+                    .select('member_id')
+                    .not('member_id', 'is', null)  // Only select records with a member_id
+                    .order('created_at', { ascending: false });
+                
+                if (error) {
+                    console.error('Error fetching Member IDs:', error);
+                    throw error;
+                }
+                
+                // Default starting number
+                let highestNumber = 0;
+                
+                console.log('Retrieved profiles count:', data ? data.length : 0);
+                
+                // Find the highest Member ID number
+                if (data && data.length > 0) {
+                    // Loop through all profiles and extract the numeric part of the Member ID
+                    data.forEach(profile => {
+                        if (profile.member_id && profile.member_id.startsWith('BTC')) {
+                            try {
+                                // Extract just the numeric part by removing 'BTC' prefix
+                                const numberString = profile.member_id.replace('BTC', '');
+                                // Parse to integer, removing any leading zeros
+                                const numberPart = parseInt(numberString, 10);
+                                
+                                if (!isNaN(numberPart)) {
+                                    console.log(`Found Member ID: ${profile.member_id}, Number part: ${numberPart}`);
+                                    // Keep track of the highest number found
+                                    if (numberPart > highestNumber) {
+                                        highestNumber = numberPart;
+                                        console.log(`New highest number: ${highestNumber}`);
+                                    }
+                                }
+                            } catch (parseError) {
+                                console.error('Error parsing Member ID:', profile.member_id, parseError);
+                            }
+                        }
+                    });
+                }
+                
+                // Double-check with a specific query for the highest Member ID
+                if (highestNumber === 0) {
+                    console.log('No valid Member IDs found in first pass, trying direct ordering...');
+                    
+                    // Alternative approach: Sort by member_id in descending order
+                    const { data: orderedData, error: orderedError } = await supabaseClient
+                        .from('profiles')
+                        .select('member_id')
+                        .not('member_id', 'is', null)
+                        .order('member_id', { ascending: false })
+                        .limit(1);
+                    
+                    if (!orderedError && orderedData && orderedData.length > 0) {
+                        const highestId = orderedData[0].member_id;
+                        if (highestId && highestId.startsWith('BTC')) {
+                            const numberPart = parseInt(highestId.replace('BTC', ''), 10);
+                            if (!isNaN(numberPart)) {
+                                highestNumber = numberPart;
+                                console.log(`Found highest member_id by direct ordering: ${highestId}, Number part: ${highestNumber}`);
+                            }
+                        }
+                    }
+                }
+                
+                // Generate the next Member ID (increment from the highest found)
+                const nextNumber = highestNumber + 1;
+                console.log(`Highest Member ID number found: ${highestNumber}, Next number: ${nextNumber}`);
+                
+                // Format with leading zeros (5 digits)
+                const memberId = `BTC${nextNumber.toString().padStart(5, '0')}`;
+                
+                console.log(`Generated sequential Member ID: ${memberId}`);
+                return memberId;
+            } catch (error) {
+                console.error('Error generating Member ID:', error);
+                // Generate a fallback ID - make sure it's higher than the known highest ID (22)
+                const fallbackId = `BTC${(23).toString().padStart(5, '0')}`;
+                console.log('Using fallback ID:', fallbackId);
+                return fallbackId;
+            }
+        }
+
+        // Initialize Supabase client
         const supabaseClient = supabase.createClient(
             'https://qhkcrrphsjpytdfqfamq.supabase.co',
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI'
         );
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Phone number formatting
-            const phoneInput = document.getElementById('phoneNumber');
-            phoneInput.addEventListener('input', formatPhoneNumber);
-
-            // Form submission handler
-            document.getElementById('registrationForm').addEventListener('submit', handleRegistration);
-            initDateOfBirth();
-            initCustomSelects();
-            initPasswordToggles();
-        });
-
-        function formatPhoneNumber(e) {
-            const numbers = e.target.value.replace(/\D/g, '');
-            const match = numbers.match(/^(\d{0,3})(\d{0,3})(\d{0,4})$/);
-            
-            if (!match) {
-                e.target.value = '';
-                return;
-            }
-            
-            const formatted = 
-                (match[1] ? `(${match[1]}` : '') +
-                (match[2] ? `)-${match[2]}` : '') +
-                (match[3] ? `-${match[3]}` : '');
-            
-            e.target.value = formatted;
-        }
-
-        async function handleRegistration(e) {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value.trim().toLowerCase();
-            const password = document.getElementById('password').value;
-            const fullName = document.getElementById('fullName').value.trim();
-            const rawPhone = document.getElementById('phoneNumber').value;
-            const phone = rawPhone.replace(/\D/g, '');
+            // Reference to the elements
+            const registerForm = document.getElementById('registerForm');
+            const registerButton = document.getElementById('registerButton');
             const alertContainer = document.getElementById('alertContainer');
-            alertContainer.innerHTML = '';
-
-            // Enhanced validation
-            if (!validateName(fullName) || !validatePhone(phone) || !validatePassword(password)) {
-                return;
-            }
-
-            try {
-                showLoading(true);
-                
-                const { error } = await supabaseClient.auth.signUp({
-                    email,
-                    password,
-                    options: {
-                        data: {
-                            full_name: fullName,
-                            phone_number: phone
-                        }
+            
+            // Use the supabaseClient that's already defined above
+            console.log('Form initialization started');
+            
+            // Phone number formatter
+            const phoneNumberInput = document.getElementById('phoneNumber');
+            if (phoneNumberInput) {
+                phoneNumberInput.addEventListener('input', function(e) {
+                    // Allow any input but format as (xxx)-xxx-xxxx
+                    let numbers = this.value.replace(/\D/g, '');
+                    let formatted = '';
+                    
+                    if (numbers.length > 0) {
+                        formatted += '(' + numbers.substring(0, 3);
                     }
+                    if (numbers.length >= 4) {
+                        formatted += ')-' + numbers.substring(3, 6);
+                    }
+                    if (numbers.length >= 7) {
+                        formatted += '-' + numbers.substring(6, 10);
+                    }
+                    
+                    this.value = formatted;
                 });
-
-                if (error) throw error;
-
-                // Add email to redirect URL
-                window.location.href = `verification-sent.html?email=${encodeURIComponent(email)}`;
-
-            } catch (error) {
-                console.error('Registration error:', error);
-                handleRegistrationError(error);
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        function validateName(name) {
-            const isValid = /^[A-Za-z ]{2,30}$/.test(name);
-            if (!isValid) showAlert('Invalid full name (2-30 letters only)', 'error');
-            return isValid;
-        }
-
-        function validatePhone(phone) {
-            const phoneInput = document.getElementById('phoneNumber');
-            const isValidFormat = /^\(\d{3}\)-\d{3}-\d{4}$/.test(phoneInput.value);
-            const isValidLength = phone.length === 10;
-            
-            if (!isValidFormat || !isValidLength) {
-                showAlert('Phone format: (123)-456-7890', 'error');
-                return false;
-            }
-            return true;
-        }
-
-        function validatePassword(password) {
-            const isValid = password.length >= 8 && /\d/.test(password) && /[A-Za-z]/.test(password);
-            if (!isValid) showAlert('Password must be 8+ characters with letters and numbers', 'error');
-            return isValid;
-        }
-
-        function showAlert(message, type) {
-            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle';
-            document.getElementById('alertContainer').innerHTML = `
-                <div class="alert ${type}">
-                    <i class="fas ${icon}"></i>
-                    ${message}
-                </div>
-            `;
-        }
-
-        function showLoading(show) {
-            const button = document.getElementById('registerButton');
-            const spinner = document.getElementById('loadingSpinner');
-            button.disabled = show;
-            spinner.classList.toggle('d-none', !show);
-        }
-
-        function handleRegistrationError(error) {
-            let message = 'Registration failed. Please try again.';
-            
-            if (error.message.includes('already registered')) {
-                message = 'Email already registered';
-            } else if (error.message.includes('password')) {
-                message = 'Invalid password format';
-            } else if (error.message.includes('Database error')) {
-                message = 'Server configuration error - contact support';
-            }
-            
-            showAlert(message, 'error');
-        }
-
-        // Date of Birth Handling
-        function initDateOfBirth() {
-            const yearSelect = document.getElementById('birthYear');
-            const currentYear = new Date().getFullYear();
-            
-            // Populate years
-            yearSelect.innerHTML = '<option value="">Year</option>';
-            for(let y = currentYear - 13; y >= currentYear - 100; y--) {
-                yearSelect.innerHTML += `<option value="${y}">${y}</option>`;
             }
 
-            // Month and day handling
-            document.getElementById('birthMonth').addEventListener('change', updateDays);
-            document.getElementById('birthYear').addEventListener('change', function() {
-                document.getElementById('birthMonth').disabled = !this.value;
-            });
-        }
-
-        function updateDays() {
-            const year = document.getElementById('birthYear').value;
-            const month = document.getElementById('birthMonth').value;
-            const daySelect = document.getElementById('birthDay');
-            
-            if(!year || !month) return;
-
-            const days = new Date(year, month, 0).getDate();
-            daySelect.innerHTML = '<option value="">Day</option>';
-            for(let d = 1; d <= days; d++) {
-                daySelect.innerHTML += `<option value="${d.toString().padStart(2, '0')}">${d}</option>`;
-            }
-            daySelect.disabled = false;
-        }
-
-        // Custom Select Functionality
-        function initCustomSelects() {
+            // Custom select functionality
             document.querySelectorAll('.custom-select').forEach(select => {
                 const header = select.querySelector('.select-header');
                 const options = select.querySelector('.select-options');
                 const hiddenSelect = document.getElementById('province');
-
-                header.addEventListener('click', () => {
-                    header.classList.toggle('active');
-                    options.style.display = header.classList.contains('active') ? 'block' : 'none';
+                
+                // Populate custom options from hidden select
+                hiddenSelect.querySelectorAll('option').forEach(option => {
+                    if (option.value) {
+                        const div = document.createElement('div');
+                        div.className = 'option';
+                        div.textContent = option.textContent;
+                        div.dataset.value = option.value;
+                        options.appendChild(div);
+                    }
                 });
-
+                
+                header.addEventListener('click', () => {
+                    const isActive = header.classList.toggle('active');
+                    options.style.display = isActive ? 'block' : 'none';
+                });
+                
                 options.querySelectorAll('.option').forEach(option => {
                     option.addEventListener('click', () => {
                         header.querySelector('.selected-value').textContent = option.textContent;
                         hiddenSelect.value = option.dataset.value;
-                        options.style.display = 'none';
+                        options.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+                        option.classList.add('selected');
                         header.classList.remove('active');
+                        options.style.display = 'none';
                     });
                 });
+                
+                // Close when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!select.contains(e.target)) {
+                        header.classList.remove('active');
+                        options.style.display = 'none';
+                    }
+                });
+                
+                // Keyboard navigation
+                header.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') header.click();
+                });
+                
+                options.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        header.classList.remove('active');
+                        options.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Date of Birth Handling
+        function initDateOfBirth() {
+            // Populate years first
+            const yearSelect = document.getElementById('birthYear');
+            const currentYear = new Date().getFullYear();
+            for(let y = currentYear - 13; y >= currentYear - 100; y--) {
+                yearSelect.innerHTML += `<option value="${y}">${y}</option>`;
+            }
+
+            // Enable month select when year is chosen
+            yearSelect.addEventListener('change', function() {
+                document.getElementById('birthMonth').disabled = !this.value;
+            });
+
+            // Update days when either year or month changes
+            function updateDays() {
+                const year = yearSelect.value;
+                const month = document.getElementById('birthMonth').value;
+                const daySelect = document.getElementById('birthDay');
+                
+                if(!year || !month) {
+                    daySelect.disabled = true;
+                    return;
+                }
+                
+                const days = new Date(year, parseInt(month) - 1, 0).getDate();
+                daySelect.innerHTML = '<option value="">Day</option>';
+                
+                for(let d = 1; d <= days; d++) {
+                    const day = d.toString().padStart(2, '0');
+                    daySelect.innerHTML += `<option value="${day}">${d}</option>`;
+                }
+                daySelect.disabled = false;
+            }
+
+            // Enable day select when both year and month are chosen
+            document.getElementById('birthMonth').addEventListener('change', function() {
+                document.getElementById('birthDay').disabled = !this.value;
+                updateDays();
             });
         }
 
-        // Password Toggle Functionality
-        function initPasswordToggles() {
-            document.querySelectorAll('.toggle-password').forEach(button => {
-                button.addEventListener('click', function() {
-                    const input = this.parentElement.querySelector('input');
-                    const type = input.type === 'password' ? 'text' : 'password';
-                    input.type = type;
-                    this.querySelector('i').classList.toggle('fa-eye-slash');
-                });
-            });
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', initDateOfBirth);
+
+        // Add this validation function before the form submission handler
+        function validateForm() {
+            // Date of birth components validation
+            const birthYear = document.getElementById('birthYear').value;
+            const birthMonth = document.getElementById('birthMonth').value;
+            const birthDay = document.getElementById('birthDay').value;
+            
+            if (!birthYear || !birthMonth || !birthDay) {
+                alert('Please select your complete date of birth (year, month, and day)');
+                return false;
+            }
+            
+            // Accurate age calculation
+            const dob = new Date(`${birthYear}-${birthMonth}-${birthDay}`);
+            const ageDiff = Date.now() - dob.getTime();
+            const ageDate = new Date(ageDiff);
+            const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+            
+            if (age < 16) {
+                alert('You must be at least 16 years old to register');
+                return false;
+            }
+            
+            // Password validation
+            const password = document.getElementById('password').value;
+            const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d).{8,}$/;
+            if (!passwordRegex.test(password)) {
+                alert('Password must be at least 8 characters long and contain both letters AND numbers');
+                return false;
+            }
+            
+            // Password match check
+            const confirmPassword = document.getElementById('confirmPassword').value;
+                    if (password !== confirmPassword) {
+                alert('Passwords do not match!');
+                return false;
+            }
+
+            // Terms agreement
+            if (!document.getElementById('terms').checked) {
+                alert('You must agree to the terms and conditions');
+                return false;
+            }
+
+            // Province validation
+            const provinceCode = document.getElementById('province').value;
+            const validProvinces = ['AB','BC','MB','NB','NL','NT','NS','NU','ON','PE','QC','SK','YT'];
+
+            if (!validProvinces.includes(provinceCode)) {
+                alert('Please select a valid Canadian province/territory');
+                return false;
+            }
+
+            // Postal code validation
+            const postalCode = document.getElementById('postalCode').value;
+            if (!/^[A-Za-z]\d[A-Za-z][ ]?\d[A-Za-z]\d$/.test(postalCode)) {
+                alert('Please enter a valid Canadian postal code (e.g., A1A 1A1)');
+                return false;
+            }
+
+            // At least one Tesla model selected
+            const carModels = document.querySelectorAll('input[name="carModels"]:checked');
+                    if (carModels.length === 0) {
+                alert('Please select at least one Tesla model you own');
+                return false;
+            }
+
+            return true;
         }
+
+        // Update the form submission handler
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateForm()) return;
+
+            const registerButton = document.getElementById('registerButton');
+            try {
+                registerButton.disabled = true;
+                registerButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
+
+                // Get formatted values
+                const phoneNumber = document.getElementById('phoneNumber').value.replace(/\D/g, '');
+                const birthYear = document.getElementById('birthYear').value;
+                const birthMonth = document.getElementById('birthMonth').value;
+                const birthDay = document.getElementById('birthDay').value;
+                const dateOfBirth = `${birthYear}-${birthMonth}-${birthDay}`;
+
+                // Registration data
+                    const { data, error } = await supabaseClient.auth.signUp({
+                    email: document.getElementById('email').value,
+                    password: document.getElementById('password').value
+                });
+
+                if (error) throw error;
+                
+                // Explicit profile creation
+                            const { error: profileError } = await supabaseClient
+                                .from('profiles')
+                    .insert({
+                                        id: data.user.id,
+                        first_name: document.getElementById('fullName').value.split(' ')[0],
+                        last_name: document.getElementById('fullName').value.split(' ').slice(1).join(' '),
+                        phone: phoneNumber,
+                        address: {
+                            street: document.getElementById('street').value,
+                            city: document.getElementById('city').value,
+                            province: document.getElementById('province').value,
+                            postal_code: document.getElementById('postalCode').value.replace(/\s/g, '')
+                        },
+                        car_models: Array.from(document.querySelectorAll('input[name="carModels"]:checked'))
+                                      .map(cb => cb.value),
+                        date_of_birth: dateOfBirth
+                    });
+
+                if (profileError) throw profileError;
+                
+                // Add email to localStorage before redirect
+                localStorage.setItem('pendingVerificationEmail', document.getElementById('email').value);
+                window.location.href = `verification-sent.html?email=${encodeURIComponent(document.getElementById('email').value)}`;
+
+                } catch (error) {
+                    console.error('Registration error:', error);
+                alert(`Error: ${error.message}`);
+            } finally {
+                    registerButton.disabled = false;
+                registerButton.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+            }
+        });
+
+        // Add password toggle functionality
+        document.querySelectorAll('.toggle-password').forEach(button => {
+            button.addEventListener('click', function() {
+                const input = this.parentElement.querySelector('input');
+                const type = input.type === 'password' ? 'text' : 'password';
+                input.type = type;
+                this.querySelector('i').classList.toggle('fa-eye');
+                this.querySelector('i').classList.toggle('fa-eye-slash');
+            });
+        });
+
+        // Add password strength indicator
+        document.getElementById('password').addEventListener('input', function(e) {
+            const strengthBar = document.querySelector('.strength-bar');
+            const strengthText = document.querySelector('.strength-text');
+            const password = e.target.value;
+            
+            let strength = 0;
+            if (password.length >= 8) strength++;
+            if (/[A-Z]/.test(password)) strength++;
+            if (/\d/.test(password)) strength++;
+            if (/[^A-Za-z0-9]/.test(password)) strength++;
+            
+            const colors = ['#ff4444', '#ffbb33', '#00C851', '#00C851'];
+            const texts = ['Very Weak', 'Weak', 'Good', 'Strong'];
+            
+            strengthBar.style.width = `${(strength/4)*100}%`;
+            strengthBar.style.backgroundColor = colors[strength] || '#ff4444';
+            strengthText.textContent = texts[strength] || 'Very Weak';
+            strengthText.style.color = colors[strength] || '#ff4444';
+        });
     </script>
 </body>
-</html>
+</html> 

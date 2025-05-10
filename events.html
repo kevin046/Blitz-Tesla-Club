@@ -34,8 +34,7 @@
             
             .event-image {
                 width: 100%;
-                height: auto;
-                max-height: none;
+                height: 250px;
             }
         }
         
@@ -79,16 +78,18 @@
         }
 
         .event-card {
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            background: #fff;
+            border-radius: 12px;
             overflow: hidden;
-            margin-bottom: 2.5rem;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 2rem;
+            position: relative;
         }
 
         .event-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
         }
 
         .event-placeholder {
@@ -119,102 +120,29 @@
         }
 
         .event-header {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2.5rem;
-            padding: 2rem;
-            align-items: start;
-        }
-
-        .event-image-container {
-            flex: 1;
-            height: 600px;
-            margin-right: 2rem;
-            background-color: #f8f9fa;
-            background-image: url('https://i.ibb.co/XfYYsDp5/1011165571a04d4f8b1852fd1d061a5b.jpg');
-            background-position: center;
-            background-size: contain;
-            background-repeat: no-repeat;
-        }
-
-        .event-main-image {
-            width: 100%;
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            object-fit: contain;
-        }
-
-        .event-details {
-            flex: 1;
-            padding: 2rem;
-        }
-
-        .event-title {
-            font-size: 2.25rem;
-            color: #171a20;
+            display: flex;
+            gap: 2rem;
             margin-bottom: 1.5rem;
-            font-weight: 600;
         }
 
-        .event-meta-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+        .image-container {
+            width: 50%;
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
         }
 
-        .meta-item {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1.25rem;
-            background: rgba(23,26,32,0.03);
+        .event-image {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            aspect-ratio: 16/9;
+        }
+
+        .event-map {
+            margin-top: 1.5rem;
             border-radius: 8px;
-        }
-
-        .meta-icon {
-            font-size: 1.25rem;
-            color: #00e676;
-        }
-
-        .meta-content strong {
-            display: block;
-            color: #171a20;
-            margin-bottom: 0.25rem;
-        }
-
-        .meta-content span {
-            color: #5c5e62;
-            font-size: 0.95rem;
-        }
-
-        .event-description {
-            border-top: 1px solid rgba(0,0,0,0.08);
-            padding-top: 2rem;
-        }
-
-        .event-description h3 {
-            font-size: 1.5rem;
-            margin-bottom: 1.25rem;
-            color: #171a20;
-        }
-
-        .feature-list {
-            display: grid;
-            gap: 1rem;
-            list-style: none;
-            padding: 0;
-        }
-
-        .feature-list li {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1rem;
-            background: rgba(0,230,118,0.03);
-            border-radius: 6px;
-            border: 1px solid rgba(0,230,118,0.1);
+            overflow: hidden;
         }
 
         .event-actions {
@@ -253,32 +181,13 @@
         }
 
         @media (max-width: 768px) {
-            .event-header {
-                grid-template-columns: 1fr;
-                padding: 1.5rem;
+            .image-container {
+                width: 100%;
             }
             
-            .event-meta-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .event-title {
-                font-size: 1.75rem;
-            }
-            
-            .event-container {
-                flex-direction: column;
-                padding: 1rem;
-            }
-            
-            .event-image-container {
-                height: 500px;
-                margin-right: 0;
-                margin-bottom: 1.5rem;
-            }
-            
-            .event-main-image {
-                max-width: 90%;
+            .event-image {
+                height: auto;
+                max-height: 400px;
             }
         }
 
@@ -443,97 +352,6 @@
                 height: 4px;
             }
         }
-
-        .image-link {
-            display: block;
-            position: relative;
-            overflow: hidden;
-            border-radius: 12px;
-            background: #f5f5f5;
-        }
-
-        .image-link img {
-            width: 100%;
-            height: auto;
-            max-height: 80vh;
-            object-fit: contain;
-            transition: transform 0.3s ease;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-            image-rendering: high-quality;
-            filter: blur(0);
-            backface-visibility: hidden;
-        }
-
-        .image-link:hover img {
-            transform: scale(1.03);
-        }
-
-        /* Make the date/time/location text dark so it's visible */
-        .event-meta p {
-            color: #171a20 !important;
-        }
-
-        /* Enlarge the image on desktop viewports */
-        @media (min-width: 769px) {
-            .image-container {
-                width: 100% !important;
-            }
-            .event-image {
-                width: 100%;
-                height: auto;
-                max-height: none;
-                object-fit: contain;
-            }
-        }
-
-        .event-container {
-            display: flex;
-            gap: 30px;
-            align-items: flex-start;
-            margin: 20px 0;
-        }
-
-        .event-main-image {
-            width: 100%;
-            height: auto;
-            border-radius: 8px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-            display: block;
-        }
-
-        @media (max-width: 768px) {
-            .event-image-container {
-                padding: 0 15px;
-            }
-        }
-
-        img {
-            width: auto !important;
-            height: auto !important;
-            max-width: 100% !important;
-            max-height: 80vh !important;
-            object-fit: contain !important;
-        }
-
-        .info-image {
-            width: 100%;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        @media (max-width: 768px) {
-            .event-container {
-                flex-direction: column;
-            }
-            
-            .event-image-container {
-                flex: 0 0 100%;
-                max-width: none;
-                margin-right: 0;
-                margin-bottom: 2rem;
-            }
-        }
     </style>
 </head>
 <body class="events-page">
@@ -561,48 +379,26 @@
         <!-- Tesla Light Show Event Card -->
         <div class="event-card featured-event">
             <div class="event-header">
-                <div class="event-image-container"></div>
-                
+                <div class="image-container">
+                    <img src="https://i.ibb.co/XfYYsDp5/1011165571a04d4f8b1852fd1d061a5b.jpg" 
+                         alt="Tesla Light Show Group" 
+                         class="event-image"
+                         loading="lazy">
+                </div>
                 <div class="event-details">
-                    <h1 class="event-title">Tesla Light Show Spectacular</h1>
-                    
-                    <div class="event-meta-grid">
-                        <div class="meta-item">
-                            <i class="fas fa-calendar-day meta-icon"></i>
-                            <div class="meta-content">
-                                <strong>Event Date</strong>
-                                <span>May 30, 2025 @ 8:00 PM EST</span>
-                            </div>
-                        </div>
-                        
-                        <div class="meta-item">
-                            <i class="fas fa-map-marker-alt meta-icon"></i>
-                            <div class="meta-content">
-                                <strong>Location</strong>
-                                <span>Golf IT Up Parking Lot<br>2910 Steeles Ave East, Thornhill, ON</span>
-                            </div>
-                        </div>
+                    <h2>Tesla Light Show Spectacular</h2>
+                    <div class="event-meta">
+                        <p><i class="fas fa-calendar-day"></i> May 30, 2025 @ 8:00 PM</p>
+                        <p><i class="fas fa-map-marker-alt"></i> Golf IT Up Parking Lot</p>
+                        <p>2910 Steeles Ave East, Thornhill, ON</p>
                     </div>
-
                     <div class="event-description">
-                        <h3>Event Highlights</h3>
-                        <ul class="feature-list">
-                            <li>
-                                <i class="fas fa-lightbulb text-accent"></i>
-                                Custom light choreography
-                            </li>
-                            <li>
-                                <i class="fas fa-users"></i>
-                                Member networking sessions
-                            </li>
-                            <li>
-                                <i class="fas fa-wrench"></i>
-                                Technical workshops
-                            </li>
-                            <li>
-                                <i class="fas fa-camera"></i>
-                                Professional photo ops
-                            </li>
+                        <p>Connect with fellow Tesla enthusiasts at our premier light show event:</p>
+                        <ul>
+                            <li>Member networking & social gatherings</li>
+                            <li>Group light choreography sessions</li>
+                            <li>Technical workshops & demonstrations</li>
+                            <li>Exclusive owner meet-and-greets</li>
                         </ul>
                     </div>
                 </div>
@@ -709,11 +505,16 @@
                     <select class="modern-select" id="teslaModel" required>
                         <option value="">Choose Model</option>
                         <option value="Model 3">Model 3</option>
+                        <option value="Model 3 Highland">Model 3 (Highland)</option>
                         <option value="Model Y">Model Y</option>
+                        <option value="Model Y Juniper">Model Y (Juniper)</option>
                         <option value="Model S">Model S</option>
                         <option value="Model X">Model X</option>
                         <option value="Cybertruck">Cybertruck</option>
                     </select>
+                </div>
+                <div class="cancel-section">
+                    <p>Already registered? <a href="#" id="cancelRegistration">Cancel registration</a></p>
                 </div>
                 <button type="submit" class="btn primary-btn">
                     <i class="fas fa-check-circle"></i> Confirm Registration
@@ -746,105 +547,140 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', async () => {
-        // Wait for Supabase initialization
-        await new Promise(resolve => {
-            if (window.supabaseClient) return resolve();
-            document.addEventListener('supabase:ready', resolve);
-        });
+        const modal = document.getElementById('registrationModal');
+        const closeBtn = document.querySelector('.close');
+        
+        // Initialize Supabase client
+        const supabaseClient = supabase.createClient(
+            'https://qhkcrrphsjpytdfqfamq.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI'
+        );
 
-        const supabase = window.supabaseClient;
-        const EVENT_ID = 'fdee67a0-1234-5678-9abc-1d39527f8a7e';
+        // Change all instances of 'lightshow-2025' to 'Lightshow-05302025'
+        const EVENT_ID = 'Lightshow-05302025';
 
-        // Update registration display
+        // Modified registration count display
         const updateRegistrationCount = async () => {
-            try {
-                const { data, error } = await supabase
-                    .from('event_registrations')
-                    .select('user_id, vehicle_model')
-                    .eq('event_id', EVENT_ID);
+            const { data, error } = await supabaseClient
+                .from('event_registrations')
+                .select('vehicle_model')
+                .eq('event_id', EVENT_ID)
+                .is('cancelled_at', null);
 
-                if (error) throw error;
-
-                // Update total count
-                document.getElementById('totalCount').textContent = data?.length || 0;
-
-                // Update model breakdown
-                const modelCounts = data?.reduce((acc, { vehicle_model }) => {
-                    acc[vehicle_model] = (acc[vehicle_model] || 0) + 1;
-                    return acc;
-                }, {});
-
-                const modelList = document.getElementById('modelList');
-                modelList.innerHTML = Object.entries(modelCounts || {})
-                    .map(([model, count]) => `
-                        <div class="model-item">
-                            <span class="model-name">${model}</span>
-                            <span class="model-count">(${count})</span>
-                        </div>
-                    `).join('') || '<div class="no-registrations">No registrations yet</div>';
-
-            } catch (error) {
-                console.error('Error updating counts:', error);
-                alert('Error loading registration data');
+            if (error) {
+                console.error('Error fetching registrations:', error);
+                return;
             }
+
+            const modelCounts = (data || []).reduce((acc, { vehicle_model }) => {
+                acc[vehicle_model] = (acc[vehicle_model] || 0) + 1;
+                return acc;
+            }, {});
+
+            // Update total count
+            const total = Object.values(modelCounts).reduce((sum, count) => sum + count, 0);
+            document.getElementById('totalCount').textContent = total;
+
+            // Update model list
+            const modelList = document.getElementById('modelList');
+            modelList.innerHTML = Object.entries(modelCounts)
+                .map(([model, count]) => `
+                    <div class="model-item">
+                        <div class="model-name">${model}</div>
+                        <div class="model-count">(${count})</div>
+                    </div>
+                `).join('') || '<div class="no-registrations">No registrations yet</div>';
         };
-
-        // Registration form handler
-        document.getElementById('registrationForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const model = document.getElementById('teslaModel').value;
-
-            try {
-                // Verify user
-                const { data: { user }, error: authError } = await supabase.auth.getUser();
-                if (authError || !user) throw new Error('Please login to register');
-                if (!model) throw new Error('Please select a Tesla model');
-
-                // Check existing registrations
-                const { data: existing, error: fetchError } = await supabase
-                    .from('event_registrations')
-                    .select('id')
-                    .eq('user_id', user.id)
-                    .eq('event_id', EVENT_ID);
-
-                if (fetchError) throw fetchError;
-                if (existing?.length >= 2) return alert('Maximum 2 vehicles per member');
-
-                // Create registration
-                const { error } = await supabase
-                    .from('event_registrations')
-                    .insert([{
-                        user_id: user.id,
-                        event_id: EVENT_ID,
-                        vehicle_model: model
-                    }]);
-
-                if (error) throw error;
-
-                // Update UI and close modal
-                await updateRegistrationCount();
-                document.getElementById('registrationModal').style.display = 'none';
-                alert(`Successfully registered your ${model}!`);
-
-            } catch (error) {
-                console.error('Registration error:', error);
-                alert(error.message || 'Registration failed');
-            }
-        });
 
         // Modal handling
         document.getElementById('eventRegisterBtn').addEventListener('click', async () => {
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await supabaseClient.auth.getUser();
             if (!user) return alert('Please login to register');
-            document.getElementById('registrationModal').style.display = 'block';
+            modal.style.display = 'block';
         });
 
-        document.querySelector('.close').addEventListener('click', () => {
-            document.getElementById('registrationModal').style.display = 'none';
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
         });
 
-        // Initial load
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) modal.style.display = 'none';
+        });
+
+        // Form submission
+        document.getElementById('registrationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const model = document.getElementById('teslaModel').value;
+            
+            if (!model) return alert('Please select a Tesla model');
+            
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            
+            const { data, error } = await supabaseClient
+                .from('event_registrations')
+                .upsert({
+                    user_id: user.id,
+                    event_id: EVENT_ID,
+                    vehicle_model: model,
+                    registered_at: new Date().toISOString()
+                });
+
+            if (error) {
+                console.error('Registration error:', error);
+                alert('Registration failed: ' + error.message);
+                return;
+            }
+
+            modal.style.display = 'none';
+            await updateRegistrationCount();
+            alert(`Successfully registered your ${model}! View your registrations on the dashboard.`);
+            window.location.href = 'dashboard.html';
+        });
+
+        // Initial count update
         await updateRegistrationCount();
+
+        // Cancel registration handling
+        document.getElementById('cancelRegistration').addEventListener('click', async (e) => {
+            e.preventDefault();
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) return alert('Please login to manage registrations');
+            
+            // Show cancel modal
+            document.getElementById('cancelModal').style.display = 'block';
+        });
+
+        // Close cancel modal
+        document.querySelector('.cancel-close').addEventListener('click', () => {
+            document.getElementById('cancelModal').style.display = 'none';
+        });
+
+        // Cancel form submission
+        document.getElementById('cancelForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const reason = document.getElementById('cancelReason').value;
+            if (!reason) return alert('Please select a cancellation reason');
+
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            
+            const { error } = await supabaseClient
+                .from('event_registrations')
+                .update({
+                    cancelled_at: new Date().toISOString(),
+                    cancellation_reason: reason
+                })
+                .eq('user_id', user.id)
+                .eq('event_id', EVENT_ID);
+
+            if (error) {
+                alert('Cancellation failed: ' + error.message);
+                return;
+            }
+
+            document.getElementById('cancelModal').style.display = 'none';
+            await updateRegistrationCount();
+            alert('Registration cancelled successfully');
+        });
     });
     </script>
 </body>

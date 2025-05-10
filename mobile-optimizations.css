@@ -67,19 +67,81 @@ footer {
 
 /* Mobile Menu Improvements */
 .menu-toggle {
-    position: relative;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
+    display: none;
+    position: fixed;
+    right: 20px;
+    top: 20px;
+    z-index: 1001;
+    background: rgba(23, 26, 32, 0.9);
+    border-radius: 8px;
     padding: 12px;
-    border-radius: 4px;
-    transition: background-color 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.1);
 }
 
-.menu-toggle:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+.menu-toggle i {
+    font-size: 1.5rem;
+    color: #fff;
+}
+
+.nav-links {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (max-width: 768px) {
+    .menu-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .nav-links {
+        position: fixed;
+        top: 70px;
+        right: 0;
+        left: 0;
+        bottom: 0;
+        background: rgba(23, 26, 32, 0.98);
+        backdrop-filter: blur(10px);
+        padding: 2rem;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .nav-links.active {
+        display: flex;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    .nav-links li {
+        width: 100%;
+        margin: 0.5rem 0;
+        text-align: center;
+    }
+
+    .nav-links a {
+        width: 100%;
+        padding: 1rem;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .nav-links a:hover {
+        background: rgba(255,255,255,0.05);
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 }
 
 /* Enable smooth scrolling except for users who prefer reduced motion */
@@ -356,4 +418,15 @@ img {
     .news-page main {
         min-height: 85vh; /* More space on smaller screens */
     }
+}
+
+/* Consistent Page Layouts */
+.index-page main,
+.events-page main,
+.dashboard-page main,
+.gallery-page main,
+.news-page main,
+.crypto-page main {
+    padding-top: calc(70px + env(safe-area-inset-top));
+    min-height: calc(100vh - 120px);
 } 

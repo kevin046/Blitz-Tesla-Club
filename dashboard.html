@@ -942,6 +942,66 @@
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1.5rem;
         }
+
+        .error-alert {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #ff4444;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Add these styles */
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 1.2rem;
+        }
+
+        .missing-info {
+            color: #ff6b6b;
+            font-style: italic;
+        }
+
+        #addressDisplay p {
+            margin: 2px 0;
+            line-height: 1.4;
+        }
+
+        .verified-info {
+            color: #4CAF50;
+            font-weight: 500;
+        }
+
+        .missing-info {
+            color: #FF5252;
+            background: rgba(255,82,82,0.1);
+            padding: 8px 12px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .address-line {
+            font-weight: 500;
+            font-size: 1.1em;
+        }
+
+        .city-province {
+            color: #666;
+        }
+
+        .postal-code {
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+        }
     </style>
     <!-- Add this in the head section -->
     <script>
@@ -1217,7 +1277,7 @@
                 console.log('No profile found, creating new profile...');
                 
                 // Generate sequential member ID
-                const memberId = await generateSequentialMemberId();
+                const memberId = `BTC${String(userData.id).padStart(4, '0').slice(-4)}`;
                 
                 const { data: newProfile, error: createError } = await supabaseClient
                         .from('profiles')
@@ -2128,13 +2188,12 @@ Blitz T Club Team`);
                     .from('profiles')
                     .select(`
                         id,
+                        phone,
                         street,
                         city,
                         province,
                         postal_code,
-                        phone,
-                        updated_at,
-                        membership_status
+                        updated_at
                     `)
                     .eq('id', session.user.id)
                     .single();
@@ -2248,8 +2307,37 @@ Blitz T Club Team`);
                             <!-- Dynamic content will load here -->
                         </div>
                         
-                        <form id="addressUpdateForm" style="display: none;">
-                            <!-- Keep your existing form fields here -->
+                        <form id="addressUpdateForm">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="editStreet">Street Address</label>
+                                    <input type="text" id="editStreet" name="street" required
+                                           class="modern-input" placeholder="123 Main St">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="editCity">City</label>
+                                    <input type="text" id="editCity" name="city" required
+                                           class="modern-input" placeholder="Toronto">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="editProvince">Province</label>
+                                    <select id="editProvince" name="province" required class="modern-input">
+                                        <option value="">Select Province</option>
+                                        <option value="ON">Ontario</option>
+                                        <option value="BC">British Columbia</option>
+                                        <!-- Add other provinces -->
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="editPostalCode">Postal Code</label>
+                                    <input type="text" id="editPostalCode" name="postal_code" required
+                                           class="modern-input" placeholder="A1A 1A1" 
+                                           pattern="[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d">
+                                </div>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -2419,7 +2507,8 @@ Blitz T Club Team`);
                             street: formData.street,
                             city: formData.city,
                             province: formData.province,
-                            postal_code: formData.postal_code
+                            postal_code: formData.postal_code,
+                            updated_at: new Date().toISOString()
                         })
                         .eq('id', user.id);
 
@@ -2453,53 +2542,35 @@ Blitz T Club Team`);
 
         // Add this function to update displayed profile info
         function updateProfileDisplay() {
-            const profile = window.userProfile;
-            const address = profile.address || {};
+            const profile = window.userProfile || {};
             
-            // Province code to name mapping
-            const provinceMap = {
-                'AB': 'Alberta', 'BC': 'British Columbia', 'MB': 'Manitoba',
-                'NB': 'New Brunswick', 'NL': 'Newfoundland and Labrador',
-                'NS': 'Nova Scotia', 'ON': 'Ontario', 'PE': 'Prince Edward Island',
-                'QC': 'Quebec', 'SK': 'Saskatchewan', 'NT': 'Northwest Territories',
-                'NU': 'Nunavut', 'YT': 'Yukon'
-            };
-            const provinceName = provinceMap[address.province] || address.province || '';
+            // Phone Number Display
+            const phoneDisplay = document.getElementById('modalPhoneNumber');
+            phoneDisplay.innerHTML = profile.phone !== 'Not provided' 
+                ? `<span class="verified-info">${profile.phone}</span>`
+                : `<span class="missing-info">Not provided</span>`;
 
-            const addressParts = [
-                address.street,
-                [address.city, provinceName].filter(Boolean).join(', '), 
-                address.postal_code,
-                'Canada'
-            ].filter(part => part && part.trim() !== '');
-            
-            // Check if address exists
-            const hasAddress = address.street && address.city && 
-                              address.province && address.postal_code;
-
+            // Address Display
             const addressContainer = document.getElementById('modalAddress');
-            
-            if (hasAddress) {
+            if (validateAddress(profile)) {
                 addressContainer.innerHTML = `
-                    <address>
-                        ${addressParts.join('<br>')}<br>
-                        Canada
-                    </address>
+                    <div class="address-display">
+                        ${profile.street ? `<p class="address-line">${profile.street}</p>` : ''}
+                        ${profile.city || profile.province ? `
+                            <p class="city-province">
+                                ${[profile.city, profile.province].filter(Boolean).join(', ')}
+                            </p>` : ''}
+                        ${profile.postal_code ? `<p class="postal-code">${profile.postal_code}</p>` : ''}
+                    </div>
                 `;
             } else {
                 addressContainer.innerHTML = `
-                    <div class="address-missing">
+                    <div class="missing-info">
                         <i class="fas fa-exclamation-triangle"></i>
-                        Complete your address in profile settings
+                        Please complete your address information
                     </div>
                 `;
             }
-            
-            // Update other profile fields
-            document.getElementById('userFullName').textContent = 
-                `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Anonymous User';
-            document.getElementById('modalPhoneNumber').textContent = 
-                profile.phone || 'Not provided';
         }
     </script>
 
@@ -2519,10 +2590,10 @@ Blitz T Club Team`);
                     const address = profile.address || {};
                     
                     // Populate form fields
-                    document.getElementById('editModalStreet').value = address.street || '';
-                    document.getElementById('editModalCity').value = address.city || '';
-                    document.getElementById('editModalProvince').value = address.province || '';
-                    document.getElementById('editModalPostalCode').value = address.postal_code || '';
+                    document.getElementById('editStreet').value = window.userProfile?.street || '';
+                    document.getElementById('editCity').value = window.userProfile?.city || '';
+                    document.getElementById('editProvince').value = window.userProfile?.province || '';
+                    document.getElementById('editPostalCode').value = window.userProfile?.postal_code || '';
                 });
             } else {
                 console.error('CRITICAL: Edit address button missing from DOM');
@@ -2566,10 +2637,10 @@ Blitz T Club Team`);
 
                         const formData = {
                             address: {
-                                street: document.getElementById('editModalStreet').value.trim(),
-                                city: document.getElementById('editModalCity').value.trim(),
-                                province: document.getElementById('editModalProvince').value,
-                                postal_code: document.getElementById('editModalPostalCode').value
+                                street: document.getElementById('editStreet').value.trim(),
+                                city: document.getElementById('editCity').value.trim(),
+                                province: document.getElementById('editProvince').value,
+                                postal_code: document.getElementById('editPostalCode').value
                                     .toUpperCase()
                                     .replace(/\s/g, '')
                                     .replace(/([A-Z]\d[A-Z])(\d[A-Z]\d)/, '$1 $2')
@@ -2662,18 +2733,41 @@ Blitz T Club Team`);
 
             // Initialize event listeners
             const initAddressEditing = () => {
-                const btn = document.getElementById('editAddressBtn');
-                if (btn && !btn._initialized) {
-                    btn._initialized = true;
-                    btn.addEventListener('click', () => {
-                        document.getElementById('addressUpdateForm').style.display = 'block';
-                        document.getElementById('modalAddress').style.display = 'none';
+                // Required elements
+                const elements = {
+                    btn: document.getElementById('editAddressBtn'),
+                    form: document.getElementById('addressUpdateForm'),
+                    display: document.getElementById('modalAddress'),
+                    street: document.getElementById('editStreet'),
+                    city: document.getElementById('editCity'),
+                    province: document.getElementById('editProvince'),
+                    postalCode: document.getElementById('editPostalCode')
+                };
+
+                // Validate all elements exist
+                if (Object.values(elements).some(el => !el)) {
+                    console.error('Missing address elements:', 
+                        Object.entries(elements)
+                            .filter(([_, el]) => !el)
+                            .map(([name]) => name)
+                    );
+                    return;
+                }
+
+                // Initialize only once
+                if (!elements.btn._initialized) {
+                    elements.btn._initialized = true;
+                    
+                    elements.btn.addEventListener('click', () => {
+                        // Toggle visibility
+                        elements.form.style.display = 'block';
+                        elements.display.style.display = 'none';
+                        
                         // Populate form fields
-                        const address = window.userProfile?.address || {};
-                        document.getElementById('editModalStreet').value = address.street || '';
-                        document.getElementById('editModalCity').value = address.city || '';
-                        document.getElementById('editModalProvince').value = address.province || '';
-                        document.getElementById('editModalPostalCode').value = address.postal_code || '';
+                        elements.street.value = window.userProfile?.street || '';
+                        elements.city.value = window.userProfile?.city || '';
+                        elements.province.value = window.userProfile?.province || '';
+                        elements.postalCode.value = window.userProfile?.postal_code || '';
                     });
                 }
             };
@@ -2824,7 +2918,11 @@ Blitz T Club Team`);
             userFullName: document.getElementById('userFullName'),
             memberId: document.getElementById('memberId'),
             membershipStatus: document.getElementById('membershipStatus'),
-            memberSince: document.getElementById('memberSince')
+            memberSince: document.getElementById('memberSince'),
+            phoneNumber: document.getElementById('profilePhone'),
+            streetAddress: document.getElementById('profileStreet'),
+            cityProvince: document.getElementById('profileCityProvince'),
+            postalCode: document.getElementById('profilePostalCode')
         };
 
         if (!window.userProfile) return;
@@ -2833,17 +2931,15 @@ Blitz T Club Team`);
         safeTextUpdate('profileName', window.userProfile.full_name || 'Member');
         safeTextUpdate('userFullName', window.userProfile.full_name || '');
         safeTextUpdate('memberId', window.userProfile.member_id || '');
-  
+        safeTextUpdate('profilePhone', window.userProfile.phone || 'Not provided');
+        safeTextUpdate('profileStreet', window.userProfile.street || 'Not provided');
         
-        // Format member since date
-        if (elements.memberSince && window.userProfile.created_at) {
-            const joinDate = new Date(window.userProfile.created_at);
-            elements.memberSince.textContent = joinDate.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-        }
+        // Combine city and province
+        const cityProvince = [window.userProfile.city, window.userProfile.province]
+            .filter(Boolean).join(', ');
+        safeTextUpdate('profileCityProvince', cityProvince || 'Not provided');
+        
+        safeTextUpdate('profilePostalCode', window.userProfile.postal_code || 'Not provided');
     }
     </script>
 
@@ -2918,6 +3014,229 @@ Blitz T Club Team`);
             console.error('Event stats error:', error);
         }
     }
+    </script>
+
+    <script>
+    function checkProfileCompletion() {
+        const completionStatus = document.getElementById('profileCompletionStatus');
+        const accountSettingsBtn = document.getElementById('accountSettingsBtn');
+        
+        if (window.userProfile) {
+            // Check required fields
+            const requiredFields = [
+                'phone',
+                'street', 
+                'city',
+                'province',
+                'postal_code'
+            ];
+            
+            const completedFields = requiredFields.filter(field => 
+                window.userProfile[field] && window.userProfile[field].trim() !== ''
+            );
+
+            const completionPercentage = Math.round(
+                (completedFields.length / requiredFields.length) * 100
+            );
+
+            completionStatus.innerHTML = `
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${completionPercentage}%"></div>
+                </div>
+                <span>Profile ${completionPercentage}% Complete</span>
+            `;
+
+            // Only show account settings when profile is 100% complete
+            if (accountSettingsBtn) {
+                accountSettingsBtn.style.display = completionPercentage === 100 ? 'flex' : 'none';
+                accountSettingsBtn.style.visibility = completionPercentage === 100 ? 'visible' : 'hidden';
+            }
+        }
+    }
+    </script>
+
+    <script>
+    async function loadAndUpdateProfile() {
+        try {
+            const { data: profile, error } = await supabaseClient
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+
+            if (error) throw error;
+            
+            // Initialize with proper defaults
+            window.userProfile = {
+                ...profile,
+                phone: profile.phone || 'Not provided',
+                street: profile.street || 'Not provided',
+                city: profile.city || 'Not provided',
+                province: profile.province || 'Not provided',
+                postal_code: profile.postal_code || 'Not provided'
+            };
+
+            initializeProfileSection();
+            checkProfileCompletion();
+            updateAddressDisplay();
+        } catch (error) {
+            handleDashboardError(error);
+        }
+    }
+    </script>
+
+    <!-- Add this error boundary at the end of your script -->
+    <script>
+    window.addEventListener('error', (event) => {
+        const error = event.error || event;
+        console.error('Global Error:', error);
+        
+        const errorDisplay = document.getElementById('errorNotification');
+        if (errorDisplay) {
+            errorDisplay.querySelector('.error-message').textContent = 
+                `Error: ${error.message || 'Unknown error occurred'}`;
+            errorDisplay.style.display = 'flex';
+            setTimeout(() => errorDisplay.style.display = 'none', 5000);
+        }
+        
+        if (error.message.includes('auth')) {
+            window.location.href = 'login.html';
+        }
+    });
+    </script>
+
+    <!-- Add at the end of body -->
+    <div id="errorNotification" class="error-alert" style="display: none;">
+        <i class="fas fa-exclamation-circle"></i>
+        <span class="error-message"></span>
+    </div>
+
+    <style>
+    .error-alert {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #ff4444;
+        color: white;
+        padding: 15px;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    </style>
+
+    <!-- Enhanced address initialization with validation -->
+    <script>
+    function initAddressComponents() {
+        const elements = {
+            street: document.getElementById('editStreet'),
+            city: document.getElementById('editCity'),
+            province: document.getElementById('editProvince'),
+            postalCode: document.getElementById('editPostalCode'),
+            form: document.getElementById('addressUpdateForm')
+        };
+
+        // Validate elements exist
+        const missing = Object.entries(elements)
+            .filter(([_, el]) => !el)
+            .map(([name]) => name);
+
+        if (missing.length > 0) {
+            console.error('Missing address elements:', missing);
+            return;
+        }
+
+        // Initialize with actual profile data
+        const updateForm = () => {
+            elements.street.value = window.userProfile?.street || '';
+            elements.city.value = window.userProfile?.city || '';
+            elements.province.value = window.userProfile?.province || '';
+            elements.postalCode.value = window.userProfile?.postal_code || '';
+        };
+
+        document.getElementById('editAddressBtn').addEventListener('click', updateForm);
+        document.addEventListener('profile:updated', updateForm);
+    }
+
+    // Initialize with retry logic
+    function initWithRetry(attempt = 0) {
+        try {
+            initAddressComponents();
+        } catch (error) {
+            if (attempt < 3) {
+                setTimeout(() => initWithRetry(attempt + 1), 500);
+            } else {
+                console.error('Failed to initialize address components after 3 attempts');
+            }
+        }
+    }
+
+    // Call initialization after DOM load
+    document.addEventListener('DOMContentLoaded', initWithRetry);
+    </script>
+
+    <script>
+    // When loading profile data
+    function sanitizeProfileData(profile) {
+        return {
+            ...profile,
+            phone: profile?.phone || 'Not provided',
+            street: profile?.street || '',
+            city: profile?.city || '',
+            province: profile?.province || '',
+            postal_code: profile?.postal_code || ''
+        };
+    }
+
+    // Usage
+    window.userProfile = sanitizeProfileData(rawProfileData);
+    </script>
+
+    <!-- Add this validation function -->
+    <script>
+    // Add this validation function
+    function validateAddress(profile) {
+        if (!profile) return false;
+        return profile.street && profile.street.length > 5 &&
+               profile.city && profile.city.length > 2 &&
+               profile.province && profile.province.length === 2 &&
+               profile.postal_code && /^[A-Z]\d[A-Z]\s?\d[A-Z]\d$/.test(profile.postal_code);
+    }
+
+    // Usage in display logic:
+    const hasValidAddress = validateAddress(window.userProfile);
+    </script>
+
+    <script>
+    // Update the validation call
+    function updateAddressDisplay() {
+        if (!window.userProfile) return;
+        
+        const hasValidAddress = validateAddress(window.userProfile);
+        // Rest of your display logic
+    }
+    </script>
+
+    <!-- Add this in DOMContentLoaded event listener -->
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initialize address components
+        initAddressComponents();
+        
+        // Verify all elements exist
+        const requiredElements = [
+            '#editStreet', '#editCity', 
+            '#editProvince', '#editPostalCode',
+            '#modalPhoneNumber', '#modalAddress'
+        ];
+        
+        requiredElements.forEach(selector => {
+            if (!document.querySelector(selector)) {
+                console.error(`Missing required element: ${selector}`);
+            }
+        });
+    });
     </script>
 </body>
 </html> 

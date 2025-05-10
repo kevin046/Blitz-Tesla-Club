@@ -513,7 +513,16 @@
                 // Fetch profile data
                 const { data: profile, error: profileError } = await supabaseClient
                     .from('profiles')
-                    .select('id, phone, street, city, province, postal_code, date_of_birth, car_models, uid')
+                    .select(`
+                        id, 
+                        phone,
+                        street,
+                        city,
+                        province,
+                        postal_code,
+                        date_of_birth,
+                        car_models
+                    `)
                     .eq('id', userData.id)
                     .single();
                     
@@ -678,7 +687,6 @@
                         postal_code: postalCode.trim(),
                         car_models: carModels,
                         updated_at: new Date().toISOString(),
-                        uid: userData.id
                     })
                     .eq('id', userData.id);
                 

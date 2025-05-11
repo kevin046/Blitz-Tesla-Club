@@ -31,11 +31,55 @@ document.addEventListener('DOMContentLoaded', () => {
         initializeSupabase();
         setupAuthStateListener();
         loadNavigation();
-        mobileMenu.init();
     } catch (error) {
-        console.error('Navigation initialization error:', error);
+        console.error('Navigation DOMContentLoaded initialization error:', error);
     }
 });
+
+// Define initMobileMenu in the global scope so it's accessible by initializeNavigation
+const initMobileMenu = () => {
+    const menuToggle = document.querySelector('.menu-toggle');
+    const navLinks = document.querySelector('.nav-links');
+    console.log('initMobileMenu: menuToggle found?', menuToggle); // Debug log
+    console.log('initMobileMenu: navLinks found?', navLinks);   // Debug log
+    
+    if (!menuToggle || !navLinks) 
+        console.warn('Mobile menu elements (.menu-toggle or .nav-links) not found. Menu will not initialize.'); // More specific warning
+        return;
+
+    // Toggle mobile menu
+    const toggleMenu = () => {
+        navLinks.classList.toggle('active');
+        menuToggle.querySelector('i').classList.toggle('fa-times');
+        document.body.classList.toggle('nav-open');
+    };
+
+    // Reset mobile menu state
+    const closeMenu = () => {
+        navLinks.classList.remove('active');
+        menuToggle.querySelector('i').classList.remove('fa-times');
+        document.body.classList.remove('nav-open');
+    };
+
+    // Menu toggle click handler
+    menuToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleMenu();
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!navLinks.contains(e.target) && !menuToggle.contains(e.target)) {
+            closeMenu();
+        }
+    });
+
+    // Close menu after clicking a link
+    // Ensure this runs after navLinks are populated, might need to be re-called or use event delegation if links change
+    document.querySelectorAll('.nav-links a').forEach(link => {
+        link.addEventListener('click', closeMenu);
+    });
+};
 
 // Function to initialize navigation
 async function initializeNavigation() {
@@ -137,22 +181,33 @@ async function initializeNavigation() {
                 footer.style.paddingBottom = 'env(safe-area-inset-bottom)';
             }
         }
+
+        // Initialize mobile menu after creating nav items
+        initMobileMenu();
     } catch (error) {
         console.error('Navigation initialization error:', error);
     }
 }
 
-// Unified mobile menu controller
+// Update the mobileMenu controller to handle all cases
 const mobileMenu = {
     init() {
         this.menuToggle = document.querySelector('.menu-toggle');
         this.navLinks = document.querySelector('.nav-links');
         this.body = document.body;
         
-        if (!this.menuToggle || !this.navLinks) return;
-
-        this.addEventListeners();
-        this.addSafeAreaPadding();
+        // Always initialize even if elements missing (fail gracefully)
+        try {
+            if (!this.menuToggle || !this.navLinks) {
+                console.warn('Mobile menu elements missing');
+                return;
+            }
+            
+            this.addEventListeners();
+            console.log('Mobile menu initialized');
+        } catch (error) {
+            console.error('Mobile menu init error:', error);
+        }
     },
 
     addEventListeners() {
@@ -218,16 +273,15 @@ const mobileMenu = {
         document.body.style.overflow = '';
     },
 
-    addSafeAreaPadding() {
-        // Add iOS safe area padding
-        const nav = document.querySelector('nav');
-        if (nav) {
-            nav.style.paddingTop = 'env(safe-area-inset-top)';
-            nav.style.paddingRight = 'env(safe-area-inset-right)';
-            nav.style.paddingLeft = 'env(safe-area-inset-left)';
-        }
+    // Add responsive check
+    isMobileView() {
+        return window.matchMedia("(max-width: 768px)").matches;
     }
 };
+
+// Initialize on DOM load and after navigation updates
+document.addEventListener('DOMContentLoaded', () => mobileMenu.init());
+document.addEventListener('navigation:updated', () => mobileMenu.init());
 
 // Add missing function definitions
 function updateAuthUI(isLoggedIn) {
@@ -244,47 +298,5 @@ const loadNavigation = initializeNavigation;
 window.initializeNavigation = initializeNavigation;
 window.supabaseClient = window.supabaseClient;
 
-// Initialize mobile menu functionality for all pages
-document.addEventListener('DOMContentLoaded', () => {
-    const initMobileMenu = () => {
-        const menuToggle = document.querySelector('.menu-toggle');
-        const navLinks = document.querySelector('.nav-links');
-        
-        if (!menuToggle || !navLinks) return;
-
-        // Toggle mobile menu
-        menuToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            navLinks.classList.toggle('active');
-            menuToggle.querySelector('i').classList.toggle('fa-times');
-        });
-
-        // Close menu when clicking outside
-        document.addEventListener('click', (e) => {
-            if (navLinks.classList.contains('active') && 
-                !e.target.closest('.nav-links') && 
-                !e.target.closest('.menu-toggle')) {
-                navLinks.classList.remove('active');
-                menuToggle.querySelector('i').classList.remove('fa-times');
-            }
-        });
-
-        // Close menu when clicking a link
-        document.querySelectorAll('.nav-links a').forEach(link => {
-            link.addEventListener('click', () => {
-                navLinks.classList.remove('active');
-                menuToggle.querySelector('i').classList.remove('fa-times');
-            });
-        });
-    };
-
-    // Initialize for current page
-    initMobileMenu();
-    
-    // Update navigation items (existing functionality)
-    function updateNavItems() {
-        const navLinks = document.querySelector('.nav-links');
-        // ... keep existing navigation.js logic ...
-    }
-    updateNavItems();
-}); 
+// Remove the redundant DOMContentLoaded listener at the end of the file if it only calls initMobileMenu and updateNavItems
+// The main DOMContentLoaded listener at the top is now the single point of entry for initialization. 

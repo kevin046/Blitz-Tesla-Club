@@ -86,11 +86,13 @@
         
         /* Special handling for mobile menu open state to prevent split screen */
         body.nav-open {
-            overflow: hidden !important;
+            overflow: hidden !important; 
             position: fixed !important;
             width: 100% !important;
             height: 100% !important;
-            touch-action: none !important;
+            top: 0 !important;
+            left: 0 !important;
+            touch-action: none !important; /* JavaScript in navigation.js already handles this */
         }
         
         .dashboard-page main {
@@ -1026,16 +1028,16 @@
         const profile = JSON.parse(JSON.stringify(source));
 
         // Full Name:
-        let tempFullName = source.full_name; // Prefer source.full_name from DB
+        let tempFullName = source.full_name; 
         if (typeof tempFullName === 'string') tempFullName = tempFullName.trim();
-        profile.full_name = tempFullName || ''; // Default to empty string
+        profile.full_name = tempFullName || ''; // Ensures it's at least an empty string
 
         // Member ID:
-        let tempMemberId = source.member_id; // Prefer source.member_id from DB
+        let tempMemberId = source.member_id; 
         if (typeof tempMemberId === 'string') tempMemberId = tempMemberId.trim();
         let localStorageMemberId = localStorage.getItem('userMemberId');
         if (typeof localStorageMemberId === 'string') localStorageMemberId = localStorageMemberId.trim();
-        profile.member_id = tempMemberId || localStorageMemberId || 'Not Available';
+        profile.member_id = tempMemberId || localStorageMemberId || 'Not Available'; // Explicit fallback
 
         // Phone:
         let tempPhone = source.phone_number || source.phone; // Prefer source.phone_number or source.phone from DB
@@ -1053,13 +1055,26 @@
         let parsedPostalCode = '';
 
         if (profile.full_address) {
-            const parts = profile.full_address.split(',').map(part => part.trim());
-            if (parts.length >= 1) parsedStreet = parts[0];
-            if (parts.length >= 2) parsedCity = parts[1];
-            if (parts.length >= 3) parsedProvince = parts[2];
-            if (parts.length >= 4) parsedPostalCode = parts[3];
-            // A more robust regex might be better if format is A1A 1A1 at the end
-            // For now, this simple split is used.
+            // Regex to capture: (anything for street), (city), (2-letter province), (postal code)
+            // This regex assumes the province is 2 uppercase letters and postal code is A1A 1A1 format.
+            // It tries to make the street part flexible to include commas.
+            const addressRegex = /^(.*?),\s*([^,]+),\s*([A-Z]{2}),\s*([A-Z]\d[A-Z]\s*\d[A-Z]\d)$/i;
+            const match = profile.full_address.match(addressRegex);
+
+            if (match) {
+                parsedStreet = (match[1] || '').trim();
+                parsedCity = (match[2] || '').trim();
+                parsedProvince = (match[3] || '').toUpperCase().trim();
+                parsedPostalCode = (match[4] || '').toUpperCase().trim();
+            } else {
+                // Fallback for simpler comma splitting if regex doesn't match (e.g., if address format is simpler)
+                const parts = profile.full_address.split(',').map(part => part.trim());
+                if (parts.length >= 1) parsedStreet = parts[0];
+                if (parts.length >= 2) parsedCity = parts[1];
+                if (parts.length >= 3) parsedProvince = parts[2];
+                if (parts.length >= 4) parsedPostalCode = parts[3];
+                console.log('[sanitizeProfileData] Regex did not match, used fallback split. Parts:', parts);
+            }
         }
 
         profile.street = parsedStreet;
@@ -1232,10 +1247,7 @@
     <!-- Standard Footer -->
     <footer>
         <div class="footer-content">
-            <div class="footer-section">
-                <h3>BLITZ T CLUB</h3>
-                <p>Empowering the future of sustainable transportation through innovation and community.</p>
-            </div>
+        
             
             <div class="footer-section">
                 <h3>Quick Links</h3>
@@ -1392,42 +1404,91 @@
                 profileDataToSanitize = userData;
             }
 
-            // Sanitize and set the global user profile
-            console.log('[LOG] Data going into sanitizeProfileData (profileDataToSanitize):', JSON.stringify(profileDataToSanitize));
-            window.userProfile = sanitizeProfileData(profileDataToSanitize);
-            console.log('[LOG] Sanitized userProfile for display (window.userProfile):', JSON.stringify(window.userProfile));
+            // Sanitize the initially fetched data specifically for UI display purposes first
+            const initialDisplayProfile = sanitizeProfileData(JSON.parse(JSON.stringify(profileDataToSanitize))); // Use a deep copy for safety
+            console.log('[LOG] Initial profile data for direct UI display:', JSON.stringify(initialDisplayProfile));
 
-            // Update user info on the page
-            document.getElementById('userFullName').textContent = window.userProfile.full_name || 'Member';
+            // BEGIN: INTEGRATED STATIC NODE CREATION FOR NAME AND MEMBER ID
+            try {
+                const staticNameText = (initialDisplayProfile.full_name || 'Member').trim();
+                const staticMemberIdText = (initialDisplayProfile.member_id || 'Not Available').trim();
+
+                const userFullNameNode = document.createTextNode(staticNameText);
+                // const memberIdNode = document.createTextNode(staticMemberIdText); // We will create this inside the new span
+
+                const userFullNameElement = document.getElementById('userFullName');
+                if (userFullNameElement && userFullNameElement.parentNode) {
+                    userFullNameElement.parentNode.replaceChild(userFullNameNode, userFullNameElement);
+                } else {
+                    console.warn('userFullName element or its parent not found for static replacement.');
+                }
+
+                // Create a new styled span for the Member ID
+                const newMemberIdSpan = document.createElement('span');
+                newMemberIdSpan.className = 'stat-value'; // Preserve original class
+                newMemberIdSpan.id = 'memberId'; // Re-assign ID to the new span
+                newMemberIdSpan.style.fontFamily = 'monospace'; // Preserve original style
+                newMemberIdSpan.style.fontWeight = 'bold';   // Preserve original style
+                newMemberIdSpan.style.color = 'black';       // Apply new black color
+                newMemberIdSpan.appendChild(document.createTextNode(staticMemberIdText)); // Add the text
+
+                const originalMemberIdElement = document.getElementById('memberId');
+                if (originalMemberIdElement && originalMemberIdElement.parentNode) {
+                    // Replace the original memberId element with our new styled span
+                    originalMemberIdElement.parentNode.replaceChild(newMemberIdSpan, originalMemberIdElement);
+                } else {
+                    // This fallback might be tricky if the element was already replaced or doesn't exist.
+                    // However, if the goal is to ensure it *becomes* black if it somehow exists and wasn't replaced:
+                    console.warn('Original memberId element or its parent not found for static replacement with new styled span.');
+                    const miEl = document.getElementById('memberId'); // Try to find it again
+                    if (miEl) { // If it exists (e.g. replacement failed)
+                        miEl.textContent = staticMemberIdText;
+                        miEl.style.color = 'black';
+                        if (!miEl.classList.contains('stat-value')) miEl.classList.add('stat-value');
+                        miEl.style.fontFamily = 'monospace';
+                        miEl.style.fontWeight = 'bold';
+                    }
+                }
+            } catch (e) {
+                console.error('Error creating static nodes for name/ID:', e);
+                // Fallback if replacement fails, set text content directly (though this is what we try to avoid flickering on)
+                const ufnEl = document.getElementById('userFullName');
+                if (ufnEl) ufnEl.textContent = (initialDisplayProfile.full_name || 'Member').trim();
+                const miEl = document.getElementById('memberId');
+                if (miEl) miEl.textContent = (initialDisplayProfile.member_id || 'Not Available').trim();
+            }
+            // END: INTEGRATED STATIC NODE CREATION
+
+            // The rest of the original DOMContentLoaded logic that uses initialDisplayProfile for OTHER elements continues here
             const statusElement = document.getElementById('membershipStatus');
             if (statusElement) {
-                statusElement.textContent = window.userProfile.membership_status ? 
-                    window.userProfile.membership_status.charAt(0).toUpperCase() + window.userProfile.membership_status.slice(1) : 
+                // For status, it's okay to use initialDisplayProfile too, as updateStatusDisplay will refresh it later.
+                statusElement.textContent = initialDisplayProfile.membership_status ? 
+                    initialDisplayProfile.membership_status.charAt(0).toUpperCase() + initialDisplayProfile.membership_status.slice(1) : 
                     'Pending';
-                statusElement.dataset.status = window.userProfile.membership_status || 'pending';
+                statusElement.dataset.status = initialDisplayProfile.membership_status || 'pending';
             }
 
-            // Update member stats
+            // Update member stats - Use `initialDisplayProfile`
             const memberSinceEl = document.getElementById('memberSince');
             if (memberSinceEl) {
-                memberSinceEl.textContent = window.userProfile.created_at ? 
-                    new Date(window.userProfile.created_at).toLocaleDateString('en-US', {
+                memberSinceEl.textContent = initialDisplayProfile.created_at ? 
+                    new Date(initialDisplayProfile.created_at).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'
                     }) : 'Not Available';
             }
 
-            // Member ID display in dashboard stats - uses sanitized value
-            const memberIdEl = document.getElementById('memberId');
-            if (memberIdEl) {
-                memberIdEl.textContent = window.userProfile.member_id || 'Not Available'; // Ensure fallback
-            }
-
             const eventsAttendedEl = document.getElementById('eventsAttended');
             if (eventsAttendedEl) {
-                eventsAttendedEl.textContent = window.userProfile.events_attended || '0';
+                eventsAttendedEl.textContent = initialDisplayProfile.events_attended || '0';
             }
+            
+            // Now, set up the global window.userProfile which CAN be updated by updateStatusDisplay
+            // This ensures that other parts of the app (modals, etc.) use the potentially more up-to-date global profile.
+            window.userProfile = sanitizeProfileData(profileDataToSanitize); // Or just use initialDisplayProfile if deep copy was done correctly
+            console.log('[LOG] Global window.userProfile initialized:', JSON.stringify(window.userProfile));
 
             // Function to update status display
             const updateStatusDisplay = async () => {
@@ -1487,27 +1548,32 @@
                         statusElement.className = 'status-pending';
                     }
 
-                    // Re-populate user's name in case it was affected, though unlikely here.
-                    // This is more of a safeguard. The primary population is during initial load.
+                    // REMOVED direct update of userFullName and memberId from here to prevent race conditions.
+                    // The main DOMContentLoaded block is responsible for their initial and primary setting.
+                    // window.userProfile is updated, so modals/other dynamic parts will get fresh data.
+                    /*
                     const userFullNameEl = document.getElementById('userFullName');
                     if (userFullNameEl) {
-                        userFullNameEl.textContent = window.userProfile.full_name || 'Member';
+                        console.log('[updateStatusDisplay] Setting userFullName. Value from window.userProfile.full_name:', window.userProfile.full_name);
+                        userFullNameEl.textContent = window.userProfile.full_name || 'Member'; // Fallback to 'Member' if empty
                     }
-                    // ALSO UPDATE MEMBER ID IN UI from updateStatusDisplay
                     const memberIdEl = document.getElementById('memberId');
                     if (memberIdEl) {
-                        memberIdEl.textContent = window.userProfile.member_id || 'Not Available';
+                        console.log('[updateStatusDisplay] Setting memberId. Value from window.userProfile.member_id:', window.userProfile.member_id);
+                        memberIdEl.textContent = window.userProfile.member_id || 'Not Available'; // Fallback if undefined/empty
                     }
+                    */
             } catch (error) {
                     console.error('Error updating status display:', error);
                 }
             };
 
-            // Initial status update
-            await updateStatusDisplay();
-
-            // Add periodic status check
-            setInterval(updateStatusDisplay, 30000);
+            // Initial status update (with a slight delay to allow primary UI to render)
+            setTimeout(async () => {
+                await updateStatusDisplay();
+                // Add periodic status check AFTER the first delayed update
+                setInterval(updateStatusDisplay, 30000);
+            }, 200); // Delay of 200 milliseconds
 
             // Handle logout - KEEP THIS OUTSIDE OF TRY/CATCH BLOCKS
             const logoutButtons = document.querySelectorAll('#logoutBtn, #footerLogoutBtn');
@@ -2366,9 +2432,8 @@ Blitz T Club Team`);
                     .select(`
                         id,
                         phone,
-                        full_address, // Fetch full_address
+                        full_address,
                         updated_at
-                        // Removed first_name, last_name from select as they are not the focus for this mandatory redirect
                     `)
                     .eq('id', session.user.id)
                     .single();
@@ -3567,6 +3632,8 @@ Blitz T Club Team`);
         initializeDashboard();
     });
     </script>
+
+    
 </body>
 </html> 
 </html> 

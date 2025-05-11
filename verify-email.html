@@ -14,264 +14,472 @@
 </head>
 <body class="login-page">
     <nav>
-        <!-- Same navigation as register.html -->
+        <div class="logo">
+            <a href="index.html">
+                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo" loading="lazy" width="50" height="50">
+                <span>BLITZ T CLUB</span>
+            </a>
+        </div>
+        <div class="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="events.html">Events</a></li>
+            <li><a href="gallery.html">Gallery</a></li>
+            <li><a href="executive.html">Executives</a></li>
+            <li><a href="news.html">News</a></li>
+            <li><a href="register.html">Join Us</a></li>
+            <li><a href="login.html">Login</a></li>
+        </ul>
     </nav>
 
     <main class="login-container">
         <div class="login-box verify-box">
             <div class="login-header">
                 <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" class="login-logo">
-                <h2>Verify Your Email</h2>
-                <p>We've sent a verification link to your email</p>
+                <h2>Verifying Your Email</h2>
+                <p id="verification-status-text">Verifying your membership status...</p>
             </div>
 
-            <div class="registration-progress">
-                <div class="progress-step completed">
-                    <span class="step-number">1</span>
-                    <span class="step-text">Account</span>
-                </div>
-                <div class="progress-line"></div>
-                <div class="progress-step active">
-                    <span class="step-number">2</span>
-                    <span class="step-text">Verify</span>
-                </div>
-                <div class="progress-line"></div>
-                <div class="progress-step">
-                    <span class="step-number">3</span>
-                    <span class="step-text">Complete</span>
+            <div class="verification-progress" id="verification-progress">
+                <div class="progress-container">
+                    <div class="progress-bar"></div>
                 </div>
             </div>
 
-            <div class="verify-content">
+            <div class="verify-content" id="verification-content">
                 <div class="verify-icon">
-                    <i class="fas fa-envelope"></i>
+                    <i class="fas fa-spinner fa-spin" id="verification-icon"></i>
                 </div>
-                <p class="verify-message">
-                    Please check your email inbox and click the verification link to complete your registration.
+                <p class="verify-message" id="verification-message">
+                    Please wait while we verify your email address...
                 </p>
-                <p class="verify-email" id="userEmail"></p>
-                <div class="verify-actions">
-                    <button class="btn resend-btn" id="resendButton">
-                        <i class="fas fa-redo"></i>
-                        Resend Email
-                    </button>
-                    <p class="timer" id="resendTimer"></p>
-                </div>
-                <div class="verify-help">
-                    <p>Didn't receive the email? Check your spam folder or <a href="contact.html">contact support</a></p>
-                </div>
             </div>
         </div>
     </main>
 
     <footer>
-        <!-- Same footer as register.html -->
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <div class="footer-links">
+                    <a href="index.html">Home</a>
+                    <a href="events.html">Events</a>
+                    <a href="gallery.html">Gallery</a>
+                    <a href="contact.html">Contact</a>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Member Area</h3>
+                <div class="footer-links">
+                    <a href="login.html">Login</a>
+                    <a href="register.html">Register</a>
+                    <a href="sponsors.html">Our Sponsors</a>
+                    <a href="#member-benefits">Member Benefits</a>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Legal</h3>
+                <div class="footer-links">
+                    <a href="privacy.html">Privacy Policy</a>
+                    <a href="terms.html">Terms of Service</a>
+                    <a href="about.html">About Us</a>
+                </div>
+            </div>
+
+            <div class="footer-section">
+                <h3>Connect With Us</h3>
+                <div class="footer-social">
+                    <a href="https://x.com/BlitzTClub" target="_blank" aria-label="Follow us on X">
+                        <i class="fa-brands fa-square-x-twitter"></i>
+                    </a>
+                    <a href="https://www.instagram.com/blitztclub/" target="_blank" aria-label="Follow us on Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>© 2024 Blitz T Club. All rights reserved.</p>
+            <p class="powered-by">
+                Website powered by <a href="http://www.summitpixels.com" target="_blank">SummitPixels</a>
+            </p>
+        </div>
     </footer>
 
-    <script src="verify-email.js"></script>
+    <style>
+        .login-box.verify-box {
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .verify-icon {
+            font-size: 60px;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        .verify-content {
+            padding: 20px;
+        }
+
+        .verify-message {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .verify-email {
+            background: rgba(76, 175, 80, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+            word-break: break-all;
+        }
+
+        .verify-actions {
+            margin: 30px 0;
+        }
+
+        .resend-btn {
+            background: transparent;
+            border: 2px solid #4CAF50;
+            color: #4CAF50;
+            padding: 10px 20px;
+            margin-bottom: 15px;
+        }
+
+        .resend-btn:hover {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .timer {
+            font-size: 14px;
+            color: #999;
+        }
+
+        .verify-help {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #999;
+        }
+
+        .verification-progress {
+            margin: 20px 0;
+        }
+        
+        .progress-container {
+            background-color: #333;
+            border-radius: 10px;
+            height: 10px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            background-color: #4CAF50;
+            height: 100%;
+            width: 0%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .success-icon {
+            color: #4CAF50;
+        }
+        
+        .error-icon {
+            color: #f44336;
+        }
+
+        .verify-actions button {
+            margin: 0 10px;
+        }
+
+        .retry-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        
+        .continue-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+    </style>
+
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
                 // Initialize Supabase client
-                const supabaseClient = supabase.createClient(
+            window.supabaseClient = supabase.createClient(
                     'https://qhkcrrphsjpytdfqfamq.supabase.co',
-                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI'
-                );
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI',
+                {
+                    auth: {
+                        persistSession: true,
+                        autoRefreshToken: true
+                    }
+                }
+            );
 
-            // Display user's email
-            const userEmail = localStorage.getItem('pendingVerificationEmail');
-            if (userEmail) {
-                document.getElementById('userEmail').textContent = userEmail;
+            // Helper function to update UI
+            function updateUI(status, message, icon, progress = 0) {
+                document.getElementById('verification-status-text').textContent = status;
+                document.getElementById('verification-message').textContent = message;
+                
+                const iconElement = document.getElementById('verification-icon');
+                iconElement.className = icon;
+                
+                document.querySelector('.progress-bar').style.width = `${progress}%`;
             }
 
-            // Handle resend button click
-            const resendButton = document.getElementById('resendButton');
-            resendButton.addEventListener('click', async () => {
-                try {
-                    // Generate verification token
-                    const verificationToken = crypto.randomUUID();
-                    console.log('Generated token:', verificationToken);
+            // Helper function to get URL parameters
+            function getQueryParam(param) {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get(param);
+            }
 
-                    // Store token temporarily in localStorage
-                    localStorage.setItem('verificationToken', verificationToken);
-                    localStorage.setItem('tokenExpiry', new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString());
+            // Helper function to get hash parameters
+            function getHashParam(param) {
+                const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                return hashParams.get(param);
+            }
 
-                    // Get base URL for verification link
-                    const baseUrl = window.location.href.split('/').slice(0, -1).join('/');
-                    const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}`;
-
-                    // Send verification email using FormSubmit
-                    const formData = new FormData();
-                    formData.append('email', userEmail);
-                    formData.append('_captcha', 'false');
-                    formData.append('_template', 'box');
-                    formData.append('_subject', 'Verify Your Blitz T Club Membership');
-                    formData.append('_autoresponse', 'Thank you for verifying your email. Your Blitz T Club membership will be activated shortly.');
-                    formData.append('message', `Welcome to Blitz T Club!
-
-Member ID: ${localStorage.getItem('pendingMemberId')}
-
-Please click the link below to verify your email and activate your membership:
-${verificationUrl}
-
-Important Notes:
-- This verification link will expire in 24 hours
-- Please verify on the same device you're currently using
-- After verification, your membership will be activated instantly
-
-Next Steps:
-1. Click the verification link above
-2. Your membership will be activated instantly
-3. Access your digital membership card
-4. Start enjoying member benefits
-
-If you can't click the link, copy and paste this URL into your browser:
-${verificationUrl}
-
-If you didn't request this email, please ignore it.
-
-Best regards,
-Blitz T Club Team`);
-
-                    // Send the verification email
-                    const emailResponse = await fetch(`https://formsubmit.co/ajax/${userEmail}`, {
-                        method: 'POST',
-                        headers: {
-                            'Accept': 'application/json'
-                        },
-                        body: formData
-                    });
-
-                    if (!emailResponse.ok) {
-                        const responseText = await emailResponse.text();
-                        console.error('FormSubmit response:', responseText);
-                        throw new Error('Failed to send verification email');
-                    }
-
-                    // Update button state
-                    resendButton.disabled = true;
-                    resendButton.innerHTML = '<i class="fas fa-check"></i> Email Sent';
+            try {
+                updateUI(
+                    "Verifying your email...", 
+                    "We're processing your verification request.", 
+                    "fas fa-spinner fa-spin", 
+                    30
+                );
+                
+                console.log("URL hash:", window.location.hash);
+                console.log("URL search params:", window.location.search);
+                
+                // Check for Supabase auth token in different formats
+                const accessToken = getHashParam('access_token');
+                const refreshToken = getHashParam('refresh_token');
+                const type = getHashParam('type');
+                
+                // Check for custom token from our system
+                const customToken = getQueryParam('token');
+                const tokenFromStorage = localStorage.getItem('verificationToken');
+                
+                // Case 1: Handle Supabase email verification token
+                if (accessToken) {
+                    console.log('Found Supabase access token in URL:', accessToken?.substring(0, 5) + '...');
+                    console.log('Verification type:', type);
                     
-                    // Start countdown timer
-                    let timeLeft = 60;
-                    const timerElement = document.getElementById('resendTimer');
-                    const timer = setInterval(() => {
-                        timeLeft--;
-                        timerElement.textContent = `Resend available in ${timeLeft}s`;
-                        if (timeLeft <= 0) {
-                            clearInterval(timer);
-                            resendButton.disabled = false;
-                            resendButton.innerHTML = '<i class="fas fa-redo"></i> Resend Email';
-                            timerElement.textContent = '';
-                        }
-                    }, 1000);
+                    updateUI(
+                        "Supabase verification detected", 
+                        "Processing your verification...", 
+                        "fas fa-spinner fa-spin", 
+                        50
+                    );
 
-                } catch (error) {
-                    console.error('Error sending verification:', error);
-                    alert('Failed to send verification email. Please try again.');
-                }
-            });
-
-            // Handle verification token from URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const token = urlParams.get('token');
-
-            if (token) {
-                try {
-                    console.log('Starting verification with token:', token);
-
-                    // Check token from localStorage first
-                    const storedToken = localStorage.getItem('verificationToken');
-                    const tokenExpiry = localStorage.getItem('tokenExpiry');
-                    const email = localStorage.getItem('pendingVerificationEmail');
-
-                    // If localStorage token doesn't match, check database
-                    if (!storedToken || token !== storedToken) {
-                        console.log('Token not found in localStorage, checking database...');
-                        const { data: profile, error: profileError } = await supabaseClient
-                            .from('profiles')
-                            .select('*')
-                            .eq('verification_token', token)
-                            .single();
-
-                        if (profileError || !profile) {
-                            throw new Error('Invalid verification token. Please request a new verification email.');
-                        }
-
-                        if (profile.token_expires_at && new Date(profile.token_expires_at) < new Date()) {
-                            throw new Error('Verification token has expired. Please request a new verification email.');
-                        }
-
-                        // Update profile status and clear token
-                        const { error: updateError } = await supabaseClient
+                    try {
+                        // Set session with the token
+                        const { data, error } = await window.supabaseClient.auth.setSession({
+                            access_token: accessToken,
+                            refresh_token: refreshToken
+                        });
+                        
+                        if (error) throw error;
+                        
+                        // Get user info
+                        const user = data.user;
+                        console.log('User authenticated:', user.id);
+                        
+                        // Update user's verification status in profiles
+                        const { error: updateError } = await window.supabaseClient
                             .from('profiles')
                             .update({
                                 membership_status: 'active',
+                                email_verified: true,
                                 verification_token: null,
-                                token_expires_at: null
+                                verification_sent_at: null,
+                                status: 'active' // for backward compatibility
                             })
-                            .eq('id', profile.id);
-
+                            .eq('id', user.id);
+                        
                         if (updateError) {
-                            throw new Error('Failed to activate your membership. Please try again.');
+                            console.warn('Error updating profile status:', updateError);
+                            // Continue anyway - the auth verification still worked
                         }
 
-                        // Clear localStorage
+                        updateUI(
+                            "Email Verified Successfully!", 
+                            "Your email has been verified and your membership is now active.", 
+                            "fas fa-check-circle success-icon", 
+                            100
+                        );
+                        
+                        // Add continue button
+                        const content = document.getElementById('verification-content');
+                        content.innerHTML += `<div class="verify-actions">
+                            <button onclick="window.location.href='dashboard.html?verified=true'" class="continue-btn">
+                                <i class="fas fa-arrow-right"></i> Continue to Dashboard
+                            </button>
+                        </div>`;
+                        
+                        // Clean up verification data
                         localStorage.removeItem('verificationToken');
                         localStorage.removeItem('tokenExpiry');
                         localStorage.removeItem('pendingVerificationEmail');
-                        localStorage.removeItem('pendingMemberId');
-                        localStorage.removeItem('registrationTime');
-
-                        // Redirect to success page
-                        window.location.href = `verification-success.html?verified=true&id=${profile.id}`;
-                        return;
+                        
+                    } catch (error) {
+                        console.error('Error with Supabase verification:', error);
+                        updateUI(
+                            "Verification Failed", 
+                            `We couldn't verify your email: ${error.message}. Please try again or contact support.`, 
+                            "fas fa-times-circle error-icon", 
+                            100
+                        );
+                        
+                        // Add retry button
+                        const content = document.getElementById('verification-content');
+                        content.innerHTML += `<div class="verify-actions">
+                            <button onclick="window.location.href='verification-sent.html'" class="retry-btn">
+                                <i class="fas fa-redo"></i> Try Again
+                            </button>
+                        </div>`;
                     }
-
-                    // If localStorage token matches, proceed with localStorage verification
-                    if (new Date(tokenExpiry) < new Date()) {
-                        throw new Error('Verification token has expired. Please request a new verification email.');
-                    }
-
-                    // Get profile by email
-                    const { data: profile, error: profileError } = await supabaseClient
-                        .from('profiles')
-                        .select('*')
-                        .eq('email', email)
-                        .single();
-
-                    if (profileError) {
-                        throw new Error('Could not find your profile. Please try registering again.');
-                    }
-
-                    // Update profile status and clear token
-                const { error: updateError } = await supabaseClient
-                    .from('profiles')
-                    .update({
-                        membership_status: 'active',
-                            verification_token: null,
-                            token_expires_at: null
-                    })
-                    .eq('id', profile.id);
-
-                if (updateError) {
-                        throw new Error('Failed to activate your membership. Please try again.');
-                    }
-
-                    // Clear localStorage
-                    localStorage.removeItem('verificationToken');
-                    localStorage.removeItem('tokenExpiry');
-                    localStorage.removeItem('pendingVerificationEmail');
-                    localStorage.removeItem('pendingMemberId');
-                    localStorage.removeItem('registrationTime');
-
-                // Redirect to success page
-                window.location.href = `verification-success.html?verified=true&id=${profile.id}`;
-
-            } catch (error) {
-                console.error('Verification error:', error);
-                localStorage.setItem('verificationError', error.message || 'Verification process failed. Please try again.');
-                window.location.href = 'verification-failed.html';
                 }
+                // Case 2: Handle our custom token (from FormSubmit email)
+                else if (customToken && tokenFromStorage && customToken === tokenFromStorage) {
+                    console.log('Found matching custom token in URL and storage');
+                    updateUI(
+                        "Token verification in progress", 
+                        "Verifying your token...", 
+                        "fas fa-spinner fa-spin", 
+                        50
+                    );
+                    
+                    // Check if token is expired
+                    const tokenExpiry = localStorage.getItem('tokenExpiry');
+                    if (tokenExpiry && new Date() > new Date(tokenExpiry)) {
+                        throw new Error('Verification token has expired');
+                    }
+                    
+                    // Get the user email from storage
+                    const userEmail = localStorage.getItem('pendingVerificationEmail');
+                    if (!userEmail) {
+                        throw new Error('User email not found');
+                    }
+                    
+                    // Try to get current user session
+                    try {
+                        const { data: sessionData } = await window.supabaseClient.auth.getSession();
+                        let userId;
+                        
+                        if (sessionData?.session?.user) {
+                            userId = sessionData.session.user.id;
+                            console.log('User already logged in:', userId);
+                        }
+                        
+                        // If no session, try to find the user by email
+                        if (!userId) {
+                            const { data: profiles, error: profilesError } = await window.supabaseClient
+                                .from('profiles')
+                                .select('id, email')
+                                .eq('email', userEmail)
+                                .single();
+                            
+                            if (profilesError) {
+                                console.warn('Could not find profile by email:', profilesError);
+                                throw new Error('Could not find your profile. Please try logging in first.');
+                            } else {
+                                userId = profiles.id;
+                            }
+                        }
+                        
+                        // Update the profile
+                        const { error: updateError } = await window.supabaseClient
+                            .from('profiles')
+                            .update({
+                                membership_status: 'active',
+                                email_verified: true,
+                                verification_token: null,
+                                verification_sent_at: null,
+                                status: 'active' // for backward compatibility
+                            })
+                            .eq('id', userId);
+                                
+                        if (updateError) {
+                            console.warn('Error updating profile:', updateError);
+                            throw new Error('Could not update your profile status. Please try logging in again.');
+                        }
+                        
+                        updateUI(
+                            "Email Verified Successfully!", 
+                            "Your email has been verified and your membership is now active.", 
+                            "fas fa-check-circle success-icon", 
+                            100
+                        );
+                        
+                        // Add continue button
+                        const content = document.getElementById('verification-content');
+                        content.innerHTML += `<div class="verify-actions">
+                            <button onclick="window.location.href='dashboard.html?verified=true'" class="continue-btn">
+                                <i class="fas fa-arrow-right"></i> Continue to Dashboard
+                            </button>
+                        </div>`;
+                        
+                        // Clean up verification data
+                        localStorage.removeItem('verificationToken');
+                        localStorage.removeItem('tokenExpiry');
+                        localStorage.removeItem('pendingVerificationEmail');
+
+                    } catch (error) {
+                        console.error('Error processing custom token:', error);
+                        throw error;
+                    }
+                }
+                else {
+                    // No valid token found
+                    if (customToken && !tokenFromStorage) {
+                        console.log('Token in URL but not in storage');
+                        throw new Error('This verification link is not valid for your current device. Please try the verification link on the device where you initiated the verification.');
+                    } else if (!customToken && tokenFromStorage) {
+                        console.log('Token in storage but not in URL');
+                        throw new Error('No verification token found in the URL. Please use the exact link sent to your email.');
+                    } else {
+                        console.log('No token found anywhere');
+                        throw new Error('No verification token found. Please request a new verification email.');
+                    }
+                }
+            } catch (error) {
+                console.error('Verification process error:', error);
+                updateUI(
+                    "Verification Failed", 
+                    `We couldn't verify your email: ${error.message}`, 
+                    "fas fa-times-circle error-icon", 
+                    100
+                );
+                
+                // Add retry button
+                const content = document.getElementById('verification-content');
+                content.innerHTML += `<div class="verify-actions">
+                    <button onclick="window.location.href='verification-sent.html'" class="retry-btn">
+                        <i class="fas fa-redo"></i> Try Again
+                    </button>
+                </div>`;
             }
         });
     </script>

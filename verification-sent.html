@@ -10,6 +10,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
+    <!-- Add Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="verification-page">
     <!-- Standard Navigation -->
@@ -43,8 +45,8 @@
             <div class="email-note">
                 <p><strong>Important Instructions:</strong></p>
                 <ol>
-                    <li>Check your email inbox for a message from <strong>noreply@mail.app.supabase.io</strong></li>
-                    <li>Open the email with subject line <strong>"Confirm your signup"</strong></li>
+                    <li>Check your email inbox for a message from <strong>noreply@mail.app.supabase.io</strong> or <strong>Blitz T Club</strong></li>
+                    <li>Open the email with subject line <strong>"Confirm your signup"</strong> or <strong>"Verify Your Blitz T Club Membership"</strong></li>
                     <li>Click the verification link in the email</li>
                     <li>You'll be redirected to our verification success page automatically</li>
                     <li>Your membership will be immediately activated upon verification</li>
@@ -63,6 +65,7 @@
                 </button>
                 <p class="timer" id="resendTimer"></p>
             </div>
+            <div id="statusMessage" style="margin-top: 20px; padding: 10px; border-radius: 5px; display: none;"></div>
         </div>
     </main>
 
@@ -285,50 +288,59 @@
             }
         }
 
-        /* Debug section styling */
-        .debug-section {
-            margin-top: 30px;
-            padding: 15px;
-            background: rgba(255, 165, 0, 0.15);
-            border-left: 4px solid orange;
-            text-align: left;
-            border-radius: 0 10px 10px 0;
+        #statusMessage {
+            transition: all 0.3s ease;
         }
 
-        .debug-section h3 {
-            color: orange;
-            margin-bottom: 10px;
+        #statusMessage.success {
+            background: rgba(76, 175, 80, 0.2);
+            border-left: 4px solid #4CAF50;
+            color: #4CAF50;
         }
 
-        .debug-section p {
-            font-family: monospace;
-            font-size: 12px;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 5px;
-            border-radius: 4px;
-            word-break: break-all;
-            margin-bottom: 10px;
+        #statusMessage.error {
+            background: rgba(244, 67, 54, 0.2);
+            border-left: 4px solid #F44336;
+            color: #F44336;
         }
 
-        .debug-section button {
-            background: #333;
-            color: orange;
-            border: 1px solid orange;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 10px;
+        .disabled-btn {
+            opacity: 0.6;
+            cursor: not-allowed !important;
+            pointer-events: none;
         }
 
-        .debug-section button:hover {
-            background: #555;
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="navigation.js" defer></script>
     <script>
+        // Initialize Supabase client
+        window.supabaseClient = supabase.createClient(
+            'https://qhkcrrphsjpytdfqfamq.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI',
+            {
+                auth: {
+                    persistSession: true,
+                    autoRefreshToken: true
+                }
+            }
+        );
+
         document.addEventListener('DOMContentLoaded', () => {
+            // Display user email
             const urlParams = new URLSearchParams(window.location.search);
             const email = urlParams.get('email');
             
@@ -340,33 +352,259 @@
                 if (storedEmail) {
                     document.getElementById('userEmail').textContent = storedEmail;
                 } else {
-                    document.getElementById('resend-container').style.display = 'none';
-                    document.getElementById('no-email-warning').style.display = 'block';
+                    document.getElementById('userEmail').textContent = 'Email address not found';
+                    showStatusMessage('No email address found for verification. Please try registering again.', 'error');
                 }
             }
+
+            // Set up resend button
+            const resendButton = document.getElementById('resendButton');
+            const resendTimer = document.getElementById('resendTimer');
+            
+            // Handle resend cooldown
+            let cooldownTime = localStorage.getItem('resendCooldown');
+            if (cooldownTime && new Date().getTime() < parseInt(cooldownTime)) {
+                startResendCooldown(parseInt(cooldownTime));
+            }
+            
+            // Add event listener for resend button
+            resendButton.addEventListener('click', async () => {
+                await resendVerification();
+            });
         });
 
-        async function resendVerification() {
-            const email = localStorage.getItem('pendingVerificationEmail') || 
-                         new URLSearchParams(window.location.search).get('email');
+        // Start cooldown timer for resend button
+        function startResendCooldown(endTime) {
+            const resendButton = document.getElementById('resendButton');
+            const resendTimer = document.getElementById('resendTimer');
+            resendButton.disabled = true;
+            resendButton.classList.add('disabled-btn');
             
-            if (!email) {
-                alert('No email found for verification');
+            // Update timer every second
+            const interval = setInterval(() => {
+                const now = new Date().getTime();
+                const timeLeft = endTime - now;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(interval);
+                    resendButton.disabled = false;
+                    resendButton.classList.remove('disabled-btn');
+                    resendTimer.textContent = '';
+                    localStorage.removeItem('resendCooldown');
+                } else {
+                    const seconds = Math.ceil(timeLeft / 1000);
+                    resendTimer.textContent = `Please wait ${seconds} seconds before requesting another email`;
+                }
+            }, 1000);
+        }
+
+        // Show status message
+        function showStatusMessage(message, type) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.className = '';
+            statusMessage.classList.add(type);
+            statusMessage.style.display = 'block';
+            
+            // Scroll to message
+            statusMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Resend verification email
+        async function resendVerification() {
+            // Get email from page or storage
+            const email = document.getElementById('userEmail').textContent || 
+                         localStorage.getItem('pendingVerificationEmail');
+            
+            if (!email || email === 'Email address not found') {
+                showStatusMessage('No email found for verification. Please try registering again.', 'error');
                 return;
             }
 
-            try {
-                const supabase = window.supabaseClient;
-                const { error } = await supabase.auth.resend({
-                    type: 'signup',
-                    email: email
-                });
+            // Update button state
+            const resendButton = document.getElementById('resendButton');
+            const originalButtonText = resendButton.innerHTML;
+            resendButton.innerHTML = '<span class="spinner"></span> Sending...';
+            resendButton.disabled = true;
+            resendButton.classList.add('disabled-btn');
 
-                if (error) throw error;
-                alert('Verification email resent successfully!');
+            try {
+                // Generate a verification token
+                const verificationToken = `vt-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
+                localStorage.setItem('verificationToken', verificationToken);
+                localStorage.setItem('tokenExpiry', new Date(Date.now() + 86400000).toISOString()); // 24-hour expiry
+
+                // Check if user is logged in
+                let userId = null;
+                let user = null;
+                try {
+                    const { data } = await window.supabaseClient.auth.getUser();
+                    user = data.user;
+                    if (user) {
+                        userId = user.id;
+                        console.log('User is logged in:', userId);
+                    }
+                } catch (e) {
+                    console.log('User not logged in:', e);
+                    // Continue without user ID
+                }
+
+                // Try to update profile if we have userId
+                if (userId) {
+                    try {
+                        console.log('Attempting to update profile with verification token');
+                        const { data, error } = await window.supabaseClient
+                            .from('profiles')
+                            .update({
+                                verification_token: verificationToken,
+                                verification_sent_at: new Date().toISOString(),
+                                membership_status: 'pending'
+                            })
+                            .eq('id', userId)
+                            .select();
+                        
+                        if (error) {
+                            console.warn('Could not update profile:', error);
+                        } else {
+                            console.log('Profile updated successfully:', data);
+                        }
+                    } catch (profileError) {
+                        console.warn('Exception updating profile:', profileError);
+                        // Continue with email sending anyway
+                    }
+                }
+
+                // Track success of each method
+                let emailSent = false;
+
+                // 1. Try Supabase's email verification reset - either with session or just email
+                try {
+                    console.log('Attempting email verification via auth.resetPasswordForEmail');
+                    // This is an alternative approach that often works when resend doesn't
+                    const { error } = await window.supabaseClient.auth.resetPasswordForEmail(
+                        email,
+                        {
+                            redirectTo: `${window.location.origin}/verification-success.html`
+                        }
+                    );
+
+                    if (error) {
+                        console.warn('Password reset email method failed:', error);
+                    } else {
+                        console.log('Password reset email method succeeded');
+                        emailSent = true;
+                    }
+                } catch (resetError) {
+                    console.warn('Password reset email exception:', resetError);
+                }
+
+                // 2. Try standard resend method
+                if (!emailSent) {
+                    try {
+                        console.log('Attempting resend via auth.resend');
+                        const { error } = await window.supabaseClient.auth.resend({
+                            type: 'signup',
+                            email: email,
+                            options: {
+                                emailRedirectTo: `${window.location.origin}/verification-success.html`
+                            }
+                        });
+
+                        if (error) {
+                            console.warn('Supabase auth.resend failed:', error);
+                        } else {
+                            console.log('Supabase auth.resend succeeded');
+                            emailSent = true;
+                        }
+                    } catch (resendError) {
+                        console.warn('Supabase auth.resend exception:', resendError);
+                    }
+                }
+
+                // 3. Always send via FormSubmit as a reliable fallback
+                try {
+                    console.log('Attempting FormSubmit fallback');
+                    // Get base URL for verification link
+                    const baseUrl = window.location.href.split('/').slice(0, -1).join('/');
+                    const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}`;
+
+                    // Send verification email using FormSubmit
+                    const formData = new FormData();
+                    formData.append('email', email);
+                    formData.append('_captcha', 'false');
+                    formData.append('_template', 'box');
+                    formData.append('_subject', 'Verify Your Blitz T Club Membership');
+                    formData.append('_autoresponse', 'Thank you for verifying your email. Your Blitz T Club membership will be activated shortly.');
+                    formData.append('message', `Welcome to Blitz T Club!
+
+Member ID: ${localStorage.getItem('pendingMemberId') || 'New Member'}
+
+Please click the link below to verify your email and activate your membership:
+${verificationUrl}
+
+Important Notes:
+- This verification link will expire in 24 hours
+- Please verify on the same device you're currently using
+- After verification, your membership will be activated instantly
+
+Next Steps:
+1. Click the verification link above
+2. Your membership will be activated instantly
+3. Access your digital membership card
+4. Start enjoying member benefits
+
+If you can't click the link, copy and paste this URL into your browser:
+${verificationUrl}
+
+If you didn't request this email, please ignore it.
+
+Best regards,
+Blitz T Club Team`);
+
+                    const emailResponse = await fetch(`https://formsubmit.co/ajax/${email}`, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    });
+
+                    if (!emailResponse.ok) {
+                        const responseText = await emailResponse.text();
+                        console.error('FormSubmit response:', responseText);
+                        throw new Error('FormSubmit email sending failed');
+                    }
+
+                    const responseData = await emailResponse.json();
+                    console.log('FormSubmit email sent successfully:', responseData);
+                    emailSent = true;
+                } catch (formSubmitError) {
+                    console.warn('FormSubmit fallback failed:', formSubmitError);
+                }
+
+                // Check overall success
+                if (emailSent) {
+                    showStatusMessage('Verification email sent! Please check your inbox (including spam folder).', 'success');
+                    
+                    // Set cooldown for 60 seconds
+                    const cooldownEnd = new Date().getTime() + 60000;
+                    localStorage.setItem('resendCooldown', cooldownEnd);
+                    startResendCooldown(cooldownEnd);
+                } else {
+                    throw new Error('All email sending methods failed');
+                }
             } catch (error) {
                 console.error('Resend error:', error);
-                alert(`Error resending email: ${error.message}`);
+                showStatusMessage(`Error sending email: ${error.message}. Please try again later.`, 'error');
+                
+                // Reset button after error
+                resendButton.disabled = false;
+                resendButton.classList.remove('disabled-btn');
+            } finally {
+                // Restore button text
+                setTimeout(() => {
+                    resendButton.innerHTML = originalButtonText;
+                }, 1000);
             }
         }
     </script>

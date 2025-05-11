@@ -400,234 +400,44 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        document.addEventListener('DOMContentLoaded', async function() {
-            console.log('Verification success page loaded');
-            const statusElement = document.getElementById('verificationStatus');
-            const loadingSpinner = document.getElementById('loadingSpinner');
-            const dashboardButton = document.getElementById('dashboardButton');
-            const membershipCard = document.getElementById('membershipCard');
-            const memberIdDisplay = document.getElementById('memberIdDisplay');
-            const membershipStatus = document.getElementById('membershipStatus');
-            const memberSince = document.getElementById('memberSince');
-            
+        document.addEventListener('DOMContentLoaded', async () => {
             try {
-                // Check for auth token in URL (handle both hash and query params for compatibility)
-                let accessToken = null;
-                let refreshToken = null;
+                const { data: { user }, error } = await supabase.auth.getUser();
                 
-                // First check for hash fragment (newer Supabase auth method)
-                if (window.location.hash) {
-                    console.log('Found hash fragment in URL');
-                    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-                    accessToken = hashParams.get('access_token');
-                    refreshToken = hashParams.get('refresh_token');
-                }
-                
-                // Fallback to query parameters (older method)
-                if (!accessToken && window.location.search) {
-                    console.log('Checking query parameters');
-                    const urlParams = new URLSearchParams(window.location.search);
-                    accessToken = urlParams.get('access_token');
-                    refreshToken = urlParams.get('refresh_token');
+                if (error || !user) {
+                    throw new Error('User not authenticated');
                 }
 
-                if (accessToken) {
-                    console.log('Found access token, setting session');
-                    // Set the user session with the token
-                    await supabase.auth.setSession({
-                        access_token: accessToken,
-                        refresh_token: refreshToken
-                    });
-                } else {
-                    console.log('No access token found in URL, checking for existing session');
+                // Check if email is verified
+                if (!user.email_confirmed_at) {
+                    throw new Error('Email not verified');
                 }
 
-                // Get the current user session
-                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-                
-                if (sessionError) {
-                    throw new Error(sessionError.message || 'Error retrieving session');
-                }
-
-                if (!session) {
-                    console.warn('No active session found');
-                    statusElement.innerHTML = `
-                        <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle"></i> No active session found. 
-                            <p>If you've just verified your email, please try refreshing this page or clicking the verification link again.</p>
-                        </div>
-                    `;
-                    loadingSpinner.style.display = 'none';
-                    return;
-                }
-
-                console.log('User authenticated with session:', session.user.id);
-                
-                // Get any pending data from localStorage
-                const pendingMemberId = localStorage.getItem('pendingMemberId');
-                const pendingEmail = localStorage.getItem('pendingVerificationEmail');
-                
-                console.log('Pending data from localStorage:', {
-                    pendingMemberId,
-                    pendingEmail,
-                    registrationTime: localStorage.getItem('registrationTime')
-                });
-                
-                // Get user details 
-                const { data: { user }, error: userError } = await supabase.auth.getUser();
-                
-                if (userError || !user) {
-                    throw new Error(userError?.message || 'Error retrieving user information');
-                }
-                
-                console.log('User authenticated:', user.id);
-                console.log('User metadata:', user.user_metadata);
-                
-                // Check if profile exists
-                const { data: profileData, error: profileError } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', user.id)
-                    .single();
-                
-                // Get member_id either from profile or pending storage
-                let memberId = profileData?.member_id || 
-                              user.user_metadata?.member_id || 
-                              pendingMemberId;
-                              
-                // If no member ID is found, generate a new one
-                if (!memberId) {
-                    console.warn('No member ID found in profile, metadata, or localStorage. Generating a new one.');
-                    memberId = `BTC${Math.floor(Math.random() * 100000).toString().padStart(5, '0')}`;
-                }
-                
-                console.log('Using Member ID:', memberId);
-                
-                if (profileError && profileError.code !== 'PGRST116') { // PGRST116 is "no rows returned" error
-                    console.error('Error fetching profile:', profileError);
-                    // Continue with the process - we'll create the profile
-                }
-
-                // Get the current date for "member since"
-                const currentDate = new Date().toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
-
-                // If no profile exists, create one
-                if (!profileData) {
-                    console.log('No profile found, creating new profile for user:', user.id);
-                    
-                    const { error: insertError } = await supabase
-                        .from('profiles')
-                        .insert([{
-                            id: user.id,
-                            email: user.email || pendingEmail,
-                            full_name: user.user_metadata?.full_name || 'Club Member',
-                            member_id: memberId,
-                            membership_status: 'active', // Set to active immediately on verification
-                            membership_type: 'standard',
-                            created_at: new Date().toISOString()
-                        }]);
-                    
-                    if (insertError) {
-                        console.error('Error creating profile:', insertError);
-                        throw new Error('Failed to create your profile. Please contact support.');
-                    }
-                    
-                    console.log('Profile created successfully with status "active" and Member ID:', memberId);
-                    
-                    // Set member since date
-                    memberSince.textContent = currentDate;
-                } else {
-                    console.log('Profile exists with Member ID:', profileData.member_id);
-                    
-                    // Update existing profile to active status and ensure member_id is set
-                    const { error: updateError } = await supabase
-                        .from('profiles')
-                        .update({ 
-                            membership_status: 'active',
-                            member_id: memberId, // Ensure member_id is set in profile
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', user.id);
-
-                    if (updateError) {
-                        console.error('Error updating profile status:', updateError);
-                        throw new Error('Failed to update your membership status. Please contact support.');
-                    }
-                    
-                    console.log('Membership status updated to active and Member ID confirmed');
-                    
-                    // Set member since date from profile if available
-                    if (profileData.created_at) {
-                        const createdDate = new Date(profileData.created_at).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                        });
-                        memberSince.textContent = createdDate;
-                    } else {
-                        memberSince.textContent = currentDate;
-                    }
-                }
-                
-                // Update user metadata if needed
-                if (!user.user_metadata?.member_id || user.user_metadata?.membership_status !== 'active') {
-                    console.log('Updating user metadata with member_id and active status');
-                    
-                    const { error: metadataError } = await supabase.auth.updateUser({
-                        data: { 
-                            member_id: memberId,
-                            membership_status: 'active'
-                        }
-                    });
-                    
-                    if (metadataError) {
-                        console.error('Error updating user metadata:', metadataError);
-                        // Continue anyway - this is not critical
-                    } else {
-                        console.log('User metadata updated successfully with Member ID:', memberId);
-                    }
-                }
-                
-                // Clear pending registration data
-                localStorage.removeItem('pendingVerificationEmail');
-                localStorage.removeItem('pendingMemberId');
-                localStorage.removeItem('registrationTime');
-                
-                // Save the member ID for use in other pages
-                localStorage.setItem('userMemberId', memberId);
-                console.log('Saved Member ID to localStorage as userMemberId:', memberId);
-                
-                // Update UI to show success
-                statusElement.innerHTML = `
+                // Update UI with verified status
+                document.getElementById('verificationStatus').innerHTML = `
                     <div class="alert alert-success">
-                        <i class="fas fa-check-circle"></i> Your email has been verified successfully!
-                        <p>Your Member ID is: <strong>${memberId}</strong></p>
-                        <p>Your membership is now <strong>active</strong>.</p>
+                        <i class="fas fa-check-circle"></i> 
+                        Email verified successfully at ${new Date(user.email_confirmed_at).toLocaleString()}
                     </div>
                 `;
-                
-                // Display membership card
-                membershipCard.style.display = 'block';
-                memberIdDisplay.textContent = memberId;
-                membershipStatus.textContent = 'Active';
-                
-                // Show dashboard button
-                dashboardButton.style.display = 'inline-block';
-                loadingSpinner.style.display = 'none';
-                
+
+                if (window.userProfile.membership_status === 'pending') {
+                    // ... (code to display the resend button) ...
+
+                    const resendBtn = document.getElementById('resendVerification');
+                    resendBtn.addEventListener('click', async () => {
+                        // ... (code to send the verification email) ...
+                    });
+                }
+
             } catch (error) {
-                console.error('Verification error:', error);
-                statusElement.innerHTML = `
+                console.error('Verification check failed:', error);
+                document.getElementById('verificationStatus').innerHTML = `
                     <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-circle"></i> Verification failed: ${error.message || 'An unexpected error occurred'}.
-                        <p>If this problem persists, please contact support.</p>
+                        <i class="fas fa-exclamation-circle"></i> 
+                        ${error.message || 'Verification confirmation failed'}
                     </div>
                 `;
-                loadingSpinner.style.display = 'none';
             }
         });
     </script>

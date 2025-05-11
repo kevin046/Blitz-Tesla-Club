@@ -840,6 +840,8 @@
                 
                 // Add email to localStorage before redirect
                 localStorage.setItem('pendingVerificationEmail', document.getElementById('email').value.trim());
+                
+                // Redirect to verification-sent page with proper instructions
                 window.location.href = `verification-sent.html?email=${encodeURIComponent(document.getElementById('email').value.trim())}`;
 
             } catch (error) {

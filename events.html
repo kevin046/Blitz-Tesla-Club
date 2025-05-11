@@ -534,6 +534,21 @@
                 margin-bottom: 2rem;
             }
         }
+
+        /* Add to the existing modal styles */
+        #cancelModal .modal-content {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+        }
+
+        #cancelModal .modern-select {
+            width: 100%;
+            margin: 1rem 0;
+        }
     </style>
 </head>
 <body class="events-page">
@@ -916,6 +931,18 @@
         await updateRegistrationCount();
 
         // Cancel registration handling
+        document.getElementById('cancelRegistration').addEventListener('click', async (e) => {
+            e.preventDefault();
+            // Check if user is logged in before showing modal
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) {
+                alert('Please login to manage your registration.');
+                // Optionally redirect to login page
+                // window.location.href = 'login.html'; 
+                return;
+            }
+            document.getElementById('cancelModal').style.display = 'block';
+        });
 
         // Close cancel modal
         document.querySelector('.cancel-close').addEventListener('click', () => {
@@ -928,25 +955,54 @@
             const reason = document.getElementById('cancelReason').value;
             if (!reason) return alert('Please select a cancellation reason');
 
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            
-            const { error } = await supabaseClient
-                .from('event_registrations')
-                .update({
-                    cancelled_at: new Date().toISOString(),
-                    cancellation_reason: reason
-                })
-                .eq('user_id', user.id)
-                .eq('event_id', EVENT_ID);
+            try {
+                const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+                if (authError || !user) throw new Error('Not authenticated');
 
-            if (error) {
-                alert('Cancellation failed: ' + error.message);
-                return;
+                // Find active registrations (users might have more than one)
+                const { data: activeRegistrations, error: fetchError } = await supabaseClient
+                    .from('event_registrations')
+                    .select('id')
+                    .eq('user_id', user.id)
+                    .eq('event_id', EVENT_ID)
+                    .is('cancelled_at', null);
+
+                if (fetchError || !activeRegistrations || activeRegistrations.length === 0) {
+                    alert('No active registration found to cancel.');
+                    console.error('Error fetching active registrations or none found:', fetchError);
+                    document.getElementById('cancelModal').style.display = 'none';
+                    return;
+                }
+
+                // Cancel all active registrations for this user and event
+                // Supabase update can take an array of IDs if we wanted to be more specific,
+                // but the current logic will update all matching rows.
+                const updates = activeRegistrations.map(reg => 
+                    supabaseClient
+                        .from('event_registrations')
+                        .update({
+                            cancelled_at: new Date().toISOString()
+                        })
+                        .eq('id', reg.id) 
+                );
+                
+                const results = await Promise.all(updates);
+                const DBERROR = results.find(result => result.error);
+
+                if (DBERROR) {
+                    console.error('Cancellation error details:', DBERROR.error);
+                    throw new Error(DBERROR.error.message || 'Failed to cancel one or more registrations');
+                }
+
+                document.getElementById('cancelModal').style.display = 'none';
+                await updateRegistrationCount();
+                alert('Registration(s) cancelled successfully');
+                window.location.reload(); // Refresh to update UI
+
+            } catch (error) {
+                console.error('Cancellation failed:', error);
+                alert(`Cancellation failed: ${error.message}`);
             }
-
-            document.getElementById('cancelModal').style.display = 'none';
-            await updateRegistrationCount();
-            alert('Registration cancelled successfully');
         });
     });
 

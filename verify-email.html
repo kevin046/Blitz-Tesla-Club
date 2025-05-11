@@ -312,21 +312,73 @@
                         
                         console.log('User authenticated after verification:', user.id);
                         
-                        // Update user's verification status in profiles
+                        // First, fetch existing profile data
+                        const { data: existingProfile, error: fetchError } = await window.supabaseClient
+                            .from('profiles')
+                            .select('*')
+                            .eq('id', user.id)
+                            .single();
+
+                        if (fetchError && fetchError.code !== 'PGRST116') { // Not found error
+                            console.warn('Error fetching existing profile:', fetchError);
+                        } else {
+                            console.log('Existing profile data:', existingProfile);
+                        }
+
+                        // Prepare update data - preserve existing fields
+                        const updateData = {
+                            membership_status: 'active',
+                            email_verified: true,
+                            verification_token: null,
+                            verification_sent_at: null,
+                            status: 'active', // for backward compatibility
+                            updated_at: new Date().toISOString()
+                        };
+
+                        // If we have an existing profile, make sure to keep all its other fields
+                        if (existingProfile) {
+                            // We're selectively updating only verification-related fields
+                            // All other profile data is preserved
+                            console.log('Updating profile with ID:', user.id);
+                        } else {
+                            // No profile exists yet, we need to create one with minimal fields
+                            console.log('Creating new profile with ID:', user.id);
+                            
+                            // Try to extract a name from the email address
+                            let fullName = 'Member';
+                            if (user.email) {
+                                const emailName = user.email.split('@')[0];
+                                const nameParts = emailName.split(/[.-_]/);
+                                const firstName = nameParts[0] ? nameParts[0].charAt(0).toUpperCase() + nameParts[0].slice(1) : '';
+                                const lastName = nameParts[1] ? nameParts[1].charAt(0).toUpperCase() + nameParts[1].slice(1) : '';
+                                if (firstName && lastName) {
+                                    fullName = `${firstName} ${lastName}`;
+                                }
+                            }
+                            
+                            // Add required fields for a new profile
+                            updateData.id = user.id;
+                            updateData.email = user.email;
+                            updateData.full_name = fullName;
+                            updateData.created_at = new Date().toISOString();
+                            updateData.role = 'member';
+                            
+                            // Generate a member ID if none exists
+                            if (!updateData.member_id) {
+                                const timestamp = Date.now().toString().slice(-6);
+                                updateData.member_id = `M${timestamp}`;
+                            }
+                        }
+
+                        // Use upsert to either update or create the profile
                         const { error: updateError } = await window.supabaseClient
                             .from('profiles')
-                            .update({
-                                membership_status: 'active',
-                                email_verified: true,
-                                verification_token: null,
-                                verification_sent_at: null,
-                                status: 'active' // for backward compatibility
-                            })
-                            .eq('id', user.id);
-                        
+                            .upsert(updateData, { onConflict: 'id' })
+                            .select();
+
                         if (updateError) {
-                            console.warn('Error updating profile status:', updateError);
-                            // Continue anyway - the auth verification still worked
+                            console.warn('Error updating profile:', updateError);
+                            throw new Error('Could not update your profile status. Please try again.');
                         }
 
                         updateUI(
@@ -395,7 +447,58 @@
                         
                         if (updateError) {
                             console.warn('Error updating profile status:', updateError);
-                            // Continue anyway - the auth verification still worked
+                            
+                            // Try again with a more specific query to ensure we update the correct record
+                            const { data: profileData, error: profileError } = await window.supabaseClient
+                                .from('profiles')
+                                .select('*')
+                                .eq('id', user.id)
+                                .single();
+                            
+                            if (profileError) {
+                                console.error('Could not find profile for user:', user.id, profileError);
+                                // Create a profile if it doesn't exist
+                                const { error: insertError } = await window.supabaseClient
+                                    .from('profiles')
+                                    .insert({
+                                        id: user.id,
+                                        email: user.email,
+                                        membership_status: 'active',
+                                        email_verified: true,
+                                        status: 'active',
+                                        role: 'member',
+                                        created_at: new Date().toISOString(),
+                                        updated_at: new Date().toISOString()
+                                    });
+                                
+                                if (insertError) {
+                                    console.error('Failed to create profile:', insertError);
+                                } else {
+                                    console.log('Created new profile for user:', user.id);
+                                }
+                            } else {
+                                console.log('Found existing profile:', profileData);
+                                // Try update again with more fields
+                                const { error: retryError } = await window.supabaseClient
+                                    .from('profiles')
+                                    .update({
+                                        membership_status: 'active',
+                                        email_verified: true,
+                                        verification_token: null,
+                                        verification_sent_at: null,
+                                        status: 'active',
+                                        updated_at: new Date().toISOString()
+                                    })
+                                    .eq('id', user.id);
+                                
+                                if (retryError) {
+                                    console.error('Retry update failed:', retryError);
+                                } else {
+                                    console.log('Successfully updated profile on retry');
+                                }
+                            }
+                        } else {
+                            console.log('Successfully updated profile status to active');
                         }
 
                         updateUI(
@@ -485,22 +588,73 @@
                         }
                         
                         // Update the profile
+                        const { data: existingProfile, error: fetchError } = await window.supabaseClient
+                            .from('profiles')
+                            .select('*')
+                            .eq('id', userId)
+                            .single();
+
+                        if (fetchError && fetchError.code !== 'PGRST116') { // Not found error
+                            console.warn('Error fetching existing profile:', fetchError);
+                        } else {
+                            console.log('Existing profile data:', existingProfile);
+                        }
+
+                        // Prepare update data - preserve existing fields
+                        const updateData = {
+                            membership_status: 'active',
+                            email_verified: true,
+                            verification_token: null,
+                            verification_sent_at: null,
+                            status: 'active', // for backward compatibility
+                            updated_at: new Date().toISOString()
+                        };
+
+                        // If we have an existing profile, make sure to keep all its other fields
+                        if (existingProfile) {
+                            // We're selectively updating only verification-related fields
+                            // All other profile data is preserved
+                            console.log('Updating profile with ID:', userId);
+                        } else {
+                            // No profile exists yet, we need to create one with minimal fields
+                            console.log('Creating new profile with ID:', userId);
+                            
+                            // Try to extract a name from the email address
+                            let fullName = 'Member';
+                            if (userEmail) {
+                                const emailName = userEmail.split('@')[0];
+                                const nameParts = emailName.split(/[.-_]/);
+                                const firstName = nameParts[0] ? nameParts[0].charAt(0).toUpperCase() + nameParts[0].slice(1) : '';
+                                const lastName = nameParts[1] ? nameParts[1].charAt(0).toUpperCase() + nameParts[1].slice(1) : '';
+                                if (firstName && lastName) {
+                                    fullName = `${firstName} ${lastName}`;
+                                }
+                            }
+                            
+                            // Add required fields for a new profile
+                            updateData.id = userId;
+                            updateData.email = userEmail;
+                            updateData.full_name = fullName;
+                            updateData.created_at = new Date().toISOString();
+                            updateData.role = 'member';
+                            
+                            // Generate a member ID if none exists
+                            if (!updateData.member_id) {
+                                const timestamp = Date.now().toString().slice(-6);
+                                updateData.member_id = `M${timestamp}`;
+                            }
+                        }
+
                         const { error: updateError } = await window.supabaseClient
                             .from('profiles')
-                            .update({
-                                membership_status: 'active',
-                                email_verified: true,
-                                verification_token: null,
-                                verification_sent_at: null,
-                                status: 'active' // for backward compatibility
-                            })
-                            .eq('id', userId);
-                                
+                            .upsert(updateData, { onConflict: 'id' })
+                            .select();
+                            
                         if (updateError) {
                             console.warn('Error updating profile:', updateError);
                             throw new Error('Could not update your profile status. Please try logging in again.');
                         }
-                        
+
                         updateUI(
                             "Email Verified Successfully!", 
                             "Your email has been verified and your membership is now active.", 

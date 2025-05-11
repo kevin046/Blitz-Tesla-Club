@@ -318,8 +318,7 @@
                     <input type="text" id="fullName" name="fullName" required
                            placeholder="Enter your full name"
                            autocomplete="name"
-                           minlength="2"
-                           pattern="^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*$">
+                           minlength="2">
                     <small class="form-hint">Please enter your real name as it will appear on your membership card</small>
                     <div class="form-validation-icon"></div>
                 </div>
@@ -342,47 +341,19 @@
                         Phone Number
                     </label>
                     <input type="tel" id="phoneNumber" name="phoneNumber" required
-                           placeholder="(123)-456-7890">
+                           placeholder="(123)-456-7890"
+                           pattern="^\(\d{3}\)-\d{3}-\d{4}$">
                     <small class="form-hint">Phone number in format (xxx)-xxx-xxxx</small>
                     <div class="form-validation-icon"></div>
                 </div>
 
                 <div class="form-group">
-                    <label>
+                    <label for="dateOfBirth">
                         <i class="fas fa-birthday-cake"></i>
                         Date of Birth
                     </label>
-                    <div class="date-input-group">
-                        <div class="date-select">
-                            <select id="birthYear" required>
-                                <option value="">Year</option>
-                                <!-- Years will be populated by JavaScript -->
-                            </select>
-                        </div>
-                        <div class="date-select">
-                            <select id="birthMonth" required disabled>
-                                <option value="">Month</option>
-                                <option value="01">January</option>
-                                <option value="02">February</option>
-                                <option value="03">March</option>
-                                <option value="04">April</option>
-                                <option value="05">May</option>
-                                <option value="06">June</option>
-                                <option value="07">July</option>
-                                <option value="08">August</option>
-                                <option value="09">September</option>
-                                <option value="10">October</option>
-                                <option value="11">November</option>
-                                <option value="12">December</option>
-                            </select>
-                        </div>
-                        <div class="date-select">
-                            <select id="birthDay" required disabled>
-                                <option value="">Day</option>
-                            </select>
-                        </div>
-                    </div>
-                    <small class="form-hint">You must be at least 16 years old to register</small>
+                    <input type="date" id="dateOfBirth" name="dateOfBirth" required>
+                    <small class="form-hint">You must be at least 16 years old to register. We might have birthday surprises!</small>
                     <div class="form-validation-icon"></div>
                 </div>
 
@@ -436,56 +407,13 @@
                                pattern="^\d+[A-Za-z]?(\s-\s|\s)\d+\s.+$">
                         
                         <input type="text" id="city" name="city" required
-                               placeholder="City (e.g., Toronto)"
-                               pattern="[A-Za-z -]+">
+                               placeholder="City (e.g., Toronto)">
                         
-                        <div class="form-group">
-                            <label for="province">
-                                <i class="fas fa-map-marker-alt"></i>
-                                Province/Territory
-                            </label>
-                            <div class="custom-select">
-                                <div class="select-header">
-                                    <span class="selected-value">Select Province</span>
-                                    <i class="fas fa-chevron-down"></i>
-                                </div>
-                                <div class="select-options">
-                                    <div class="option" data-value="AB">Alberta</div>
-                                    <div class="option" data-value="BC">British Columbia</div>
-                                    <div class="option" data-value="MB">Manitoba</div>
-                                    <div class="option" data-value="NB">New Brunswick</div>
-                                    <div class="option" data-value="NL">Newfoundland and Labrador</div>
-                                    <div class="option" data-value="NT">Northwest Territories</div>
-                                    <div class="option" data-value="NS">Nova Scotia</div>
-                                    <div class="option" data-value="NU">Nunavut</div>
-                                    <div class="option" data-value="ON">Ontario</div>
-                                    <div class="option" data-value="PE">Prince Edward Island</div>
-                                    <div class="option" data-value="QC">Quebec</div>
-                                    <div class="option" data-value="SK">Saskatchewan</div>
-                                    <div class="option" data-value="YT">Yukon</div>
-                                </div>
-                            </div>
-                            <select name="province" id="province" class="d-none" required>
-                                <option value="">Select Province</option>
-                            <option value="AB">Alberta</option>
-                            <option value="BC">British Columbia</option>
-                            <option value="MB">Manitoba</option>
-                            <option value="NB">New Brunswick</option>
-                            <option value="NL">Newfoundland and Labrador</option>
-                            <option value="NT">Northwest Territories</option>
-                            <option value="NS">Nova Scotia</option>
-                            <option value="NU">Nunavut</option>
-                            <option value="ON">Ontario</option>
-                            <option value="PE">Prince Edward Island</option>
-                            <option value="QC">Quebec</option>
-                            <option value="SK">Saskatchewan</option>
-                            <option value="YT">Yukon</option>
-                        </select>
-                        </div>
-
+                        <input type="text" id="province" name="province" required placeholder="Province">
+                        
                         <input type="text" id="postalCode" name="postalCode" required
                                placeholder="Postal Code (e.g., K1A 0B1)"
-                               pattern="^[A-Za-z]\d[A-Za-z][ ]?\d[A-Za-z]\d$"
+                               pattern="^[A-Za-z]\d[A-Za-z] \d[A-Za-z]\d$"
                                title="Canadian postal code format (A1A 1A1)">
                     </div>
                     <small class="form-hint">We'll only use this for membership purposes</small>
@@ -616,43 +544,34 @@
         // Function to generate sequential member ID
         async function generateSequentialMemberId() {
             try {
-                console.log('Starting sequential Member ID generation...');
+                console.log('Starting Member ID generation...');
                 
-                // Query to get all Member IDs from profiles to find the highest one
+                // Query to get all Member IDs from profiles
                 const { data, error } = await supabaseClient
                     .from('profiles')
                     .select('member_id')
-                    .not('member_id', 'is', null)  // Only select records with a member_id
-                    .order('created_at', { ascending: false });
+                    .not('member_id', 'is', null);  // Only select records with a member_id
                 
                 if (error) {
                     console.error('Error fetching Member IDs:', error);
                     throw error;
                 }
                 
-                // Default starting number
-                let highestNumber = 0;
-                
                 console.log('Retrieved profiles count:', data ? data.length : 0);
                 
-                // Find the highest Member ID number
+                // Extract all existing numeric IDs into a Set for quick lookup
+                const usedIds = new Set();
+                
                 if (data && data.length > 0) {
-                    // Loop through all profiles and extract the numeric part of the Member ID
                     data.forEach(profile => {
                         if (profile.member_id && profile.member_id.startsWith('BTC')) {
                             try {
-                                // Extract just the numeric part by removing 'BTC' prefix
                                 const numberString = profile.member_id.replace('BTC', '');
-                                // Parse to integer, removing any leading zeros
                                 const numberPart = parseInt(numberString, 10);
                                 
                                 if (!isNaN(numberPart)) {
+                                    usedIds.add(numberPart);
                                     console.log(`Found Member ID: ${profile.member_id}, Number part: ${numberPart}`);
-                                    // Keep track of the highest number found
-                                    if (numberPart > highestNumber) {
-                                        highestNumber = numberPart;
-                                        console.log(`New highest number: ${highestNumber}`);
-                                    }
                                 }
                             } catch (parseError) {
                                 console.error('Error parsing Member ID:', profile.member_id, parseError);
@@ -661,43 +580,25 @@
                     });
                 }
                 
-                // Double-check with a specific query for the highest Member ID
-                if (highestNumber === 0) {
-                    console.log('No valid Member IDs found in first pass, trying direct ordering...');
-                    
-                    // Alternative approach: Sort by member_id in descending order
-                    const { data: orderedData, error: orderedError } = await supabaseClient
-                        .from('profiles')
-                        .select('member_id')
-                        .not('member_id', 'is', null)
-                        .order('member_id', { ascending: false })
-                        .limit(1);
-                    
-                    if (!orderedError && orderedData && orderedData.length > 0) {
-                        const highestId = orderedData[0].member_id;
-                        if (highestId && highestId.startsWith('BTC')) {
-                            const numberPart = parseInt(highestId.replace('BTC', ''), 10);
-                            if (!isNaN(numberPart)) {
-                                highestNumber = numberPart;
-                                console.log(`Found highest member_id by direct ordering: ${highestId}, Number part: ${highestNumber}`);
-                            }
-                        }
-                    }
+                // Start checking from ID 34 as specified
+                let nextId = 34;
+                
+                // Find the first unused ID number
+                while (usedIds.has(nextId)) {
+                    nextId++;
                 }
                 
-                // Generate the next Member ID (increment from the highest found)
-                const nextNumber = highestNumber + 1;
-                console.log(`Highest Member ID number found: ${highestNumber}, Next number: ${nextNumber}`);
+                console.log(`Found available ID number: ${nextId}`);
                 
-                // Format with leading zeros (5 digits)
-                const memberId = `BTC${nextNumber.toString().padStart(5, '0')}`;
+                // Format with leading zeros (4 digits)
+                const memberId = `BTC${nextId.toString().padStart(4, '0')}`;
                 
-                console.log(`Generated sequential Member ID: ${memberId}`);
+                console.log(`Generated Member ID: ${memberId}`);
                 return memberId;
             } catch (error) {
                 console.error('Error generating Member ID:', error);
-                // Generate a fallback ID - make sure it's higher than the known highest ID (22)
-                const fallbackId = `BTC${(23).toString().padStart(5, '0')}`;
+                // Generate a fallback ID starting at 34
+                const fallbackId = `BTC${(34).toString().padStart(4, '0')}`;
                 console.log('Using fallback ID:', fallbackId);
                 return fallbackId;
             }
@@ -722,7 +623,6 @@
             const phoneNumberInput = document.getElementById('phoneNumber');
             if (phoneNumberInput) {
                 phoneNumberInput.addEventListener('input', function(e) {
-                    // Allow any input but format as (xxx)-xxx-xxxx
                     let numbers = this.value.replace(/\D/g, '');
                     let formatted = '';
                     
@@ -739,171 +639,110 @@
                     this.value = formatted;
                 });
             }
-
-            // Custom select functionality
-            document.querySelectorAll('.custom-select').forEach(select => {
-                const header = select.querySelector('.select-header');
-                const options = select.querySelector('.select-options');
-                const hiddenSelect = document.getElementById('province');
-                
-                // Populate custom options from hidden select
-                hiddenSelect.querySelectorAll('option').forEach(option => {
-                    if (option.value) {
-                        const div = document.createElement('div');
-                        div.className = 'option';
-                        div.textContent = option.textContent;
-                        div.dataset.value = option.value;
-                        options.appendChild(div);
-                    }
-                });
-                
-                header.addEventListener('click', () => {
-                    const isActive = header.classList.toggle('active');
-                    options.style.display = isActive ? 'block' : 'none';
-                });
-                
-                options.querySelectorAll('.option').forEach(option => {
-                    option.addEventListener('click', () => {
-                        header.querySelector('.selected-value').textContent = option.textContent;
-                        hiddenSelect.value = option.dataset.value;
-                        options.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
-                        option.classList.add('selected');
-                        header.classList.remove('active');
-                        options.style.display = 'none';
-                    });
-                });
-                
-                // Close when clicking outside
-                document.addEventListener('click', (e) => {
-                    if (!select.contains(e.target)) {
-                        header.classList.remove('active');
-                        options.style.display = 'none';
-                    }
-                });
-                
-                // Keyboard navigation
-                header.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') header.click();
-                });
-                
-                options.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape') {
-                        header.classList.remove('active');
-                        options.style.display = 'none';
-                    }
-                });
-            });
         });
-
-        // Date of Birth Handling
-        function initDateOfBirth() {
-            // Populate years first
-            const yearSelect = document.getElementById('birthYear');
-            const currentYear = new Date().getFullYear();
-            for(let y = currentYear - 13; y >= currentYear - 100; y--) {
-                yearSelect.innerHTML += `<option value="${y}">${y}</option>`;
-            }
-
-            // Enable month select when year is chosen
-            yearSelect.addEventListener('change', function() {
-                document.getElementById('birthMonth').disabled = !this.value;
-            });
-
-            // Update days when either year or month changes
-            function updateDays() {
-                const year = yearSelect.value;
-                const month = document.getElementById('birthMonth').value;
-                const daySelect = document.getElementById('birthDay');
-                
-                if(!year || !month) {
-                    daySelect.disabled = true;
-                    return;
-                }
-                
-                const days = new Date(year, parseInt(month) - 1, 0).getDate();
-                daySelect.innerHTML = '<option value="">Day</option>';
-                
-                for(let d = 1; d <= days; d++) {
-                    const day = d.toString().padStart(2, '0');
-                    daySelect.innerHTML += `<option value="${day}">${d}</option>`;
-                }
-                daySelect.disabled = false;
-            }
-
-            // Enable day select when both year and month are chosen
-            document.getElementById('birthMonth').addEventListener('change', function() {
-                document.getElementById('birthDay').disabled = !this.value;
-                updateDays();
-            });
-        }
-
-        // Initialize when DOM is ready
-        document.addEventListener('DOMContentLoaded', initDateOfBirth);
 
         // Add this validation function before the form submission handler
         function validateForm() {
-            // Date of birth components validation
-            const birthYear = document.getElementById('birthYear').value;
-            const birthMonth = document.getElementById('birthMonth').value;
-            const birthDay = document.getElementById('birthDay').value;
-            
-            if (!birthYear || !birthMonth || !birthDay) {
-                alert('Please select your complete date of birth (year, month, and day)');
-                return false;
-            }
-            
-            // Accurate age calculation
-            const dob = new Date(`${birthYear}-${birthMonth}-${birthDay}`);
-            const ageDiff = Date.now() - dob.getTime();
-            const ageDate = new Date(ageDiff);
-            const age = Math.abs(ageDate.getUTCFullYear() - 1970);
-            
-            if (age < 16) {
-                alert('You must be at least 16 years old to register');
-                return false;
-            }
-            
-            // Password validation
+            const fullName = document.getElementById('fullName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const dateOfBirthValue = document.getElementById('dateOfBirth').value;
+            const street = document.getElementById('street').value.trim();
+            const city = document.getElementById('city').value.trim();
+            const province = document.getElementById('province').value.trim();
+            const postalCode = document.getElementById('postalCode').value.toUpperCase().trim();
             const password = document.getElementById('password').value;
-            const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d).{8,}$/;
-            if (!passwordRegex.test(password)) {
-                alert('Password must be at least 8 characters long and contain both letters AND numbers');
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const termsChecked = document.getElementById('terms').checked;
+            const carModels = document.querySelectorAll('input[name="carModels"]:checked');
+
+            if (!fullName) { 
+                alert('Full Name is required.'); 
+                return false; 
+            }
+            // Enhanced JavaScript validation for Full Name
+            if (!/^[a-zA-Z\',.\s-]+$/.test(fullName)) {
+                alert('Full Name contains invalid characters. Only letters, spaces, apostrophes, commas, periods, and hyphens are allowed.');
+                return false;
+            }
+
+            if (!email) { 
+                alert('Email is required.'); 
+                return false; 
+            }
+            // Basic email format check (Supabase will do a more thorough one)
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                alert('Please enter a valid email address.');
+                return false;
+            }
+
+            if (!/^\(\d{3}\)-\d{3}-\d{4}$/.test(phoneNumber)) {
+                alert('Please enter a valid phone number in format (xxx)-xxx-xxxx');
                 return false;
             }
             
-            // Password match check
-            const confirmPassword = document.getElementById('confirmPassword').value;
-                    if (password !== confirmPassword) {
-                alert('Passwords do not match!');
+            if (!dateOfBirthValue) {
+                alert('Please enter your date of birth.');
+                return false;
+            }
+            const dob = new Date(dateOfBirthValue);
+            const now = new Date();
+            now.setHours(0,0,0,0); // Compare dates only, not time
+            dob.setHours(0,0,0,0); // Ensure dob is also just the date part for comparison
+
+            if (isNaN(dob.getTime())) {
+                alert('Please enter a valid date of birth.');
+                return false;
+            } else if (dob >= now) { // Check if dob is today or in the future
+                alert('Date of birth cannot be today or in the future.');
+                return false;
+            }
+            // Age calculation
+            let age = now.getFullYear() - dob.getFullYear();
+            const m = now.getMonth() - dob.getMonth();
+            if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) {
+                age--;
+            }
+            if (age < 16) {
+                alert('You must be at least 16 years old to register.');
+                return false;
+            }
+            
+            if (carModels.length === 0) {
+                alert('Please select at least one Tesla model you own.');
                 return false;
             }
 
-            // Terms agreement
-            if (!document.getElementById('terms').checked) {
-                alert('You must agree to the terms and conditions');
+            if (!street) { alert('Street address is required.'); return false; }
+            
+            if (!city) { 
+                alert('City is required.'); 
+                return false; 
+            }
+            // Enhanced JavaScript validation for City
+            if (!/^[a-zA-Z\s-]+$/.test(city)) {
+                alert('City contains invalid characters. Only letters, spaces, and hyphens are allowed.');
                 return false;
             }
 
-            // Province validation
-            const provinceCode = document.getElementById('province').value;
-            const validProvinces = ['AB','BC','MB','NB','NL','NT','NS','NU','ON','PE','QC','SK','YT'];
-
-            if (!validProvinces.includes(provinceCode)) {
-                alert('Please select a valid Canadian province/territory');
-                return false;
-            }
-
-            // Postal code validation
-            const postalCode = document.getElementById('postalCode').value;
-            if (!/^[A-Za-z]\d[A-Za-z][ ]?\d[A-Za-z]\d$/.test(postalCode)) {
+            if (!province) { alert('Province is required.'); return false; } // Validating text input
+            
+            if (!/^[A-Za-z]\d[A-Za-z] \d[A-Za-z]\d$/.test(postalCode)) {
                 alert('Please enter a valid Canadian postal code (e.g., A1A 1A1)');
                 return false;
             }
 
-            // At least one Tesla model selected
-            const carModels = document.querySelectorAll('input[name="carModels"]:checked');
-                    if (carModels.length === 0) {
-                alert('Please select at least one Tesla model you own');
+            const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d).{8,}$/;
+            if (!passwordRegex.test(password)) {
+                alert('Password must be at least 8 characters long and contain both letters AND numbers.');
+                return false;
+            }
+            if (password !== confirmPassword) {
+                alert('Passwords do not match!');
+                return false;
+            }
+            if (!termsChecked) {
+                alert('You must agree to the terms and conditions.');
                 return false;
             }
 
@@ -917,56 +756,101 @@
             if (!validateForm()) return;
 
             const registerButton = document.getElementById('registerButton');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            
             try {
                 registerButton.disabled = true;
-                registerButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
+                registerButton.childNodes[0].nodeValue = ' Processing... ';
+                loadingSpinner.classList.remove('d-none');
+
+                const fullNameValue = document.getElementById('fullName').value.trim();
+                const nameParts = fullNameValue.split(' ');
+                const firstName = nameParts[0];
+                const lastName = nameParts.slice(1).join(' ') || firstName; // Handle single name case
 
                 // Get formatted values
-                const phoneNumber = document.getElementById('phoneNumber').value.replace(/\D/g, '');
-                const birthYear = document.getElementById('birthYear').value;
-                const birthMonth = document.getElementById('birthMonth').value;
-                const birthDay = document.getElementById('birthDay').value;
-                const dateOfBirth = `${birthYear}-${birthMonth}-${birthDay}`;
+                const phoneNumberRaw = document.getElementById('phoneNumber').value.replace(/\D/g, '');
+                const dateOfBirthValue = document.getElementById('dateOfBirth').value; // Already in YYYY-MM-DD
+                const streetValue = document.getElementById('street').value.trim();
+                const cityValue = document.getElementById('city').value.trim();
+                const provinceValue = document.getElementById('province').value.trim();
+                const postalCodeValue = document.getElementById('postalCode').value.toUpperCase().trim();
+                const selectedCarModels = Array.from(document.querySelectorAll('input[name="carModels"]:checked'))
+                                          .map(cb => cb.value);
 
-                // Registration data
-                    const { data, error } = await supabaseClient.auth.signUp({
-                    email: document.getElementById('email').value,
-                    password: document.getElementById('password').value
+                // Combine address fields into a single string
+                const fullAddress = `${streetValue}, ${cityValue}, ${provinceValue}, ${postalCodeValue}`;
+
+                // Registration data for Supabase auth
+                const { data, error } = await supabaseClient.auth.signUp({
+                    email: document.getElementById('email').value.trim(),
+                    password: document.getElementById('password').value,
+                    options: {
+                        data: { // This data is for the auth.users table, not profiles directly initially
+                            full_name: fullNameValue,
+                            // We can't put all profile data here directly during signUp if it's for a separate 'profiles' table.
+                            // It's better to insert into 'profiles' table after successful signUp, using the user's ID.
+                        }
+                    }
                 });
 
                 if (error) throw error;
                 
-                // Explicit profile creation
-                            const { error: profileError } = await supabaseClient
-                                .from('profiles')
+                if (!data.user) {
+                    throw new Error('User registration failed, user object not returned.');
+                }
+
+                // Explicit profile creation in 'profiles' table
+                const { error: profileError } = await supabaseClient
+                    .from('profiles')
                     .insert({
-                                        id: data.user.id,
-                        first_name: document.getElementById('fullName').value.split(' ')[0],
-                        last_name: document.getElementById('fullName').value.split(' ').slice(1).join(' '),
-                        phone: phoneNumber,
-                        address: {
-                            street: document.getElementById('street').value,
-                            city: document.getElementById('city').value,
-                            province: document.getElementById('province').value,
-                            postal_code: document.getElementById('postalCode').value.replace(/\s/g, '')
-                        },
-                        car_models: Array.from(document.querySelectorAll('input[name="carModels"]:checked'))
-                                      .map(cb => cb.value),
-                        date_of_birth: dateOfBirth
+                        id: data.user.id, // Link to the auth.users id
+                        email: data.user.email, // Store email in profiles table as well
+                        first_name: firstName,
+                        last_name: lastName,
+                        phone: phoneNumberRaw, // Store raw numbers or formatted, ensure consistency
+                        full_address: fullAddress, // Use the combined full address string
+                        car_models: selectedCarModels,
+                        date_of_birth: dateOfBirthValue,
+                        member_id: await generateSequentialMemberId(), // Assuming this function is defined and works
+                        role: 'member', // Default role
+                        status: 'pending_verification', // Initial status
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
                     });
 
-                if (profileError) throw profileError;
+                if (profileError) {
+                    // Handle potential duplicate user ID if trying to re-register before deleting auth user for cleanup
+                    if (profileError.code === '23505') { // Unique violation, likely profile exists
+                        console.warn('Profile possibly already exists or error linking:', profileError);
+                        // Proceed with email verification, but log this issue
+                    } else {
+                        // If profile creation fails, it's a significant issue.
+                        // Ideally, we might want to delete the auth user created in the previous step to allow re-registration.
+                        // For now, we alert and log.
+                        console.error('Error creating profile:', profileError);
+                        alert(`Registration succeeded but profile creation failed: ${profileError.message}. Please contact support.`);
+                        // Don't redirect if profile fails critically, allow user to see error or retry if applicable.
+                        registerButton.disabled = false;
+                        registerButton.childNodes[0].nodeValue = ' Create Account ';
+                        loadingSpinner.classList.add('d-none');
+                        return; // Stop execution here
+                    }
+                }
                 
                 // Add email to localStorage before redirect
-                localStorage.setItem('pendingVerificationEmail', document.getElementById('email').value);
-                window.location.href = `verification-sent.html?email=${encodeURIComponent(document.getElementById('email').value)}`;
+                localStorage.setItem('pendingVerificationEmail', document.getElementById('email').value.trim());
+                window.location.href = `verification-sent.html?email=${encodeURIComponent(document.getElementById('email').value.trim())}`;
 
-                } catch (error) {
-                    console.error('Registration error:', error);
+            } catch (error) {
+                console.error('Registration error:', error);
                 alert(`Error: ${error.message}`);
             } finally {
+                if (!registerButton.disabled) { // Ensure button is re-enabled only if not already done in error block
                     registerButton.disabled = false;
-                registerButton.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+                    registerButton.childNodes[0].nodeValue = ' Create Account ';
+                    loadingSpinner.classList.add('d-none');
+                }
             }
         });
 

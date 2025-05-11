@@ -607,7 +607,14 @@
         // Initialize Supabase client
         const supabaseClient = supabase.createClient(
             'https://qhkcrrphsjpytdfqfamq.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI'
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI',
+            {
+                auth: {
+                    autoRefreshToken: true,
+                    persistSession: true,
+                    detectSessionInUrl: true
+                }
+            }
         );
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -790,15 +797,27 @@
                             full_name: fullNameValue,
                             // We can't put all profile data here directly during signUp if it's for a separate 'profiles' table.
                             // It's better to insert into 'profiles' table after successful signUp, using the user's ID.
-                        }
+                        },
+                        emailRedirectTo: 'https://www.blitztclub.com/verify-email.html?source=email'
                     }
                 });
 
+                console.log('Signup response:', data);
+                
                 if (error) throw error;
                 
                 if (!data.user) {
                     throw new Error('User registration failed, user object not returned.');
                 }
+                
+                // Check if Supabase is configured to auto-confirm email
+                // If confirmationSentAt is null, email confirmation might not be enabled in Supabase
+                if (!data.user.confirmation_sent_at) {
+                    console.warn('Email confirmation might not be enabled in Supabase:', data.user);
+                }
+                
+                console.log('User created with id:', data.user.id);
+                console.log('Email confirmation sent at:', data.user.confirmation_sent_at || 'Not sent - check Supabase settings');
 
                 // Explicit profile creation in 'profiles' table
                 const { error: profileError } = await supabaseClient

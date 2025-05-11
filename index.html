@@ -38,6 +38,18 @@
                 // Redirect to verification-sent page with error parameter
                 window.location.href = `verification-sent.html?email=${email || ''}&error=expired`;
             }
+            
+            // Check URL parameters for verification token or access token
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            const type = urlParams.get('type');
+            
+            // If this is a verification link redirect, send to the proper verification page
+            if (token && type === 'signup') {
+                console.log('Detected verification token on homepage - redirecting to proper verification page');
+                // Pass the token and type to the verify-email page
+                window.location.href = `verify-email.html?token=${token}&type=${type}`;
+            }
         });
     </script>
     <style>

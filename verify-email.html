@@ -275,11 +275,86 @@
                 // Check for Supabase auth token in different formats
                 const accessToken = getHashParam('access_token');
                 const refreshToken = getHashParam('refresh_token');
-                const type = getHashParam('type');
+                const type = getHashParam('type') || getQueryParam('type');
+                
+                // Check for standard Supabase verification token in query params
+                // This handles the case of the token coming directly from Supabase email
+                const supabaseToken = getQueryParam('token');
+                const tokenType = getQueryParam('type');
                 
                 // Check for custom token from our system
                 const customToken = getQueryParam('token');
                 const tokenFromStorage = localStorage.getItem('verificationToken');
+                
+                // Case 0: Token from direct Supabase email verification link
+                if (supabaseToken && tokenType === 'signup') {
+                    console.log('Found Supabase verification token in URL params');
+                    updateUI(
+                        "Supabase verification detected", 
+                        "Processing your verification from email...", 
+                        "fas fa-spinner fa-spin", 
+                        50
+                    );
+                    
+                    try {
+                        // Use the verification token directly with Supabase
+                        const { error } = await window.supabaseClient.auth.verifyOtp({
+                            token: supabaseToken,
+                            type: 'signup'
+                        });
+                        
+                        if (error) throw error;
+                        
+                        // Get the current user if verification was successful
+                        const { data: { user }, error: userError } = await window.supabaseClient.auth.getUser();
+                        
+                        if (userError || !user) throw new Error('Could not get user after verification');
+                        
+                        console.log('User authenticated after verification:', user.id);
+                        
+                        // Update user's verification status in profiles
+                        const { error: updateError } = await window.supabaseClient
+                            .from('profiles')
+                            .update({
+                                membership_status: 'active',
+                                email_verified: true,
+                                verification_token: null,
+                                verification_sent_at: null,
+                                status: 'active' // for backward compatibility
+                            })
+                            .eq('id', user.id);
+                        
+                        if (updateError) {
+                            console.warn('Error updating profile status:', updateError);
+                            // Continue anyway - the auth verification still worked
+                        }
+
+                        updateUI(
+                            "Email Verified Successfully!", 
+                            "Your email has been verified and your membership is now active.", 
+                            "fas fa-check-circle success-icon", 
+                            100
+                        );
+                        
+                        // Add continue button
+                        const content = document.getElementById('verification-content');
+                        content.innerHTML += `<div class="verify-actions">
+                            <button onclick="window.location.href='dashboard.html?verified=true'" class="continue-btn">
+                                <i class="fas fa-arrow-right"></i> Continue to Dashboard
+                            </button>
+                        </div>`;
+                        
+                        // Clean up verification data
+                        localStorage.removeItem('verificationToken');
+                        localStorage.removeItem('tokenExpiry');
+                        localStorage.removeItem('pendingVerificationEmail');
+                        
+                        return; // Exit early
+                    } catch (error) {
+                        console.error('Error with direct Supabase token verification:', error);
+                        // Fall through to try other methods
+                    }
+                }
                 
                 // Case 1: Handle Supabase email verification token
                 if (accessToken) {

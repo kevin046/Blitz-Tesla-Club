@@ -22,6 +22,24 @@
         window.supabaseClient = window.supabaseClient || null;
     </script>
     <script src="navigation.js" defer></script>
+    <script>
+        // Check for verification errors in URL hash
+        document.addEventListener('DOMContentLoaded', function() {
+            // Parse the URL hash parameters
+            const hashParams = new URLSearchParams(window.location.hash.substring(1));
+            const error = hashParams.get('error');
+            const errorCode = hashParams.get('error_code');
+            
+            // Check if it's a verification link error
+            if (error === 'access_denied' && errorCode === 'otp_expired') {
+                // Get the stored email if available
+                const email = localStorage.getItem('pendingVerificationEmail');
+                
+                // Redirect to verification-sent page with error parameter
+                window.location.href = `verification-sent.html?email=${email || ''}&error=expired`;
+            }
+        });
+    </script>
     <style>
         /* Additional optimizations for home page */
         body.home-page {

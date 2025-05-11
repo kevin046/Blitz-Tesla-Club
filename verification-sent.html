@@ -343,6 +343,14 @@
             // Display user email
             const urlParams = new URLSearchParams(window.location.search);
             const email = urlParams.get('email');
+            const error = urlParams.get('error');
+            
+            // Check if coming from an expired link redirect
+            if (error === 'expired') {
+                showStatusMessage('Your verification link has expired. Please request a new verification email using the button below.', 'error');
+                // Auto-scroll to the error message
+                document.getElementById('statusMessage').scrollIntoView({ behavior: 'smooth' });
+            }
             
             if (email) {
                 document.getElementById('userEmail').textContent = email;

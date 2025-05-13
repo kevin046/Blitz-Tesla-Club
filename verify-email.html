@@ -226,9 +226,9 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-                // Initialize Supabase client
+            // Initialize Supabase client
             window.supabaseClient = supabase.createClient(
-                    'https://qhkcrrphsjpytdfqfamq.supabase.co',
+                'https://qhkcrrphsjpytdfqfamq.supabase.co',
                 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI',
                 {
                     auth: {
@@ -261,6 +261,153 @@
                 return hashParams.get(param);
             }
 
+            // Helper function to show success UI
+            function showSuccess() {
+                updateUI(
+                    "Email Verified Successfully!", 
+                    "Your email has been verified and your membership is now active.", 
+                    "fas fa-check-circle success-icon", 
+                    100
+                );
+                
+                // Add continue button
+                const content = document.getElementById('verification-content');
+                content.innerHTML += `<div class="verify-actions">
+                    <button onclick="window.location.href='dashboard.html?verified=true'" class="continue-btn">
+                        <i class="fas fa-arrow-right"></i> Continue to Dashboard
+                    </button>
+                </div>`;
+                
+                // Clean up verification data
+                localStorage.removeItem('verificationToken');
+                localStorage.removeItem('tokenExpiry');
+                localStorage.removeItem('pendingVerificationEmail');
+            }
+
+            // Helper function to update profile
+            async function updateUserProfile(userId, userEmail, userName = null) {
+                try {
+                    console.log('Attempting to update profile for user:', userId);
+                    
+                    // Check if profile exists
+                    const { data: existingProfile, error: fetchError } = await window.supabaseClient
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', userId)
+                        .maybeSingle();
+
+                    if (fetchError) {
+                        console.error('Error fetching profile:', fetchError);
+                        console.error('Error details:', {
+                            message: fetchError.message,
+                            code: fetchError.code,
+                            details: fetchError.details
+                        });
+                    }
+
+                    console.log('Profile lookup result:', existingProfile || 'No profile found');
+
+                    // Prepare full name if not provided
+                    let fullName = userName;
+                    if (!fullName && userEmail) {
+                        const emailName = userEmail.split('@')[0];
+                        const nameParts = emailName.split(/[.-_]/);
+                        const firstName = nameParts[0] ? nameParts[0].charAt(0).toUpperCase() + nameParts[0].slice(1) : '';
+                        const lastName = nameParts[1] ? nameParts[1].charAt(0).toUpperCase() + nameParts[1].slice(1) : '';
+                        if (firstName && lastName) {
+                            fullName = `${firstName} ${lastName}`;
+                        } else {
+                            fullName = 'Member';
+                        }
+                    }
+
+                    if (existingProfile) {
+                        // Update existing profile
+                        const { data: updateData, error: updateError } = await window.supabaseClient
+                            .from('profiles')
+                            .update({
+                                membership_status: 'active',
+                                email_verified: true,
+                                verification_token: null,
+                                verification_sent_at: null,
+                                status: 'active', // for backward compatibility
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', userId)
+                            .select('*');
+                            
+                        if (updateError) {
+                            console.error('Error updating profile:', updateError);
+                            console.error('Error details:', {
+                                message: updateError.message,
+                                code: updateError.code,
+                                details: updateError.details
+                            });
+                            
+                            // Try upsert as fallback
+                            console.log('Attempting profile update with upsert...');
+                            const { data: upsertData, error: upsertError } = await window.supabaseClient
+                                .from('profiles')
+                                .upsert({
+                                    id: userId,
+                                    email: userEmail,
+                                    full_name: existingProfile.full_name || fullName,
+                                    membership_status: 'active',
+                                    email_verified: true,
+                                    status: 'active',
+                                    updated_at: new Date().toISOString()
+                                }, { onConflict: 'id' })
+                                .select('id, email, membership_status');
+                            
+                            if (upsertError) {
+                                console.error('Upsert profile failed:', upsertError);
+                                throw new Error(`Could not update profile (${upsertError.code}): ${upsertError.message}`);
+                            }
+                            
+                            console.log('Profile successfully updated via upsert:', upsertData);
+                            return true;
+                        } else {
+                            console.log('Profile successfully updated:', updateData);
+                            return true;
+                        }
+                    } else {
+                        // No profile exists yet, we need to create one with minimal fields
+                        console.log('Creating new profile for user:', userId);
+                        
+                        const { data: insertData, error: insertError } = await window.supabaseClient
+                            .from('profiles')
+                            .insert({
+                                id: userId,
+                                email: userEmail,
+                                full_name: fullName,
+                                membership_status: 'active',
+                                email_verified: true,
+                                status: 'active',
+                                role: 'member',
+                                created_at: new Date().toISOString(),
+                                updated_at: new Date().toISOString()
+                            })
+                            .select('id, email, membership_status');
+                        
+                        if (insertError) {
+                            console.error('Failed to create profile:', insertError);
+                            console.error('Error details:', {
+                                message: insertError.message,
+                                code: insertError.code,
+                                details: insertError.details
+                            });
+                            throw new Error(`Could not create profile (${insertError.code}): ${insertError.message}`);
+                        }
+                        
+                        console.log('Created new profile:', insertData);
+                        return true;
+                    }
+                } catch (error) {
+                    console.error('Error updating user profile:', error);
+                    return false;
+                }
+            }
+
             try {
                 updateUI(
                     "Verifying your email...", 
@@ -272,25 +419,26 @@
                 console.log("URL hash:", window.location.hash);
                 console.log("URL search params:", window.location.search);
                 
-                // Check for Supabase auth token in different formats
+                // Check for email confirmation link directly from Supabase
+                // This is the standard format Supabase uses for email confirmation
+                const confirmType = getQueryParam('type');
+                const confirmToken = getQueryParam('token');
+                const source = getQueryParam('source');
+                
+                // Check for Supabase auth token in hash (OAuth or magic link format)
                 const accessToken = getHashParam('access_token');
                 const refreshToken = getHashParam('refresh_token');
-                const type = getHashParam('type') || getQueryParam('type');
-                
-                // Check for standard Supabase verification token in query params
-                // This handles the case of the token coming directly from Supabase email
-                const supabaseToken = getQueryParam('token');
-                const tokenType = getQueryParam('type');
+                const hashType = getHashParam('type');
                 
                 // Check for custom token from our system
                 const customToken = getQueryParam('token');
                 const tokenFromStorage = localStorage.getItem('verificationToken');
-                
-                // Case 0: Token from direct Supabase email verification link
-                if (supabaseToken && tokenType === 'signup') {
-                    console.log('Found Supabase verification token in URL params');
+
+                // CASE 1: Handle direct Supabase email confirmation
+                if ((confirmType === 'signup' || confirmType === 'email_change') && confirmToken) {
+                    console.log('Found Supabase email confirmation link');
                     updateUI(
-                        "Supabase verification detected", 
+                        "Supabase email confirmation detected", 
                         "Processing your verification from email...", 
                         "fas fa-spinner fa-spin", 
                         50
@@ -299,119 +447,46 @@
                     try {
                         // Use the verification token directly with Supabase
                         const { error } = await window.supabaseClient.auth.verifyOtp({
-                            token: supabaseToken,
-                            type: 'signup'
+                            token: confirmToken,
+                            type: confirmType
                         });
                         
-                        if (error) throw error;
+                        if (error) {
+                            console.error('OTP verification error:', error);
+                            throw error;
+                        }
                         
-                        // Get the current user if verification was successful
+                        // Get the current user after verification
                         const { data: { user }, error: userError } = await window.supabaseClient.auth.getUser();
                         
-                        if (userError || !user) throw new Error('Could not get user after verification');
+                        if (userError || !user) {
+                            console.error('Could not get user after verification:', userError);
+                            throw new Error('Could not get user after verification');
+                        }
                         
                         console.log('User authenticated after verification:', user.id);
                         
-                        // First, fetch existing profile data
-                        const { data: existingProfile, error: fetchError } = await window.supabaseClient
-                            .from('profiles')
-                            .select('*')
-                            .eq('id', user.id)
-                            .single();
-
-                        if (fetchError && fetchError.code !== 'PGRST116') { // Not found error
-                            console.warn('Error fetching existing profile:', fetchError);
-                        } else {
-                            console.log('Existing profile data:', existingProfile);
-                        }
-
-                        // Prepare update data - preserve existing fields
-                        const updateData = {
-                            membership_status: 'active',
-                            email_verified: true,
-                            verification_token: null,
-                            verification_sent_at: null,
-                            status: 'active', // for backward compatibility
-                            updated_at: new Date().toISOString()
-                        };
-
-                        // If we have an existing profile, make sure to keep all its other fields
-                        if (existingProfile) {
-                            // We're selectively updating only verification-related fields
-                            // All other profile data is preserved
-                            console.log('Updating profile with ID:', user.id);
-                        } else {
-                            // No profile exists yet, we need to create one with minimal fields
-                            console.log('Creating new profile with ID:', user.id);
-                            
-                            // Try to extract a name from the email address
-                            let fullName = 'Member';
-                            if (user.email) {
-                                const emailName = user.email.split('@')[0];
-                                const nameParts = emailName.split(/[.-_]/);
-                                const firstName = nameParts[0] ? nameParts[0].charAt(0).toUpperCase() + nameParts[0].slice(1) : '';
-                                const lastName = nameParts[1] ? nameParts[1].charAt(0).toUpperCase() + nameParts[1].slice(1) : '';
-                                if (firstName && lastName) {
-                                    fullName = `${firstName} ${lastName}`;
-                                }
-                            }
-                            
-                            // Add required fields for a new profile
-                            updateData.id = user.id;
-                            updateData.email = user.email;
-                            updateData.full_name = fullName;
-                            updateData.created_at = new Date().toISOString();
-                            updateData.role = 'member';
-                            
-                            // Generate a member ID if none exists
-                            if (!updateData.member_id) {
-                                const timestamp = Date.now().toString().slice(-6);
-                                updateData.member_id = `M${timestamp}`;
-                            }
-                        }
-
-                        // Use upsert to either update or create the profile
-                        const { error: updateError } = await window.supabaseClient
-                            .from('profiles')
-                            .upsert(updateData, { onConflict: 'id' })
-                            .select();
-
-                        if (updateError) {
-                            console.warn('Error updating profile:', updateError);
-                            throw new Error('Could not update your profile status. Please try again.');
-                        }
-
-                        updateUI(
-                            "Email Verified Successfully!", 
-                            "Your email has been verified and your membership is now active.", 
-                            "fas fa-check-circle success-icon", 
-                            100
+                        // Update the user's profile
+                        const profileUpdated = await updateUserProfile(
+                            user.id, 
+                            user.email, 
+                            user.user_metadata?.full_name
                         );
                         
-                        // Add continue button
-                        const content = document.getElementById('verification-content');
-                        content.innerHTML += `<div class="verify-actions">
-                            <button onclick="window.location.href='dashboard.html?verified=true'" class="continue-btn">
-                                <i class="fas fa-arrow-right"></i> Continue to Dashboard
-                            </button>
-                        </div>`;
-                        
-                        // Clean up verification data
-                        localStorage.removeItem('verificationToken');
-                        localStorage.removeItem('tokenExpiry');
-                        localStorage.removeItem('pendingVerificationEmail');
-                        
-                        return; // Exit early
+                        if (profileUpdated) {
+                            showSuccess();
+                        } else {
+                            throw new Error('Failed to update user profile');
+                        }
                     } catch (error) {
-                        console.error('Error with direct Supabase token verification:', error);
-                        // Fall through to try other methods
+                        console.error('Error with Supabase email confirmation:', error);
+                        throw error;
                     }
                 }
-                
-                // Case 1: Handle Supabase email verification token
-                if (accessToken) {
+                // CASE 2: Handle Supabase auth token in hash (from magic link or OAuth)
+                else if (accessToken) {
                     console.log('Found Supabase access token in URL:', accessToken?.substring(0, 5) + '...');
-                    console.log('Verification type:', type);
+                    console.log('Verification type:', hashType);
                     
                     updateUI(
                         "Supabase verification detected", 
@@ -427,100 +502,34 @@
                             refresh_token: refreshToken
                         });
                         
-                        if (error) throw error;
+                        if (error) {
+                            console.error('Session error:', error);
+                            throw error;
+                        }
                         
                         // Get user info
                         const user = data.user;
-                        console.log('User authenticated:', user.id);
                         
-                        // Update user's verification status in profiles
-                        const { error: updateError } = await window.supabaseClient
-                            .from('profiles')
-                            .update({
-                                membership_status: 'active',
-                                email_verified: true,
-                                verification_token: null,
-                                verification_sent_at: null,
-                                status: 'active' // for backward compatibility
-                            })
-                            .eq('id', user.id);
-                        
-                        if (updateError) {
-                            console.warn('Error updating profile status:', updateError);
-                            
-                            // Try again with a more specific query to ensure we update the correct record
-                            const { data: profileData, error: profileError } = await window.supabaseClient
-                                .from('profiles')
-                                .select('*')
-                                .eq('id', user.id)
-                                .single();
-                            
-                            if (profileError) {
-                                console.error('Could not find profile for user:', user.id, profileError);
-                                // Create a profile if it doesn't exist
-                                const { error: insertError } = await window.supabaseClient
-                                    .from('profiles')
-                                    .insert({
-                                        id: user.id,
-                                        email: user.email,
-                                        membership_status: 'active',
-                                        email_verified: true,
-                                        status: 'active',
-                                        role: 'member',
-                                        created_at: new Date().toISOString(),
-                                        updated_at: new Date().toISOString()
-                                    });
-                                
-                                if (insertError) {
-                                    console.error('Failed to create profile:', insertError);
-                                } else {
-                                    console.log('Created new profile for user:', user.id);
-                                }
-                            } else {
-                                console.log('Found existing profile:', profileData);
-                                // Try update again with more fields
-                                const { error: retryError } = await window.supabaseClient
-                                    .from('profiles')
-                                    .update({
-                                        membership_status: 'active',
-                                        email_verified: true,
-                                        verification_token: null,
-                                        verification_sent_at: null,
-                                        status: 'active',
-                                        updated_at: new Date().toISOString()
-                                    })
-                                    .eq('id', user.id);
-                                
-                                if (retryError) {
-                                    console.error('Retry update failed:', retryError);
-                                } else {
-                                    console.log('Successfully updated profile on retry');
-                                }
-                            }
-                        } else {
-                            console.log('Successfully updated profile status to active');
+                        if (!user || !user.id) {
+                            throw new Error('User authentication failed. Could not retrieve user ID.');
                         }
-
-                        updateUI(
-                            "Email Verified Successfully!", 
-                            "Your email has been verified and your membership is now active.", 
-                            "fas fa-check-circle success-icon", 
-                            100
+                        
+                        console.log('User authenticated:', user.id);
+                        console.log('User metadata:', user.user_metadata);
+                        console.log('Email verified:', user.email_confirmed_at ? 'Yes' : 'No');
+                        
+                        // Update the user's profile
+                        const profileUpdated = await updateUserProfile(
+                            user.id, 
+                            user.email, 
+                            user.user_metadata?.full_name
                         );
                         
-                        // Add continue button
-                        const content = document.getElementById('verification-content');
-                        content.innerHTML += `<div class="verify-actions">
-                            <button onclick="window.location.href='dashboard.html?verified=true'" class="continue-btn">
-                                <i class="fas fa-arrow-right"></i> Continue to Dashboard
-                            </button>
-                        </div>`;
-                        
-                        // Clean up verification data
-                        localStorage.removeItem('verificationToken');
-                        localStorage.removeItem('tokenExpiry');
-                        localStorage.removeItem('pendingVerificationEmail');
-                        
+                        if (profileUpdated) {
+                            showSuccess();
+                        } else {
+                            throw new Error('Failed to update user profile');
+                        }
                     } catch (error) {
                         console.error('Error with Supabase verification:', error);
                         updateUI(
@@ -539,7 +548,7 @@
                         </div>`;
                     }
                 }
-                // Case 2: Handle our custom token (from FormSubmit email)
+                // CASE 3: Handle our custom token (from FormSubmit email)
                 else if (customToken && tokenFromStorage && customToken === tokenFromStorage) {
                     console.log('Found matching custom token in URL and storage');
                     updateUI(
@@ -577,104 +586,31 @@
                                 .from('profiles')
                                 .select('id, email')
                                 .eq('email', userEmail)
-                                .single();
+                                .maybeSingle();
                             
                             if (profilesError) {
                                 console.warn('Could not find profile by email:', profilesError);
                                 throw new Error('Could not find your profile. Please try logging in first.');
-                            } else {
+                            } else if (profiles) {
                                 userId = profiles.id;
+                                console.log('Found user ID by email lookup:', userId);
+                            } else {
+                                throw new Error('No profile found with this email. Please register first.');
                             }
                         }
                         
-                        // Update the profile
-                        const { data: existingProfile, error: fetchError } = await window.supabaseClient
-                            .from('profiles')
-                            .select('*')
-                            .eq('id', userId)
-                            .single();
-
-                        if (fetchError && fetchError.code !== 'PGRST116') { // Not found error
-                            console.warn('Error fetching existing profile:', fetchError);
+                        if (!userId) {
+                            throw new Error('Could not determine user ID. Please try logging in first.');
+                        }
+                        
+                        // Update the user's profile
+                        const profileUpdated = await updateUserProfile(userId, userEmail);
+                        
+                        if (profileUpdated) {
+                            showSuccess();
                         } else {
-                            console.log('Existing profile data:', existingProfile);
+                            throw new Error('Failed to update user profile');
                         }
-
-                        // Prepare update data - preserve existing fields
-                        const updateData = {
-                            membership_status: 'active',
-                            email_verified: true,
-                            verification_token: null,
-                            verification_sent_at: null,
-                            status: 'active', // for backward compatibility
-                            updated_at: new Date().toISOString()
-                        };
-
-                        // If we have an existing profile, make sure to keep all its other fields
-                        if (existingProfile) {
-                            // We're selectively updating only verification-related fields
-                            // All other profile data is preserved
-                            console.log('Updating profile with ID:', userId);
-                        } else {
-                            // No profile exists yet, we need to create one with minimal fields
-                            console.log('Creating new profile with ID:', userId);
-                            
-                            // Try to extract a name from the email address
-                            let fullName = 'Member';
-                            if (userEmail) {
-                                const emailName = userEmail.split('@')[0];
-                                const nameParts = emailName.split(/[.-_]/);
-                                const firstName = nameParts[0] ? nameParts[0].charAt(0).toUpperCase() + nameParts[0].slice(1) : '';
-                                const lastName = nameParts[1] ? nameParts[1].charAt(0).toUpperCase() + nameParts[1].slice(1) : '';
-                                if (firstName && lastName) {
-                                    fullName = `${firstName} ${lastName}`;
-                                }
-                            }
-                            
-                            // Add required fields for a new profile
-                            updateData.id = userId;
-                            updateData.email = userEmail;
-                            updateData.full_name = fullName;
-                            updateData.created_at = new Date().toISOString();
-                            updateData.role = 'member';
-                            
-                            // Generate a member ID if none exists
-                            if (!updateData.member_id) {
-                                const timestamp = Date.now().toString().slice(-6);
-                                updateData.member_id = `M${timestamp}`;
-                            }
-                        }
-
-                        const { error: updateError } = await window.supabaseClient
-                            .from('profiles')
-                            .upsert(updateData, { onConflict: 'id' })
-                            .select();
-                            
-                        if (updateError) {
-                            console.warn('Error updating profile:', updateError);
-                            throw new Error('Could not update your profile status. Please try logging in again.');
-                        }
-
-                        updateUI(
-                            "Email Verified Successfully!", 
-                            "Your email has been verified and your membership is now active.", 
-                            "fas fa-check-circle success-icon", 
-                            100
-                        );
-                        
-                        // Add continue button
-                        const content = document.getElementById('verification-content');
-                        content.innerHTML += `<div class="verify-actions">
-                            <button onclick="window.location.href='dashboard.html?verified=true'" class="continue-btn">
-                                <i class="fas fa-arrow-right"></i> Continue to Dashboard
-                            </button>
-                        </div>`;
-                        
-                        // Clean up verification data
-                        localStorage.removeItem('verificationToken');
-                        localStorage.removeItem('tokenExpiry');
-                        localStorage.removeItem('pendingVerificationEmail');
-
                     } catch (error) {
                         console.error('Error processing custom token:', error);
                         throw error;

@@ -811,105 +811,60 @@
                     email: document.getElementById('email').value.trim(),
                     password: document.getElementById('password').value,
                     options: {
-                        data: { // This data is for the auth.users table, not profiles directly initially
+                        data: {
                             full_name: fullNameValue,
-                            // We can't put all profile data here directly during signUp if it's for a separate 'profiles' table.
-                            // It's better to insert into 'profiles' table after successful signUp, using the user's ID.
                         },
-                        emailRedirectTo: 'https://www.blitztclub.com/verify-email.html?source=email'
+                        emailRedirectTo: 'https://www.blitztclub.com/verify-email.html'
                     }
                 });
 
-                console.log('Signup response:', data);
-                
-                if (error) throw error;
-                
-                if (!data.user) {
-                    throw new Error('User registration failed, user object not returned.');
-                }
-                
-                // Check if Supabase is configured to auto-confirm email
-                // If confirmationSentAt is null, email confirmation might not be enabled in Supabase
-                if (!data.user.confirmation_sent_at) {
-                    console.warn('Email confirmation might not be enabled in Supabase:', data.user);
-                }
-                
-                console.log('User created with id:', data.user.id);
-                console.log('Email confirmation sent at:', data.user.confirmation_sent_at || 'Not sent - check Supabase settings');
+                // 2. Immediately refresh session
+                await supabaseClient.auth.refreshSession();
 
-                // Generate a unique member ID
-                const memberId = await generateSequentialMemberId();
-                console.log('Using member ID for new profile:', memberId);
-                
-                // Explicit profile creation in 'profiles' table
-                let profileError;
-                let retryCount = 0;
-                const maxRetries = 3;
-                
-                // Try to create profile with retry logic for potential member_id collisions
-                while (retryCount < maxRetries) {
-                    const { error: insertError } = await supabaseClient
+                // 3. Check for confirmation email
+                if (!data.user?.confirmation_sent_at) {
+                    throw new Error('Email confirmation not initiated');
+                }
+
+                // 4. Only create profile if it does not already exist
+                const { data: existingProfile, error: fetchProfileError } = await supabaseClient
+                    .from('profiles')
+                    .select('id')
+                    .eq('id', data.user.id)
+                    .single();
+
+                if (fetchProfileError && fetchProfileError.code !== 'PGRST116') {
+                    // Only ignore 'No rows found' error
+                    throw fetchProfileError;
+                }
+
+                if (!existingProfile) {
+                    // Only upsert if profile does not exist
+                    const { error: profileError } = await supabaseClient
                         .from('profiles')
-                        .insert({
-                            id: data.user.id, // Link to the auth.users id
-                            email: data.user.email, // Store email in profiles table as well
-                            first_name: firstName,
-                            last_name: lastName,
-                            phone: phoneNumberRaw, // Store raw numbers or formatted, ensure consistency
-                            full_address: fullAddress, // Use the combined full address string
-                            car_models: selectedCarModels,
-                            date_of_birth: dateOfBirthValue,
-                            member_id: retryCount === 0 ? memberId : `BTC${Date.now().toString().slice(-4)}`,
-                            role: 'member', // Default role
-                            status: 'pending_verification', // Initial status
+                        .upsert({
+                            id: data.user.id,
+                            email: data.user.email,
+                            full_name: fullNameValue,
+                            status: 'pending_verification',
                             created_at: new Date().toISOString(),
                             updated_at: new Date().toISOString()
-                        });
-                    
-                    if (!insertError) {
-                        // Success - no error
-                        profileError = null;
-                        break;
-                    } else if (insertError.code === '23505' && insertError.message.includes('member_id')) {
-                        // This is a duplicate member_id constraint error
-                        console.warn(`Retry ${retryCount + 1}: Member ID collision detected:`, insertError.message);
-                        retryCount++;
-                        // Will retry with a timestamp-based member_id
-                    } else {
-                        // Some other error
-                        profileError = insertError;
-                        break;
+                        }, { onConflict: 'id' });
+                    if (profileError) {
+                        console.error('Profile upsert error:', profileError);
+                        throw profileError;
                     }
+                } else {
+                    console.log('Profile already exists for user:', data.user.id);
                 }
 
-                if (profileError) {
-                    // Handle potential duplicate user ID if trying to re-register before deleting auth user for cleanup
-                    if (profileError.code === '23505') { // Unique violation, likely profile exists
-                        console.warn('Profile possibly already exists or error linking:', profileError);
-                        // Proceed with email verification, but log this issue
-                    } else {
-                        // If profile creation fails, it's a significant issue.
-                        // Ideally, we might want to delete the auth user created in the previous step to allow re-registration.
-                        // For now, we alert and log.
-                        console.error('Error creating profile:', profileError);
-                        alert(`Registration succeeded but profile creation failed: ${profileError.message}. Please contact support.`);
-                        // Don't redirect if profile fails critically, allow user to see error or retry if applicable.
-                        registerButton.disabled = false;
-                        registerButton.childNodes[0].nodeValue = ' Create Account ';
-                        loadingSpinner.classList.add('d-none');
-                        return; // Stop execution here
-                    }
-                }
-                
-                // Add email to localStorage before redirect
+                // 5. Redirect only after both operations succeed
                 localStorage.setItem('pendingVerificationEmail', document.getElementById('email').value.trim());
-                
-                // Redirect to verification-sent page with proper instructions
                 window.location.href = `verification-sent.html?email=${encodeURIComponent(document.getElementById('email').value.trim())}`;
 
             } catch (error) {
-                console.error('Registration error:', error);
-                alert(`Error: ${error.message}`);
+                console.error('Registration failed:', error);
+                alert(`Registration error: ${error.message}`);
             } finally {
                 if (!registerButton.disabled) { // Ensure button is re-enabled only if not already done in error block
                     registerButton.disabled = false;

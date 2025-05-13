@@ -26,6 +26,31 @@
             min-height: 100vh;
         }
         
+        /* Ensure the logo displays correctly */
+        nav .logo img {
+            width: 40px !important;
+            height: 40px !important;
+            border-radius: 8px !important;
+            margin-right: 12px !important;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2)) !important;
+            object-fit: contain !important;
+            display: block !important;
+            max-width: 40px !important;
+            max-height: 40px !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+        
+        @media (max-width: 768px) {
+            nav .logo img {
+                width: 36px !important;
+                height: 36px !important;
+                margin-right: 8px !important;
+                max-width: 36px !important;
+                max-height: 36px !important;
+            }
+        }
+        
         @media (max-width: 768px) {            
             .event-header {
                 flex-direction: column;
@@ -557,14 +582,14 @@
     <nav>
         <div class="logo">
             <a href="index.html">
-                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo" loading="lazy" width="50" height="50">
+                <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" loading="lazy" width="50" height="50" onerror="this.onerror=null; this.src='https://i.ibb.co/fkrdXZK/Logo4-white.png';">
                 <span>BLITZ T CLUB</span>
             </a>
         </div>
-        <div class="menu-toggle">
+        <button class="menu-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="nav-links">
             <i class="fas fa-bars"></i>
-        </div>
-        <ul class="nav-links">
+        </button>
+        <ul class="nav-links" id="nav-links">
             <!-- Navigation items will be dynamically inserted by navigation.js -->
         </ul>
     </nav>
@@ -588,7 +613,7 @@
                             <i class="fas fa-calendar-day meta-icon"></i>
                             <div class="meta-content">
                                 <strong>Event Date</strong>
-                                <span>May 30, 2025 @ 8:00 PM EST</span>
+                                <span>May 30, 2025 @ 7:30 PM EST</span>
                             </div>
                         </div>
                         

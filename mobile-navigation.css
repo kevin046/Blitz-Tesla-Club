@@ -1,81 +1,280 @@
-/* Mobile Navigation Styles */
+/* Modern Navigation Styles - Desktop and Mobile */
+
+/* ===== COMMON STYLES ===== */
+:root {
+    --nav-bg: #171a20;
+    --nav-text: #ffffff;
+    --nav-highlight: #00e676;
+    --nav-secondary: #2196f3;
+    --nav-hover-bg: rgba(255, 255, 255, 0.08);
+    --nav-active-bg: rgba(0, 230, 118, 0.1);
+    --nav-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --nav-transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    --nav-border-radius: 8px;
+    --nav-backdrop-blur: 10px;
+}
+
+/* ===== DESKTOP NAVIGATION ===== */
+nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 70px;
+    background-color: var(--nav-bg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    z-index: 1000;
+    box-shadow: var(--nav-shadow);
+    transition: var(--nav-transition);
+}
+
+/* Logo styling */
+.logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--nav-text);
+}
+
+.logo img {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    margin-right: 12px;
+    transition: var(--nav-transition);
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.logo span {
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: 0.5px;
+    transition: var(--nav-transition);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Navigation links - desktop */
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.nav-links li {
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links a {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    color: var(--nav-text);
+    text-decoration: none;
+    font-weight: 500;
+    border-radius: var(--nav-border-radius);
+    transition: var(--nav-transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-links a::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: var(--nav-highlight);
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+    opacity: 0;
+}
+
+.nav-links a i {
+    margin-right: 8px;
+    font-size: 16px;
+    transition: var(--nav-transition);
+}
+
+.nav-links a.icon-only {
+    padding: 8px;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.nav-links a.icon-only i {
+    margin-right: 0;
+    font-size: 18px;
+}
+
+/* Hover and active states */
+.nav-links a:hover {
+    background-color: var(--nav-hover-bg);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.nav-links a:hover::before {
+    width: 60%;
+    opacity: 1;
+}
+
+.nav-links a.active {
+    background-color: var(--nav-active-bg);
+    color: var(--nav-highlight);
+    font-weight: 600;
+}
+
+.nav-links a.active::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 2px;
+    background: var(--nav-highlight);
+    border-radius: 1px;
+    box-shadow: 0 0 8px rgba(0, 230, 118, 0.5);
+}
+
+/* Special styling for logout button */
+.nav-links a#logoutBtn {
+    color: #ff5252;
+}
+
+.nav-links a#logoutBtn:hover {
+    background-color: rgba(255, 82, 82, 0.1);
+}
+
+/* Menu toggle button - hidden on desktop */
 .menu-toggle {
     display: none;
     cursor: pointer;
     z-index: 1000;
-    padding: 10px;
     background: transparent;
     border: none;
+    padding: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    transition: var(--nav-transition);
+    position: relative;
+}
+
+.menu-toggle:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 230, 118, 0.5);
 }
 
 .menu-toggle i {
-    font-size: 24px;
-    color: #fff;
-    transition: all 0.3s ease;
+    font-size: 22px;
+    color: var(--nav-text);
+    transition: all 0.4s cubic-bezier(0.68, -0.6, 0.32, 1.6);
 }
 
+/* ===== MOBILE NAVIGATION ===== */
 @media (max-width: 768px) {
-    .menu-toggle {
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
+    /* Adjust nav padding on mobile */
+    nav {
+        padding: 0 16px;
     }
     
+    /* Smaller logo on mobile */
+    .logo img {
+        width: 36px;
+        height: 36px;
+        margin-right: 8px;
+    }
+    
+    .logo span {
+        font-size: 16px;
+    }
+    
+    /* Show menu toggle on mobile */
+    .menu-toggle {
+        display: flex;
+        background-color: rgba(255, 255, 255, 0.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .menu-toggle:active {
+        transform: scale(0.95);
+    }
+    
+    .menu-toggle.nav-open {
+        position: fixed;
+        top: 15px;
+        right: 16px;
+        background-color: rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+    }
+    
+    .menu-toggle.nav-open i {
+        transform: rotate(180deg);
+        color: var(--nav-highlight);
+    }
+    
+    .menu-toggle.nav-open i.fa-bars::before {
+        content: "\f00d"; /* fa-times (x) icon */
+    }
+    
+    /* Mobile nav links */
     .nav-links {
         position: fixed;
         top: 0;
-        right: -100%;
-        width: 80%;
-        max-width: 300px;
+        left: 0;
+        width: 100%;
         height: 100vh;
-        background-color: #171a20;
+        background: linear-gradient(135deg, rgba(23, 26, 32, 0.97), rgba(23, 26, 32, 0.99));
+        backdrop-filter: blur(var(--nav-backdrop-blur));
+        -webkit-backdrop-filter: blur(var(--nav-backdrop-blur));
         flex-direction: column;
-        padding-top: 80px;
-        transition: right 0.3s ease;
+        justify-content: center;
+        align-items: center;
+        padding: 60px 0;
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         z-index: 100;
-        box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
+        opacity: 0;
+        visibility: hidden;
+        display: flex;
+        overflow-y: auto;
     }
     
     .nav-links.active {
-        right: 0;
+        opacity: 1;
+        visibility: visible;
     }
     
     .nav-links li {
         width: 100%;
-        margin: 0;
-    }
-    
-    .nav-links a {
-        padding: 15px;
-        width: 100%;
-        display: flex;
-        align-items: center;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .nav-links a i {
-        margin-right: 10px;
-        width: 20px;
-        text-align: center;
-    }
-    
-    body.nav-open {
-        overflow: hidden !important;
-        position: fixed !important;
-        width: 100% !important;
-        height: 100% !important;
-    }
-    
-    /* Animation for menu items */
-    .nav-links li {
+        max-width: 300px;
+        margin: 6px 0;
         opacity: 0;
-        transform: translateX(20px);
-        transition: opacity 0.3s ease, transform 0.3s ease;
+        transform: translateY(20px);
+        transition: opacity 0.5s ease, transform 0.5s ease;
     }
     
     .nav-links.active li {
         opacity: 1;
-        transform: translateX(0);
+        transform: translateY(0);
     }
     
     /* Staggered animation delay for menu items */
@@ -87,7 +286,80 @@
     .nav-links li:nth-child(6) { transition-delay: 0.35s; }
     .nav-links li:nth-child(7) { transition-delay: 0.4s; }
     .nav-links li:nth-child(8) { transition-delay: 0.45s; }
+    
+    .nav-links a {
+        padding: 14px 20px;
+        margin: 4px auto;
+        width: 85%;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        letter-spacing: 0.5px;
+    }
+    
+    .nav-links a i {
+        margin-right: 16px;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 12px;
+    }
+    
+    .nav-links a.active {
+        background: linear-gradient(90deg, rgba(0, 230, 118, 0.1), rgba(33, 150, 243, 0.05));
+        border-left: 3px solid var(--nav-highlight);
+    }
+    
+    .nav-links a.active::after {
+        display: none;
+    }
+    
+    /* Special style for icon-only items in mobile view */
+    .nav-links a.icon-only {
+        justify-content: flex-start;
+        padding: 14px 20px;
+    }
+    
+    .nav-links a.icon-only i {
+        margin-right: 16px;
+        background: rgba(0, 230, 118, 0.15);
+    }
+    
+    /* Brand logo in mobile menu */
+    .nav-brand {
+        position: absolute;
+        top: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .nav-brand img {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Prevent body scroll when menu is open */
+    body.nav-open {
+        overflow: hidden !important;
+        position: fixed !important;
+        width: 100% !important;
+        height: 100% !important;
+    }
 }
+
+/* ===== PLATFORM-SPECIFIC FIXES ===== */
 
 /* Fix for iOS devices */
 @supports (-webkit-touch-callout: none) {
@@ -98,5 +370,106 @@
         height: 100% !important;
         top: 0 !important;
         left: 0 !important;
+        overscroll-behavior: none;
+    }
+    
+    /* Improve scrolling on iOS */
+    .nav-links {
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Fix backdrop-filter on iOS */
+    @supports (-webkit-backdrop-filter: none) {
+        .nav-links {
+            -webkit-backdrop-filter: blur(var(--nav-backdrop-blur));
+        }
+        
+        .menu-toggle.nav-open {
+            -webkit-backdrop-filter: blur(5px);
+        }
+    }
+    
+    /* Fix for iOS Safari bottom bar */
+    @media screen and (orientation: portrait) {
+        .nav-links {
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+        }
+    }
+    
+    /* Fix for iOS notch */
+    @media screen and (orientation: landscape) {
+        .nav-links {
+            padding-left: env(safe-area-inset-left, 0px);
+            padding-right: env(safe-area-inset-right, 0px);
+        }
+    }
+}
+
+/* Fix for Firefox */
+@-moz-document url-prefix() {
+    .nav-links {
+        background: rgba(23, 26, 32, 0.98); /* Fallback for Firefox which doesn't support backdrop-filter */
+    }
+    
+    .nav-links a:focus {
+        outline: 2px solid rgba(0, 230, 118, 0.5);
+        outline-offset: 2px;
+    }
+}
+
+/* Fix for Safari */
+@media not all and (min-resolution:.001dpcm) {
+    @supports (-webkit-appearance:none) {
+        .nav-links {
+            -webkit-backdrop-filter: blur(var(--nav-backdrop-blur));
+        }
+        
+        /* Fix for Safari text rendering */
+        .nav-links a {
+            -webkit-font-smoothing: antialiased;
+        }
+    }
+}
+
+/* Fix for touch devices */
+@media (hover: none) {
+    .nav-links a:hover {
+        transform: none;
+    }
+    
+    .nav-links a:active {
+        background-color: var(--nav-hover-bg);
+        transform: scale(0.98);
+    }
+}
+
+/* Fix for high-density screens */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    nav {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    }
+    
+    .logo img {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+}
+
+/* Fix for Edge/Chrome */
+@supports (-ms-ime-align:auto) or (-webkit-appearance:none) {
+    .nav-links {
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+    }
+}
+
+/* Fix for Android Chrome */
+@media screen and (max-width: 768px) {
+    .nav-links a {
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    .menu-toggle {
+        -webkit-tap-highlight-color: transparent;
     }
 } 

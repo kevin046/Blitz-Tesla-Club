@@ -58,18 +58,28 @@ function setupMobileMenu() {
     const newToggle = menuToggle.cloneNode(true);
     menuToggle.parentNode.replaceChild(newToggle, menuToggle);
     
+    // Add brand logo to the mobile menu
+    if (!navLinks.querySelector('.nav-brand')) {
+        const brandLogo = document.createElement('div');
+        brandLogo.className = 'nav-brand';
+        brandLogo.innerHTML = `
+            <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo">
+        `;
+        navLinks.prepend(brandLogo);
+    }
+    
     // Function to toggle menu state
     const toggleMenu = () => {
         console.log('Toggling mobile menu');
         navLinks.classList.toggle('active');
         
-        const icon = newToggle.querySelector('i');
-        if (icon) {
-            icon.classList.toggle('fa-bars');
-            icon.classList.toggle('fa-times');
-        }
-        
+        // Toggle nav-open class on toggle button and body
         body.classList.toggle('nav-open');
+        newToggle.classList.toggle('nav-open');
+        
+        // Add aria attributes for accessibility
+        const expanded = navLinks.classList.contains('active');
+        newToggle.setAttribute('aria-expanded', expanded);
         
         if (navLinks.classList.contains('active')) {
             // Prevent body scrolling when menu is open
@@ -77,12 +87,21 @@ function setupMobileMenu() {
             body.style.position = 'fixed';
             body.style.width = '100%';
             body.style.height = '100%';
+            
+            // Focus trap for accessibility
+            setTimeout(() => {
+                const firstFocusableElement = navLinks.querySelector('a');
+                if (firstFocusableElement) firstFocusableElement.focus();
+            }, 100);
         } else {
             // Restore scrolling
             body.style.overflow = '';
             body.style.position = '';
             body.style.width = '';
             body.style.height = '';
+            
+            // Return focus to toggle button
+            newToggle.focus();
         }
     };
     
@@ -91,13 +110,12 @@ function setupMobileMenu() {
         console.log('Closing mobile menu');
         navLinks.classList.remove('active');
         
-        const icon = newToggle.querySelector('i');
-        if (icon) {
-            icon.classList.remove('fa-times');
-            icon.classList.add('fa-bars');
-        }
-        
+        // Remove nav-open class
         body.classList.remove('nav-open');
+        newToggle.classList.remove('nav-open');
+        newToggle.setAttribute('aria-expanded', 'false');
+        
+        // Restore scrolling
         body.style.overflow = '';
         body.style.position = '';
         body.style.width = '';
@@ -131,6 +149,21 @@ function setupMobileMenu() {
             closeMenu();
         }
     });
+    
+    // Handle window resize - close menu on larger screens
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768 && navLinks.classList.contains('active')) {
+            closeMenu();
+        }
+    });
+    
+    // Set initial ARIA state
+    newToggle.setAttribute('aria-label', 'Toggle navigation menu');
+    newToggle.setAttribute('aria-expanded', 'false');
+    newToggle.setAttribute('aria-controls', 'nav-links');
+    
+    // Add ID to nav-links for ARIA controls
+    if (!navLinks.id) navLinks.id = 'nav-links';
     
     console.log('Mobile menu setup complete');
     return true;
@@ -186,7 +219,7 @@ async function initializeNavigation() {
         // Define navigation items based on auth status
         const navigationItems = session ? [
             // Navigation items for logged-in users
-            { href: 'index.html', icon: 'fas fa-home', text: 'Home' },
+            { href: 'index.html', icon: 'fas fa-home', text: '', iconOnly: true },
             { href: 'dashboard.html', icon: 'fas fa-tachometer-alt', text: 'Dashboard' },
             { href: 'events.html', icon: 'fas fa-calendar', text: 'Events' },
             { href: 'gallery.html', icon: 'fas fa-images', text: 'Gallery' },
@@ -196,7 +229,7 @@ async function initializeNavigation() {
             { href: '#', icon: 'fas fa-sign-out-alt', text: 'Logout', id: 'logoutBtn' }
         ] : [
             // Navigation items for non-logged-in users
-            { href: 'index.html', icon: 'fas fa-home', text: 'Home' },
+            { href: 'index.html', icon: 'fas fa-home', text: '', iconOnly: true },
             { href: 'events.html', icon: 'fas fa-calendar', text: 'Events' },
             { href: 'gallery.html', icon: 'fas fa-images', text: 'Gallery' },
             { href: 'news.html', icon: 'fas fa-newspaper', text: 'News' },
@@ -216,13 +249,27 @@ async function initializeNavigation() {
             
             a.href = item.href;
             if (item.id) a.id = item.id;
-            if (currentPath === item.href) a.classList.add('active');
+            
+            // Enhanced active state detection
+            if (currentPath === item.href || 
+                (currentPath === '' && item.href === 'index.html') ||
+                (item.href !== 'index.html' && currentPath.startsWith(item.href.split('.')[0]))) {
+                a.classList.add('active');
+            }
             
             // Add iOS-friendly touch target size
             a.style.minHeight = '44px';
-            a.style.padding = '12px';
+            a.style.padding = item.iconOnly ? '8px' : '8px 16px';
             
-            a.innerHTML = `<i class="${item.icon}"></i>${item.text}`;
+            // Add icon-only class if specified
+            if (item.iconOnly) {
+                a.classList.add('icon-only');
+                a.setAttribute('aria-label', 'Home');
+                a.innerHTML = `<i class="${item.icon}"></i>`;
+            } else {
+                a.innerHTML = `<i class="${item.icon}"></i>${item.text}`;
+            }
+            
             li.appendChild(a);
             navLinks.appendChild(li);
         });
@@ -248,7 +295,8 @@ async function initializeNavigation() {
         console.log('Navigation initialization complete');
     } catch (error) {
         console.error('Navigation initialization error:', error);
-        throw error; // Rethrow to allow caller to try alternative setup
+        // If navigation initialization fails, still set up the mobile menu
+        setupMobileMenu();
     }
 }
 

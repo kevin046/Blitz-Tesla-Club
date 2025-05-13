@@ -40,12 +40,13 @@ document.addEventListener('DOMContentLoaded', () => {
 const initMobileMenu = () => {
     const menuToggle = document.querySelector('.menu-toggle');
     const navLinks = document.querySelector('.nav-links');
-    console.log('initMobileMenu: menuToggle found?', menuToggle); // Debug log
-    console.log('initMobileMenu: navLinks found?', navLinks);   // Debug log
+    console.log('initMobileMenu: menuToggle found?', !!menuToggle); // Debug log
+    console.log('initMobileMenu: navLinks found?', !!navLinks);   // Debug log
     
-    if (!menuToggle || !navLinks) 
+    if (!menuToggle || !navLinks) {
         console.warn('Mobile menu elements (.menu-toggle or .nav-links) not found. Menu will not initialize.'); // More specific warning
         return;
+    }
 
     // Toggle mobile menu
     const toggleMenu = () => {
@@ -244,7 +245,14 @@ const mobileMenu = {
 
     toggleMenu() {
         this.navLinks.classList.toggle('active');
-        this.menuToggle.querySelector('i').classList.toggle('fa-times');
+        
+        // Handle both icon and span-based toggles
+        const iconElement = this.menuToggle.querySelector('i');
+        if (iconElement) {
+            iconElement.classList.toggle('fa-times');
+            iconElement.classList.toggle('fa-bars');
+        }
+        
         this.body.classList.toggle('nav-open');
         
         if (this.navLinks.classList.contains('active')) {
@@ -256,7 +264,14 @@ const mobileMenu = {
 
     closeMenu() {
         this.navLinks.classList.remove('active');
-        this.menuToggle.querySelector('i').classList.remove('fa-times');
+        
+        // Handle both icon and span-based toggles
+        const iconElement = this.menuToggle.querySelector('i');
+        if (iconElement) {
+            iconElement.classList.remove('fa-times');
+            iconElement.classList.add('fa-bars');
+        }
+        
         this.body.classList.remove('nav-open');
         this.unlockScroll();
     },

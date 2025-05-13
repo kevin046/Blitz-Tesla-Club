@@ -13,6 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" 
            crossorigin="anonymous" 
            onerror="console.error('Failed to load Supabase library'); alert('Failed to load required resources. Please check your internet connection and refresh the page.');"></script>
+    <script src="navigation.js" defer></script>
     <style>
         /* Utility classes */
         .d-none {
@@ -253,11 +254,9 @@
                 <span>BLITZ T CLUB</span>
             </a>
         </div>
-        <button class="menu-toggle" aria-label="Toggle navigation menu">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
+        <div class="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </div>
         <ul class="nav-links">
             <li><a href="index.html"><i class="fas fa-home"></i>Home</a></li>
             <li><a href="events.html"><i class="fas fa-calendar"></i>Events</a></li>

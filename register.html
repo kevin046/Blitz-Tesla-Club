@@ -410,7 +410,7 @@
                                placeholder="City (e.g., Toronto)">
                         
                         <input type="text" id="province" name="province" required placeholder="Province">
-                        
+
                         <input type="text" id="postalCode" name="postalCode" required
                                placeholder="Postal Code (e.g., K1A 0B1)"
                                pattern="^[A-Za-z]\d[A-Za-z] \d[A-Za-z]\d$"
@@ -729,12 +729,12 @@
                 alert('Please select at least one Tesla model you own.');
                 return false;
             }
-
+            
             if (!street) { alert('Street address is required.'); return false; }
             
             if (!city) { 
                 alert('City is required.'); 
-                return false; 
+                return false;
             }
             // Enhanced JavaScript validation for City
             if (!/^[a-zA-Z\s-]+$/.test(city)) {
@@ -743,7 +743,7 @@
             }
 
             if (!province) { alert('Province is required.'); return false; } // Validating text input
-            
+
             if (!/^[A-Za-z]\d[A-Za-z] \d[A-Za-z]\d$/.test(postalCode)) {
                 alert('Please enter a valid Canadian postal code (e.g., A1A 1A1)');
                 return false;
@@ -804,7 +804,7 @@
                 const fullAddress = `${streetValue}, ${cityValue}, ${provinceValue}, ${postalCodeValue}`;
 
                 // Registration data for Supabase auth
-                const { data, error } = await supabaseClient.auth.signUp({
+                    const { data, error } = await supabaseClient.auth.signUp({
                     email: document.getElementById('email').value.trim(),
                     password: document.getElementById('password').value,
                     options: {
@@ -842,10 +842,10 @@
                     console.log('Generated member ID for new user:', memberId);
                     
                     // Only upsert if profile does not exist
-                    const { error: profileError } = await supabaseClient
-                        .from('profiles')
+                            const { error: profileError } = await supabaseClient
+                                .from('profiles')
                         .upsert({
-                            id: data.user.id,
+                                        id: data.user.id,
                             email: data.user.email,
                             username: username,
                             full_name: fullNameValue,
@@ -921,7 +921,7 @@
                 localStorage.setItem('pendingVerificationEmail', document.getElementById('email').value.trim());
                 window.location.href = `verification-sent.html?email=${encodeURIComponent(document.getElementById('email').value.trim())}`;
 
-            } catch (error) {
+                } catch (error) {
                 console.error('Registration failed:', error);
                 alert(`Registration error: ${error.message}`);
             } finally {

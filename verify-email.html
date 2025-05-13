@@ -226,9 +226,9 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            // Initialize Supabase client
+                // Initialize Supabase client
             window.supabaseClient = supabase.createClient(
-                'https://qhkcrrphsjpytdfqfamq.supabase.co',
+                    'https://qhkcrrphsjpytdfqfamq.supabase.co',
                 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI',
                 {
                     auth: {
@@ -523,7 +523,7 @@
                     try {
                         // Set session with the token
                         const { data, error } = await window.supabaseClient.auth.setSession({
-                            access_token: accessToken,
+                        access_token: accessToken,
                             refresh_token: refreshToken
                         });
                         
@@ -636,7 +636,7 @@
                         } else {
                             throw new Error('Failed to update user profile');
                         }
-                    } catch (error) {
+                } catch (error) {
                         console.error('Error processing custom token:', error);
                         throw error;
                     }
@@ -649,7 +649,7 @@
                     } else if (!customToken && tokenFromStorage) {
                         console.log('Token in storage but not in URL');
                         throw new Error('No verification token found in the URL. Please use the exact link sent to your email.');
-                    } else {
+            } else {
                         console.log('No token found anywhere');
                         throw new Error('No verification token found. Please request a new verification email.');
                     }

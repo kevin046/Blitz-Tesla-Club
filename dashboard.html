@@ -1100,6 +1100,105 @@
             font-size: 0.85rem;
             color: rgba(255, 255, 255, 0.8);
         }
+
+        /* Dashboard Page Specific Styles */
+        /* Removing this style that changes the background color
+        body.dashboard-page {
+            background-color: #121212;
+            font-family: 'Montserrat', sans-serif;
+        }
+        */
+        
+        /* Full Profile Update Section Styles */
+        .full-profile-update-section {
+            background: linear-gradient(145deg, rgba(76, 175, 80, 0.05) 0%, rgba(33, 150, 243, 0.05) 100%);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+        
+        .full-profile-update-section:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+        
+        .profile-update-description {
+            color: #e0e0e0;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .profile-update-benefits {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .benefit-item i {
+            color: #4CAF50;
+            font-size: 16px;
+        }
+        
+        .benefit-item span {
+            color: #e0e0e0;
+            font-size: 0.9rem;
+        }
+        
+        .profile-update-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: linear-gradient(90deg, #4CAF50 0%, #2196F3 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            border: none;
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 350px;
+            margin: 0 auto;
+            text-decoration: none;
+            text-transform: none;
+            letter-spacing: 0.5px;
+        }
+        
+        .profile-update-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(90deg, #43A047 0%, #1E88E5 100%);
+        }
+        
+        .profile-update-btn i:last-child {
+            transition: transform 0.3s ease;
+        }
+        
+        .profile-update-btn:hover i:last-child {
+            transform: translateX(4px);
+        }
+        
+        @media (max-width: 768px) {
+            .full-profile-update-section {
+                padding: 20px;
+            }
+            
+            .profile-update-btn {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+        }
     </style>
     <!-- Add this in the head section -->
     <script>
@@ -2859,6 +2958,39 @@
                                 <button type="submit" class="btn primary-btn">Save Changes</button>
                             </div>
                         </form>
+                    </div>
+                </div>
+
+                <!-- Full Profile Update Section -->
+                <div class="settings-section">
+                    <div class="section-header">
+                        <h3><i class="fas fa-user-edit"></i> Full Profile Management</h3>
+                    </div>
+                    <div class="full-profile-update-section">
+                        <div class="profile-update-content">
+                            <p class="profile-update-description">
+                                Need to update additional profile information? Use our comprehensive profile editor to manage all your information in one place.
+                            </p>
+                            <div class="profile-update-benefits">
+                                <div class="benefit-item">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>Update your Tesla model information</span>
+                                </div>
+                                <div class="benefit-item">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>Manage personal details and preferences</span>
+                                </div>
+                                <div class="benefit-item">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>Ensure your profile is complete for event registration</span>
+                                </div>
+                            </div>
+                            <a href="profile-completion.html" class="btn primary-btn profile-update-btn">
+                                <i class="fas fa-user-cog"></i>
+                                <span>Complete Profile Management</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
 

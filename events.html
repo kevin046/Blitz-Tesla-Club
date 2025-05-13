@@ -916,6 +916,38 @@
                     return;
                 }
 
+                // Update the user's events_attended count in their profile
+                try {
+                    // First, get the current profile data
+                    const { data: profileData, error: profileError } = await supabaseClient
+                        .from('profiles')
+                        .select('events_attended')
+                        .eq('id', user.id)
+                        .single();
+                    
+                    if (profileError) {
+                        console.error('Error fetching profile for events_attended update:', profileError);
+                    } else {
+                        // Get current count or default to 0 if null
+                        const currentCount = profileData?.events_attended || 0;
+                        
+                        // Update the profile with incremented count
+                        const { error: updateError } = await supabaseClient
+                            .from('profiles')
+                            .update({ events_attended: currentCount + 1 })
+                            .eq('id', user.id);
+                        
+                        if (updateError) {
+                            console.error('Error updating events_attended count:', updateError);
+                        } else {
+                            console.log('Successfully updated events_attended count to', currentCount + 1);
+                        }
+                    }
+                } catch (countError) {
+                    console.error('Error handling events_attended count update:', countError);
+                    // Continue with registration process even if count update fails
+                }
+
                 document.getElementById('registrationModal').style.display = 'none';
                 await updateRegistrationCount();
                 alert(`Successfully registered your ${model}!`);
@@ -992,6 +1024,41 @@
                 if (DBERROR) {
                     console.error('Cancellation error details:', DBERROR.error);
                     throw new Error(DBERROR.error.message || 'Failed to cancel one or more registrations');
+                }
+
+                // Update the user's events_attended count in their profile when they cancel
+                try {
+                    // First, get the current profile data
+                    const { data: profileData, error: profileError } = await supabaseClient
+                        .from('profiles')
+                        .select('events_attended')
+                        .eq('id', user.id)
+                        .single();
+                    
+                    if (profileError) {
+                        console.error('Error fetching profile for events_attended update:', profileError);
+                    } else {
+                        // Get current count or default to 0 if null
+                        const currentCount = profileData?.events_attended || 0;
+                        
+                        // Only decrement if count is greater than 0
+                        if (currentCount > 0) {
+                            // Update the profile with decremented count
+                            const { error: updateError } = await supabaseClient
+                                .from('profiles')
+                                .update({ events_attended: currentCount - activeRegistrations.length })
+                                .eq('id', user.id);
+                            
+                            if (updateError) {
+                                console.error('Error updating events_attended count:', updateError);
+                            } else {
+                                console.log('Successfully decremented events_attended count by', activeRegistrations.length);
+                            }
+                        }
+                    }
+                } catch (countError) {
+                    console.error('Error handling events_attended count update:', countError);
+                    // Continue with cancellation process even if count update fails
                 }
 
                 document.getElementById('cancelModal').style.display = 'none';

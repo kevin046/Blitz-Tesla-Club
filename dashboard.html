@@ -3501,10 +3501,33 @@
                 // Continue with empty registrations array
             }
 
-            // Safely process the registrations (guaranteed to be an array now)
-            const attended = registrations.filter(r => r?.events?.status === 'completed').length;
+            // Calculate upcoming events count
             const upcoming = registrations.filter(r => r?.events?.status === 'upcoming').length;
             
+            // Get the events_attended count directly from the user's profile
+            let attended = 0;
+            try {
+                // Fetch the latest profile data to get the most up-to-date events_attended count
+                const { data: profileData, error: profileError } = await window.supabaseClient
+                    .from('profiles')
+                    .select('events_attended')
+                    .eq('id', window.userProfile.id)
+                    .single();
+                    
+                if (profileError) {
+                    console.error('Error fetching profile for events_attended count:', profileError);
+                } else {
+                    // Use the events_attended count from the profile, or default to 0 if not available
+                    attended = profileData?.events_attended || 0;
+                    
+                    // Update the userProfile object with the latest events_attended count
+                    window.userProfile.events_attended = attended;
+                }
+            } catch (profileError) {
+                console.error('Error handling profile fetch for events_attended:', profileError);
+            }
+            
+            // Update the UI elements
             safeTextUpdate('eventsAttended', attended);
             safeTextUpdate('upcomingEvents', upcoming);
         } catch (error) {
@@ -3570,12 +3593,16 @@
                 street: profile.street || 'Not provided',
                 city: profile.city || 'Not provided',
                 province: profile.province || 'Not provided',
-                postal_code: profile.postal_code || 'Not provided'
+                postal_code: profile.postal_code || 'Not provided',
+                events_attended: profile.events_attended || 0 // Initialize events_attended
             };
 
             initializeProfileSection();
             checkProfileCompletion();
             updateAddressDisplay();
+            
+            // Update event stats after profile is loaded
+            updateEventStats();
         } catch (error) {
             handleDashboardError(error);
         }
@@ -3757,6 +3784,37 @@
             }
             
             console.log('Events table exists and is accessible.');
+
+            // Check if events_attended column exists in profiles table
+            try {
+                // Try to update a non-existent user with events_attended to see if the column exists
+                const { error: columnError } = await window.supabaseClient
+                    .from('profiles')
+                    .update({ events_attended: 0 })
+                    .eq('id', '00000000-0000-0000-0000-000000000000');  // Using a dummy UUID that won't exist
+                
+                // If there's no error about the column not existing, it means the column exists
+                if (columnError && !columnError.message.includes('column "events_attended" does not exist')) {
+                    console.log('events_attended column exists in profiles table');
+                } else if (columnError && columnError.message.includes('column "events_attended" does not exist')) {
+                    console.warn('events_attended column does not exist in profiles table');
+                    
+                    // For admin users, show an alert about the missing column
+                    const { data: { user } } = await window.supabaseClient.auth.getUser();
+                    const { data: profile } = await window.supabaseClient
+                        .from('profiles')
+                        .select('email')
+                        .eq('id', user.id)
+                        .single();
+                        
+                    if (profile?.email && (profile.email.includes('admin') || profile.email === 'linkevin046@gmail.com')) {
+                        alert('Admin notice: The events_attended column is missing in the profiles table. Please run the migration SQL to add it.');
+                    }
+                }
+            } catch (columnCheckError) {
+                console.error('Error checking events_attended column:', columnCheckError);
+            }
+            
             return true;
         } catch (error) {
             console.error('Error checking database structure:', error);

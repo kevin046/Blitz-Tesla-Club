@@ -74,15 +74,64 @@
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Montserrat', sans-serif;
             background-color: #171a20;
             color: #fff;
-            min-height: 100vh;
+            font-family: 'Montserrat', sans-serif;
             display: flex;
             flex-direction: column;
+            min-height: 100vh;
             overflow-x: hidden;
             transition: all 0.3s ease;
         }
+        
+        /* Profile Completion Alert Styles */
+        .completion-alert {
+            background-color: #fff3e0;
+            border-left: 4px solid #ff9800;
+            margin-bottom: 30px;
+        }
+        
+        .completion-alert .card-header h2 {
+            color: #e65100;
+        }
+        
+        .completion-alert .card-content p {
+            color: #424242;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+        
+        .missing-info-list {
+            margin: 15px 0;
+        }
+        
+        .missing-info-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            background: rgba(255, 152, 0, 0.1);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .missing-info-item i {
+            color: #ff9800;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        
+        .completion-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .completion-actions .btn {
+            padding: 12px 25px;
+            font-weight: 500;
+        }
+        
+        /* Dashboard Content Styles */
         
         /* Special handling for mobile menu open state to prevent split screen */
         body.nav-open {
@@ -1024,6 +1073,32 @@
             border-radius: 4px;
             color: #171a20;
         }
+
+        /* Profile Completion Progress Bar */
+        .profile-completion-status {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .progress-container {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, #ff9800, #00e676);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+        
+        .profile-completion-status span {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
     </style>
     <!-- Add this in the head section -->
     <script>
@@ -1203,6 +1278,24 @@
 
         <!-- Dashboard Grid -->
         <div class="dashboard-grid">
+            <!-- Profile Completion Alert -->
+            <div id="profileCompletionAlert" class="dashboard-card completion-alert" style="display: none;">
+                <div class="card-header">
+                    <h2><i class="fas fa-exclamation-circle"></i> Complete Your Profile</h2>
+                </div>
+                <div class="card-content">
+                    <p>Your profile is incomplete. Please provide the missing information to unlock full membership benefits:</p>
+                    <div class="missing-info-list" id="missingInfoList">
+                        <!-- Missing fields will be listed here dynamically -->
+                    </div>
+                    <div class="completion-actions">
+                        <a href="profile-completion.html" class="btn primary-btn">
+                            <i class="fas fa-user-edit"></i> Complete Profile Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+
             <!-- Upcoming Events Card -->
             <div class="dashboard-card">
                 <div class="card-header">
@@ -1235,6 +1328,13 @@
                             <span class="stat-label">Events Attended</span>
                             <span class="stat-value" id="eventsAttended">0</span>
                         </div>
+                    </div>
+                    
+                    <div class="profile-completion-status" id="profileCompletionStatus">
+                        <div class="progress-container">
+                            <div class="progress-bar" style="width: 0%"></div>
+                        </div>
+                        <span>Profile 0% Complete</span>
                     </div>
                 </div>
             </div>
@@ -3540,6 +3640,8 @@
     function checkProfileCompletion() {
         const completionStatus = document.getElementById('profileCompletionStatus');
         const accountSettingsBtn = document.getElementById('accountSettingsBtn');
+        const profileCompletionAlert = document.getElementById('profileCompletionAlert');
+        const missingInfoList = document.getElementById('missingInfoList');
         
         if (window.userProfile) {
             // Check required fields
@@ -3550,26 +3652,75 @@
                 'province',
                 'postal_code'
             ];
+
+            const fieldsConfig = {
+                'phone': { icon: 'fa-phone-alt', label: 'Phone Number', description: 'Required for membership communication' },
+                'street': { icon: 'fa-home', label: 'Street Address', description: 'Required for membership verification' },
+                'city': { icon: 'fa-city', label: 'City', description: 'Required for membership verification' },
+                'province': { icon: 'fa-map-marker-alt', label: 'Province', description: 'Required for membership verification' },
+                'postal_code': { icon: 'fa-mail-bulk', label: 'Postal Code', description: 'Required for membership verification' },
+                'car_models': { icon: 'fa-car', label: 'Tesla Model', description: 'Required to verify Tesla ownership' }
+            };
             
             const completedFields = requiredFields.filter(field => 
                 window.userProfile[field] && window.userProfile[field].trim() !== ''
             );
 
+            const missingFields = requiredFields.filter(field => 
+                !window.userProfile[field] || window.userProfile[field].trim() === ''
+            );
+
+            // Check for car models separately
+            if (!window.userProfile.car_models || window.userProfile.car_models.length === 0) {
+                missingFields.push('car_models');
+            }
+
             const completionPercentage = Math.round(
                 (completedFields.length / requiredFields.length) * 100
             );
 
-            completionStatus.innerHTML = `
-                <div class="progress-container">
-                    <div class="progress-bar" style="width: ${completionPercentage}%"></div>
-                </div>
-                <span>Profile ${completionPercentage}% Complete</span>
-            `;
+            if (completionStatus) {
+                completionStatus.innerHTML = `
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: ${completionPercentage}%"></div>
+                    </div>
+                    <span>Profile ${completionPercentage}% Complete</span>
+                `;
+            }
 
             // Only show account settings when profile is 100% complete
             if (accountSettingsBtn) {
                 accountSettingsBtn.style.display = completionPercentage === 100 ? 'flex' : 'none';
                 accountSettingsBtn.style.visibility = completionPercentage === 100 ? 'visible' : 'hidden';
+            }
+
+            // Display profile completion alert if any required fields are missing
+            if (missingFields.length > 0 && profileCompletionAlert && missingInfoList) {
+                // Clear previous list
+                missingInfoList.innerHTML = '';
+                
+                // Add each missing field to the list
+                missingFields.forEach(field => {
+                    const config = fieldsConfig[field];
+                    if (config) {
+                        const item = document.createElement('div');
+                        item.className = 'missing-info-item';
+                        item.innerHTML = `
+                            <i class="fas ${config.icon}"></i>
+                            <div class="missing-info-text">
+                                <strong>${config.label}</strong>
+                                <span>${config.description}</span>
+                            </div>
+                        `;
+                        missingInfoList.appendChild(item);
+                    }
+                });
+                
+                // Show the alert
+                profileCompletionAlert.style.display = 'block';
+            } else if (profileCompletionAlert) {
+                // Hide the alert if no missing fields
+                profileCompletionAlert.style.display = 'none';
             }
         }
     }
@@ -3594,8 +3745,17 @@
                 city: profile.city || 'Not provided',
                 province: profile.province || 'Not provided',
                 postal_code: profile.postal_code || 'Not provided',
-                events_attended: profile.events_attended || 0 // Initialize events_attended
+                car_models: profile.car_models || [],
+                events_attended: profile.events_attended || 0
             };
+            
+            // Sanitize data to handle empty strings
+            const fieldsToCheck = ['phone', 'street', 'city', 'province', 'postal_code'];
+            fieldsToCheck.forEach(field => {
+                if (window.userProfile[field] === 'Not provided' || window.userProfile[field].trim() === '') {
+                    window.userProfile[field] = '';
+                }
+            });
 
             initializeProfileSection();
             checkProfileCompletion();
@@ -3705,11 +3865,13 @@
     function sanitizeProfileData(profile) {
         return {
             ...(profile || {}),
-            phone: profile?.phone || 'Not provided',
+            phone: profile?.phone || '',
             street: profile?.street || '',
             city: profile?.city || '',
             province: profile?.province || '',
-            postal_code: profile?.postal_code || ''
+            postal_code: profile?.postal_code || '',
+            car_models: profile?.car_models || [],
+            events_attended: profile?.events_attended || 0
         };
     }
 
@@ -4156,7 +4318,37 @@ Blitz T Club Team`);
     });
     </script>
 
-    
+    <!-- Add this validation function -->
+    <script>
+    // Validate profile for completeness
+    function validateProfile(profile) {
+        if (!profile) return false;
+        
+        // Check required fields
+        const hasValidPhone = profile.phone && profile.phone.trim().length >= 10;
+        const hasValidAddress = profile.street && profile.street.trim().length > 3 &&
+                               profile.city && profile.city.trim().length > 2 &&
+                               profile.province && profile.province.trim().length > 0 &&
+                               profile.postal_code && profile.postal_code.trim().length > 0;
+        const hasValidCarModel = profile.car_models && Array.isArray(profile.car_models) && profile.car_models.length > 0;
+        
+        // Overall validation
+        return hasValidPhone && hasValidAddress && hasValidCarModel;
+    }
+
+    // Usage in display logic:
+    const hasCompleteProfile = validateProfile(window.userProfile);
+    </script>
+
+    <script>
+    // Update the validation call
+    function updateAddressDisplay() {
+        if (!window.userProfile) return;
+        
+        const hasCompleteProfile = validateProfile(window.userProfile);
+        // Rest of your display logic
+    }
+    </script>
+
 </body>
-</html> 
 </html> 

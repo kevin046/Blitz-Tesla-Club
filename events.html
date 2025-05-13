@@ -852,6 +852,32 @@
             try {
                 const { data: { user }, error: userErr } = await supabaseClient.auth.getUser();
                 if (userErr || !user) throw new Error('Not authenticated');
+                
+                // Check if the user's profile is complete
+                const { data: profile, error: profileErr } = await supabaseClient
+                    .from('profiles')
+                    .select('phone, street, city, province, postal_code, car_models')
+                    .eq('id', user.id)
+                    .single();
+                
+                if (profileErr) {
+                    console.error('Error fetching profile:', profileErr);
+                    throw new Error('Could not fetch user profile');
+                }
+                
+                // Check for required fields
+                const isMissingPhone = !profile.phone || profile.phone.trim() === '';
+                const isMissingAddress = !profile.street || profile.street.trim() === '' || 
+                                        !profile.city || profile.city.trim() === '' ||
+                                        !profile.province || profile.province.trim() === '' ||
+                                        !profile.postal_code || profile.postal_code.trim() === '';
+                
+                if (isMissingPhone || isMissingAddress) {
+                    if (confirm('Your profile is incomplete. You need to complete your profile before registering for events. Would you like to do that now?')) {
+                        window.location.href = 'profile-completion.html';
+                    }
+                    return;
+                }
 
                 // First verify event exists
                 let { data: eventData, error: eventError } = await supabaseClient

@@ -785,6 +785,11 @@
                 const firstName = nameParts[0];
                 const lastName = nameParts.slice(1).join(' ') || firstName; // Handle single name case
 
+                // Get email and extract username (part before @)
+                const emailValue = document.getElementById('email').value.trim();
+                const username = emailValue.split('@')[0];
+                console.log('Generated username from email:', username);
+
                 // Get formatted values
                 const phoneNumberRaw = document.getElementById('phoneNumber').value.replace(/\D/g, '');
                 const dateOfBirthValue = document.getElementById('dateOfBirth').value; // Already in YYYY-MM-DD
@@ -805,6 +810,7 @@
                     options: {
                         data: {
                             full_name: fullNameValue,
+                            username: username,
                         },
                         emailRedirectTo: 'https://www.blitztclub.com/verify-email.html'
                     }
@@ -841,6 +847,7 @@
                         .upsert({
                             id: data.user.id,
                             email: data.user.email,
+                            username: username,
                             full_name: fullNameValue,
                             first_name: firstName,
                             last_name: lastName,
@@ -869,6 +876,7 @@
                         full_name: fullNameValue,
                         first_name: firstName,
                         last_name: lastName,
+                        username: username,
                         phone: document.getElementById('phoneNumber').value,
                         date_of_birth: dateOfBirthValue,
                         car_models: selectedCarModels,

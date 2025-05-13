@@ -1004,6 +1004,26 @@
             font-family: 'Courier New', monospace;
             letter-spacing: 1px;
         }
+        
+        /* Username display styling */
+        .username-display {
+            margin: 0.25rem 0 0.75rem;
+            font-size: 0.95rem;
+            color: #5c5e62;
+        }
+        
+        .username-label {
+            font-weight: 500;
+            margin-right: 0.5rem;
+        }
+        
+        #userUsername {
+            font-family: monospace;
+            background: rgba(0, 230, 118, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #171a20;
+        }
     </style>
     <!-- Add this in the head section -->
     <script>
@@ -1030,9 +1050,19 @@
         // Ensure all critical fields exist with reasonable defaults
         
         // Full Name:
-        let tempFullName = source.full_name; 
-        if (typeof tempFullName === 'string') tempFullName = tempFullName.trim();
-        profile.full_name = tempFullName || ''; // Ensures it's at least an empty string
+        profile.full_name = source.full_name || profile.full_name || '';
+        profile.first_name = source.first_name || '';
+        profile.last_name = source.last_name || '';
+        
+        // Username (user email before the @ if not provided)
+        profile.username = source.username || '';
+        if (!profile.username && profile.email) {
+            // Extract username from email as fallback
+            profile.username = profile.email.split('@')[0];
+        }
+
+        // Membership type
+        profile.membership_type = source.membership_type || 'standard';
 
         // Member ID:
         let tempMemberId = source.member_id; 
@@ -1068,47 +1098,47 @@
         // Address fields: Now primarily working with a single full_address string
         profile.full_address = (source.full_address || '').trim();
 
-        // Attempt to parse the full_address into components for form population and structured access
-        // This is a simple parser; a more robust one might be needed for varied formats.
-        let parsedStreet = source.street || '';
-        let parsedCity = source.city || '';
-        let parsedProvince = source.province || '';
-        let parsedPostalCode = source.postal_code || '';
+        // First use the direct individual fields if they exist in the source data
+        profile.street = source.street || '';
+        profile.city = source.city || '';
+        profile.province = source.province || '';
+        profile.postal_code = source.postal_code || '';
 
-        // Only try to parse if we don't already have structured address fields
-        if (profile.full_address && (!parsedStreet || !parsedCity)) {
+        // Only try to parse the full_address if we don't have the individual components already
+        if (profile.full_address && (!profile.street || !profile.city || !profile.province || !profile.postal_code)) {
             // Regex to capture: (anything for street), (city), (2-letter province), (postal code)
             // This regex assumes the province is 2 uppercase letters and postal code is A1A 1A1 format.
             // It tries to make the street part flexible to include commas.
-            const addressRegex = /^(.*?),\s*([^,]+),\s*([A-Z]{2}),\s*([A-Z]\d[A-Z]\s*\d[A-Z]\d)$/i;
+            const addressRegex = /^(.*?),\s*([^,]+),\s*([A-Z]{2}),\s*([A-Z]\d[A-Z]\s*\d[A-Za-z]\d)$/i;
             const match = profile.full_address.match(addressRegex);
 
             if (match) {
-                parsedStreet = (match[1] || '').trim();
-                parsedCity = (match[2] || '').trim();
-                parsedProvince = (match[3] || '').toUpperCase().trim();
-                parsedPostalCode = (match[4] || '').toUpperCase().trim();
+                profile.street = (match[1] || '').trim();
+                profile.city = (match[2] || '').trim();
+                profile.province = (match[3] || '').toUpperCase().trim();
+                profile.postal_code = (match[4] || '').toUpperCase().trim();
             } else {
-                // Fallback for simpler comma splitting if regex doesn't match (e.g., if address format is simpler)
+                // Fallback for simpler comma splitting if regex doesn't match
                 const parts = profile.full_address.split(',').map(part => part.trim());
-                if (parts.length >= 1) parsedStreet = parts[0];
-                if (parts.length >= 2) parsedCity = parts[1];
-                if (parts.length >= 3) parsedProvince = parts[2];
-                if (parts.length >= 4) parsedPostalCode = parts[3];
+                if (parts.length >= 1) profile.street = parts[0] || profile.street;
+                if (parts.length >= 2) profile.city = parts[1] || profile.city;
+                if (parts.length >= 3) profile.province = parts[2] || profile.province;
+                if (parts.length >= 4) profile.postal_code = parts[3] || profile.postal_code;
                 console.log('[sanitizeProfileData] Regex did not match, used fallback split. Parts:', parts);
             }
         }
-
-        profile.street = parsedStreet;
-        profile.city = parsedCity;
-        profile.province = parsedProvince;
-        profile.postal_code = parsedPostalCode;
         
-        profile.address = { // Keep the address object for internal consistency if needed by other parts
-            street: parsedStreet,
-            city: parsedCity,
-            province: parsedProvince,
-            postal_code: parsedPostalCode
+        // If we still don't have a full_address but have the components, rebuild it
+        if (!profile.full_address && profile.street && profile.city) {
+            profile.full_address = `${profile.street}, ${profile.city}${profile.province ? ', ' + profile.province : ''}${profile.postal_code ? ', ' + profile.postal_code : ''}`;
+        }
+        
+        // Keep the address object for backward compatibility
+        profile.address = {
+            street: profile.street,
+            city: profile.city,
+            province: profile.province,
+            postal_code: profile.postal_code
         };
 
         console.log('[LOG] sanitizeProfileData returning profile:', JSON.stringify(profile));
@@ -1153,6 +1183,10 @@
         <div class="dashboard-header">
             <div class="user-welcome">
                 <h1>Welcome, <span id="userFullName"></span></h1>
+                <div class="username-display">
+                    <span class="username-label">Username:</span>
+                    <span id="userUsername"></span>
+                </div>
                 <div class="status-badge">
                     <span class="status-label">Membership Status:</span>
                     <span id="membershipStatus" data-status="pending"></span>
@@ -1663,20 +1697,18 @@
                     const modalPhoneNumber = document.getElementById('modalPhoneNumber');
                     if (modalPhoneNumber) modalPhoneNumber.textContent = window.userProfile?.phone || 'Not provided';
                     
-                    // Also update any address display fields
-                    if (window.userProfile?.address) {
-                        const elements = {
-                            street: document.getElementById('editStreet'),
-                            city: document.getElementById('editCity'),
-                            province: document.getElementById('editProvince'),
-                            postalCode: document.getElementById('editPostalCode')
-                        };
-                        
-                        if (elements.street) elements.street.value = window.userProfile?.street || '';
-                        if (elements.city) elements.city.value = window.userProfile?.city || '';
-                        if (elements.province) elements.province.value = window.userProfile?.province || '';
-                        if (elements.postalCode) elements.postalCode.value = window.userProfile?.postal_code || '';
-                    }
+                    // Update address fields directly without relying on the address object
+                    const elements = {
+                        street: document.getElementById('editStreet'),
+                        city: document.getElementById('editCity'),
+                        province: document.getElementById('editProvince'),
+                        postalCode: document.getElementById('editPostalCode')
+                    };
+                    
+                    if (elements.street) elements.street.value = window.userProfile?.street || '';
+                    if (elements.city) elements.city.value = window.userProfile?.city || '';
+                    if (elements.province) elements.province.value = window.userProfile?.province || '';
+                    if (elements.postalCode) elements.postalCode.value = window.userProfile?.postal_code || '';
                     
                     // Update the car models display if available
                     const carModelsElement = document.getElementById('carModelsDetails');
@@ -1691,6 +1723,12 @@
                         carModelsElement.innerHTML = carModelsHtml;
                     }
                     
+                    // Update the username display
+                    const userUsernameEl = document.getElementById('userUsername');
+                    if (userUsernameEl) {
+                        console.log('[updateStatusDisplay] Setting username. Value from window.userProfile.username:', window.userProfile.username);
+                        userUsernameEl.textContent = window.userProfile.username || window.userProfile.email?.split('@')[0] || 'member'; 
+                    }
                 } catch (error) {
                     console.error('Error updating status display:', error);
                 }
@@ -1814,8 +1852,17 @@
                 // Logs for debugging (can be removed later)
                 console.log('[LOG] Account Settings Modal: window.userProfile type:', typeof window.userProfile);
                 if (window.userProfile) {
-                    console.log('[LOG] Account Settings Modal: window.userProfile.address type:', typeof window.userProfile.address);
-                    console.log('[LOG] Account Settings Modal: window.userProfile.address value:', JSON.stringify(window.userProfile.address));
+                    // Log both individual address fields and the address object for compatibility
+                    console.log('[LOG] Account Settings Modal: Address fields:',
+                        JSON.stringify({
+                            street: window.userProfile.street,
+                            city: window.userProfile.city,
+                            province: window.userProfile.province,
+                            postal_code: window.userProfile.postal_code,
+                            full_address: window.userProfile.full_address
+                        })
+                    );
+                    console.log('[LOG] Account Settings Modal: Backward compatibility address object:', JSON.stringify(window.userProfile.address));
                     console.log('[LOG] Account Settings Modal: window.userProfile keys:', Object.keys(window.userProfile).join(', '));
                     console.log('[LOG] Account Settings Modal: window.userProfile.full_name:', window.userProfile.full_name);
                     console.log('[LOG] Account Settings Modal: window.userProfile.member_id:', window.userProfile.member_id);
@@ -1823,6 +1870,13 @@
 
                 // Populate general account information
                 document.getElementById('modalUserEmail').textContent = window.userProfile?.email || 'Not available';
+                
+                // Add username display
+                const usernameElement = document.getElementById('modalUsername');
+                if (usernameElement) {
+                    usernameElement.textContent = window.userProfile?.username || window.userProfile?.email?.split('@')[0] || 'Not available';
+                }
+                
                 document.getElementById('modalMemberId').textContent = window.userProfile?.member_id || 'Not Available';
                 document.getElementById('modalMemberSince').textContent = window.userProfile?.created_at ? 
                     new Date(window.userProfile.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Not Available';
@@ -1870,45 +1924,78 @@
                 document.getElementById('editPostalCode').value = window.userProfile?.postal_code || '';
 
                 const displayAddress = () => {
-                    const fullAddressDisplay = window.userProfile?.full_address;
-                    if (fullAddressDisplay) {
-                        addressContainer.innerHTML = `<address>${fullAddressDisplay.replace(/\n/g, '<br>')}</address>
+                    // Check if we have address components
+                    const hasAddress = window.userProfile?.street || window.userProfile?.full_address;
+                    
+                    if (hasAddress) {
+                        // First try to use full_address if available
+                        if (window.userProfile?.full_address) {
+                            addressContainer.innerHTML = `<address>${window.userProfile.full_address.replace(/\n/g, '<br>')}</address>
                             <button type="button" class="edit-info-btn" id="editAddressBtn_modal" style="margin-top: 10px;">
+                            <i class="fas fa-edit"></i> Edit Address
+                            </button>`;
+                        } else {
+                            // Otherwise construct from components
+                            const street = window.userProfile?.street || '';
+                            const city = window.userProfile?.city || '';
+                            const province = window.userProfile?.province || '';
+                            const postalCode = window.userProfile?.postal_code || '';
+                            
+                            // Only show if we have at least street and city
+                            if (street && city) {
+                                const formattedAddress = `${street}<br>${city}${province ? ', ' + province : ''}${postalCode ? ' ' + postalCode : ''}`;
+                                
+                                addressContainer.innerHTML = `<address>${formattedAddress}</address>
+                                <button type="button" class="edit-info-btn" id="editAddressBtn_modal" style="margin-top: 10px;">
                                 <i class="fas fa-edit"></i> Edit Address
-                            </button>
-                        `;
+                                </button>`;
+                            } else {
+                                // Not enough address components
+                                addressContainer.innerHTML = `
+                                <p>Incomplete address information.</p>
+                                <button type="button" class="edit-info-btn" id="addAddressInfoBtn_modal">
+                                <i class="fas fa-plus-circle"></i> Complete Address Information
+                                </button>`;
+                            }
+                        }
+                        
                         addressUpdateForm.style.display = 'none';
                         addressContainer.style.display = 'block';
-
+                        
+                        // Add event listener to the edit button
                         const editBtn = document.getElementById('editAddressBtn_modal');
                         if (editBtn) {
                             editBtn.onclick = () => {
-                                // Populate form from parsed top-level fields
+                                // Fill in form fields with current values
                                 document.getElementById('editStreet').value = window.userProfile?.street || '';
                                 document.getElementById('editCity').value = window.userProfile?.city || '';
                                 document.getElementById('editProvince').value = window.userProfile?.province || '';
                                 document.getElementById('editPostalCode').value = window.userProfile?.postal_code || '';
+                                
                                 addressUpdateForm.style.display = 'block';
                                 addressContainer.style.display = 'none';
                             };
-                    }
-                } else {
-                    addressContainer.innerHTML = `
-                            <p>No address information on file.</p>
-                            <button type="button" class="edit-info-btn" id="addAddressInfoBtn_modal">
-                                <i class="fas fa-plus-circle"></i> Add Address Information
-                        </button>
-                    `;
+                        }
+                    } else {
+                        // No address information
+                        addressContainer.innerHTML = `
+                        <p>No address information on file.</p>
+                        <button type="button" class="edit-info-btn" id="addAddressInfoBtn_modal">
+                        <i class="fas fa-plus-circle"></i> Add Address Information
+                        </button>`;
+                        
                         addressUpdateForm.style.display = 'none';
                         addressContainer.style.display = 'block';
-
+                        
                         const addBtn = document.getElementById('addAddressInfoBtn_modal');
                         if (addBtn) {
                             addBtn.onclick = () => {
+                                // Clear form fields for new entry
                                 document.getElementById('editStreet').value = '';
                                 document.getElementById('editCity').value = '';
                                 document.getElementById('editProvince').value = '';
                                 document.getElementById('editPostalCode').value = '';
+                                
                                 addressUpdateForm.style.display = 'block';
                                 addressContainer.style.display = 'none';
                             };
@@ -1954,6 +2041,10 @@
 
                     try {
                         const updatesToSave = {
+                            street: street,
+                            city: city,
+                            province: province,
+                            postal_code: postalCode,
                             full_address: newFullAddress, // Saving the single concatenated string
                             updated_at: new Date().toISOString()
                         };
@@ -1962,7 +2053,7 @@
 
                         const { data, error } = await supabaseClient
                             .from('profiles')
-                            .update(updatesToSave) // Update the single full_address field
+                            .update(updatesToSave) // Update both individual fields and full_address
                             .eq('id', session.user.id)
                             .select() 
                             .single();
@@ -1970,27 +2061,17 @@
                         if (error) throw error;
 
                         if (data) {
-                            // Update global userProfile with the new full_address
+                            // Update global userProfile with the new address data
                             window.userProfile.full_address = data.full_address;
-                            
-                            // Re-parse the new full_address to update component fields and the address object
-                            let ps = '', pc = '', pp = '', pzc = '';
-                            if (data.full_address) {
-                                const parts = data.full_address.split(',').map(part => part.trim());
-                                if (parts.length >= 1) ps = parts[0];
-                                if (parts.length >= 2) pc = parts[1];
-                                if (parts.length >= 3) pp = parts[2];
-                                if (parts.length >= 4) pzc = parts[3];
-                            }
-                            window.userProfile.street = ps;
-                            window.userProfile.city = pc;
-                            window.userProfile.province = pp;
-                            window.userProfile.postal_code = pzc;
+                            window.userProfile.street = street;
+                            window.userProfile.city = city;
+                            window.userProfile.province = province;
+                            window.userProfile.postal_code = postalCode;
                             window.userProfile.address = { 
-                                street: ps,
-                                city: pc,
-                                province: pp,
-                                postal_code: pzc
+                                street: street,
+                                city: city,
+                                province: province,
+                                postal_code: postalCode
                             };
                             window.userProfile.updated_at = data.updated_at;
 
@@ -2584,6 +2665,10 @@
                             <span class="info-value" id="modalUserEmail"></span>
                         </div>
                         <div class="info-item">
+                            <span class="info-label">Username</span>
+                            <span class="info-value" id="modalUsername"></span>
+                        </div>
+                        <div class="info-item">
                             <span class="info-label">Member ID</span>
                             <span class="info-value" id="modalMemberId"></span>
                         </div>
@@ -2680,11 +2765,9 @@
                 <div class="settings-section">
                     <h3><i class="fas fa-key"></i> Change Password</h3>
                     <form id="modalEditProfileForm">
-                        <!-- Add hidden username field for accessibility -->
-                        <input type="hidden" id="modalUsername" name="username" autocomplete="username">
-                <div class="form-group">
+                        <div class="form-group">
                             <label for="modalCurrentPassword">Current Password</label>
-                    <div class="password-input-container">
+                            <div class="password-input-container">
                                 <input type="password" id="modalCurrentPassword" name="currentPassword" 
                                     placeholder="Enter current password" autocomplete="current-password"
                                     class="modern-input">
@@ -2969,34 +3052,46 @@
                         const { data: { user } } = await supabaseClient.auth.getUser();
                         if (!user) throw new Error('User not authenticated');
 
-                        const formData = {
-                            address: {
-                                street: document.getElementById('editStreet').value.trim(),
-                                city: document.getElementById('editCity').value.trim(),
-                                province: document.getElementById('editProvince').value,
-                                postal_code: document.getElementById('editPostalCode').value
-                                    .toUpperCase()
-                                    .replace(/\s/g, '')
-                                    .replace(/([A-Z]\d[A-Z])(\d[A-Z]\d)/, '$1 $2')
-                            }
-                        };
+                        // Get address fields individually
+                        const street = document.getElementById('editStreet').value.trim();
+                        const city = document.getElementById('editCity').value.trim();
+                        const province = document.getElementById('editProvince').value;
+                        const postalCode = document.getElementById('editPostalCode').value
+                            .toUpperCase()
+                            .replace(/\s/g, '')
+                            .replace(/([A-Z]\d[A-Z])(\d[A-Z]\d)/, '$1 $2');
+                        
+                        // Create full address string
+                        const fullAddress = `${street}, ${city}, ${province}, ${postalCode}`;
 
                         // Validation checks
-                        if (!formData.address.street || !formData.address.city || 
-                            !formData.address.province || !formData.address.postal_code) {
+                        if (!street || !city || !province || !postalCode) {
                             alert('Please fill all address fields');
                             return;
                         }
 
                         const { error } = await supabaseClient
                             .from('profiles')
-                            .update({ address: formData.address })
+                            .update({ 
+                                street: street,
+                                city: city,
+                                province: province,
+                                postal_code: postalCode,
+                                full_address: fullAddress,
+                                updated_at: new Date().toISOString() 
+                            })
                             .eq('id', user.id);
 
                         if (error) throw error;
 
-                        // Update local profile and refresh display
-                        window.userProfile.address = formData.address;
+                        // Update local profile data
+                        window.userProfile.street = street;
+                        window.userProfile.city = city;
+                        window.userProfile.province = province;
+                        window.userProfile.postal_code = postalCode;
+                        window.userProfile.full_address = fullAddress;
+                        
+                        // Update displayed profile
                         updateProfileDisplay();
                         
                         // Show success and hide form

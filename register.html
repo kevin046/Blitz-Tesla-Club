@@ -557,10 +557,11 @@
                     throw error;
                 }
                 
-                console.log('Retrieved profiles count:', data ? data.length : 0);
+                console.log('Retrieved profiles count with member_id:', data ? data.length : 0);
                 
-                // Extract all existing numeric IDs into a Set for quick lookup
+                // Extract all existing numeric IDs into a Set for O(1) lookups
                 const usedIds = new Set();
+                let highestId = 0;
                 
                 if (data && data.length > 0) {
                     console.log('All member IDs:', data.map(p => p.member_id).join(', '));
@@ -573,6 +574,7 @@
                                 
                                 if (!isNaN(numberPart)) {
                                     usedIds.add(numberPart);
+                                    highestId = Math.max(highestId, numberPart);
                                     console.log(`Found Member ID: ${profile.member_id}, Number part: ${numberPart}`);
                                 }
                             } catch (parseError) {
@@ -582,30 +584,20 @@
                     });
                 }
                 
-                // Get all used IDs for validation
-                console.log('All used IDs:', Array.from(usedIds).sort((a, b) => a - b).join(', '));
+                console.log(`Highest existing ID: ${highestId}`);
                 
-                // Start checking from ID 34 as specified
-                let nextId = 34;
-                let foundId = false;
-                let attempts = 0;
-                const maxAttempts = 1000; // Safety limit
+                // Now find the first available ID (the first gap in the sequence)
+                let nextId = 1; // Start from 1
                 
-                // Find the first unused ID
-                while (!foundId && attempts < maxAttempts) {
-                    if (!usedIds.has(nextId)) {
-                        foundId = true; // Found an available ID
-                    } else {
-                        nextId++;
-                        attempts++;
+                // Loop up to the highest ID + 1 to find the first available gap
+                for (let i = 1; i <= highestId + 1; i++) {
+                    if (!usedIds.has(i)) {
+                        nextId = i;
+                        break;
                     }
                 }
                 
-                if (!foundId) {
-                    throw new Error('Could not find an available member ID after ' + maxAttempts + ' attempts');
-                }
-                
-                console.log(`Found available ID number: ${nextId}`);
+                console.log(`Next available ID number: ${nextId}`);
                 
                 // Format with leading zeros (4 digits)
                 const memberId = `BTC${nextId.toString().padStart(4, '0')}`;
@@ -839,6 +831,10 @@
                 }
 
                 if (!existingProfile) {
+                    // Generate a sequential member ID
+                    const memberId = await generateSequentialMemberId();
+                    console.log('Generated member ID for new user:', memberId);
+                    
                     // Only upsert if profile does not exist
                     const { error: profileError } = await supabaseClient
                         .from('profiles')
@@ -846,7 +842,20 @@
                             id: data.user.id,
                             email: data.user.email,
                             full_name: fullNameValue,
+                            first_name: firstName,
+                            last_name: lastName,
+                            phone: document.getElementById('phoneNumber').value,
+                            date_of_birth: dateOfBirthValue,
+                            car_models: selectedCarModels,
+                            full_address: fullAddress,
+                            street: streetValue,
+                            city: cityValue,
+                            province: provinceValue,
+                            postal_code: postalCodeValue,
                             status: 'pending_verification',
+                            membership_status: 'pending',
+                            role: 'member',
+                            member_id: memberId,
                             created_at: new Date().toISOString(),
                             updated_at: new Date().toISOString()
                         }, { onConflict: 'id' });
@@ -855,7 +864,49 @@
                         throw profileError;
                     }
                 } else {
-                    console.log('Profile already exists for user:', data.user.id);
+                    // For existing profiles, only update if member_id is not set
+                    let updateData = {
+                        full_name: fullNameValue,
+                        first_name: firstName,
+                        last_name: lastName,
+                        phone: document.getElementById('phoneNumber').value,
+                        date_of_birth: dateOfBirthValue,
+                        car_models: selectedCarModels,
+                        full_address: fullAddress,
+                        street: streetValue,
+                        city: cityValue,
+                        province: provinceValue,
+                        postal_code: postalCodeValue,
+                        status: 'pending_verification',
+                        membership_status: 'pending',
+                        role: 'member',
+                        updated_at: new Date().toISOString()
+                    };
+                    
+                    // Check if the existing profile already has a member_id
+                    const { data: profileData, error: profileFetchError } = await supabaseClient
+                        .from('profiles')
+                        .select('member_id')
+                        .eq('id', data.user.id)
+                        .single();
+                        
+                    if (!profileFetchError && (!profileData.member_id || profileData.member_id === '')) {
+                        // Only generate a new member_id if one doesn't exist
+                        const memberId = await generateSequentialMemberId();
+                        console.log('Generated member ID for existing user without ID:', memberId);
+                        updateData.member_id = memberId;
+                    }
+                    
+                    const { error: profileUpdateError } = await supabaseClient
+                        .from('profiles')
+                        .update(updateData)
+                        .eq('id', data.user.id);
+                    
+                    if (profileUpdateError) {
+                        console.error('Profile update error:', profileUpdateError);
+                        throw profileUpdateError;
+                    }
+                    console.log('Profile updated for user:', data.user.id);
                 }
 
                 // 5. Redirect only after both operations succeed

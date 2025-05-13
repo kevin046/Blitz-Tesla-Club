@@ -486,65 +486,43 @@
                 // Track success of each method
                 let emailSent = false;
 
-                // 1. Try Supabase's email verification reset - either with session or just email
+                // 1. Try standard Supabase signup resend first (correct method for verification)
                 try {
-                    console.log('Attempting email verification via auth.resetPasswordForEmail');
-                    // This is an alternative approach that often works when resend doesn't
-                    const { error } = await window.supabaseClient.auth.resetPasswordForEmail(
-                        email,
-                        {
-                            redirectTo: `${window.location.origin}/verification-success.html`
+                    console.log('Attempting resend via auth.resend for signup verification');
+                    const { error } = await window.supabaseClient.auth.resend({
+                        type: 'signup',
+                        email: email,
+                        options: {
+                            emailRedirectTo: `${window.location.origin}/verify-email.html`
                         }
-                    );
+                    });
 
                     if (error) {
-                        console.warn('Password reset email method failed:', error);
+                        console.warn('Supabase auth.resend failed:', error);
                     } else {
-                        console.log('Password reset email method succeeded');
+                        console.log('Supabase auth.resend succeeded');
                         emailSent = true;
                     }
-                } catch (resetError) {
-                    console.warn('Password reset email exception:', resetError);
+                } catch (resendError) {
+                    console.warn('Supabase auth.resend exception:', resendError);
                 }
 
-                // 2. Try standard resend method
+                // 2. Always send via FormSubmit as a reliable fallback
                 if (!emailSent) {
                     try {
-                        console.log('Attempting resend via auth.resend');
-                        const { error } = await window.supabaseClient.auth.resend({
-                            type: 'signup',
-                            email: email,
-                            options: {
-                                emailRedirectTo: `${window.location.origin}/verification-success.html`
-                            }
-                        });
+                        console.log('Attempting FormSubmit fallback');
+                        // Get base URL for verification link
+                        const baseUrl = window.location.href.split('/').slice(0, -1).join('/');
+                        const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}`;
 
-                        if (error) {
-                            console.warn('Supabase auth.resend failed:', error);
-                        } else {
-                            console.log('Supabase auth.resend succeeded');
-                            emailSent = true;
-                        }
-                    } catch (resendError) {
-                        console.warn('Supabase auth.resend exception:', resendError);
-                    }
-                }
-
-                // 3. Always send via FormSubmit as a reliable fallback
-                try {
-                    console.log('Attempting FormSubmit fallback');
-                    // Get base URL for verification link
-                    const baseUrl = window.location.href.split('/').slice(0, -1).join('/');
-                    const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}`;
-
-                    // Send verification email using FormSubmit
-                    const formData = new FormData();
-                    formData.append('email', email);
-                    formData.append('_captcha', 'false');
-                    formData.append('_template', 'box');
-                    formData.append('_subject', 'Verify Your Blitz T Club Membership');
-                    formData.append('_autoresponse', 'Thank you for verifying your email. Your Blitz T Club membership will be activated shortly.');
-                    formData.append('message', `Welcome to Blitz T Club!
+                        // Send verification email using FormSubmit
+                        const formData = new FormData();
+                        formData.append('email', email);
+                        formData.append('_captcha', 'false');
+                        formData.append('_template', 'box');
+                        formData.append('_subject', 'Verify Your Blitz T Club Membership');
+                        formData.append('_autoresponse', 'Thank you for verifying your email. Your Blitz T Club membership will be activated shortly.');
+                        formData.append('message', `Welcome to Blitz T Club!
 
 Member ID: ${localStorage.getItem('pendingMemberId') || 'New Member'}
 
@@ -570,25 +548,26 @@ If you didn't request this email, please ignore it.
 Best regards,
 Blitz T Club Team`);
 
-                    const emailResponse = await fetch(`https://formsubmit.co/ajax/${email}`, {
-                        method: 'POST',
-                        headers: {
-                            'Accept': 'application/json'
-                        },
-                        body: formData
-                    });
+                        const emailResponse = await fetch(`https://formsubmit.co/ajax/${email}`, {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json'
+                            },
+                            body: formData
+                        });
 
-                    if (!emailResponse.ok) {
-                        const responseText = await emailResponse.text();
-                        console.error('FormSubmit response:', responseText);
-                        throw new Error('FormSubmit email sending failed');
+                        if (!emailResponse.ok) {
+                            const responseText = await emailResponse.text();
+                            console.error('FormSubmit response:', responseText);
+                            throw new Error('FormSubmit email sending failed');
+                        }
+
+                        const responseData = await emailResponse.json();
+                        console.log('FormSubmit email sent successfully:', responseData);
+                        emailSent = true;
+                    } catch (formSubmitError) {
+                        console.warn('FormSubmit fallback failed:', formSubmitError);
                     }
-
-                    const responseData = await emailResponse.json();
-                    console.log('FormSubmit email sent successfully:', responseData);
-                    emailSent = true;
-                } catch (formSubmitError) {
-                    console.warn('FormSubmit fallback failed:', formSubmitError);
                 }
 
                 // Check overall success

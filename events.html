@@ -8,6 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Events - Blitz T Club</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="mobile-navigation.css">
     <link rel="stylesheet" href="mobile-optimizations.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,16 +19,14 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="navigation.js" defer></script>
     <style>
-        /* Fix for hamburger menu showing in desktop view */
-        .menu-toggle {
-            display: none !important; /* Force hide on all screens by default */
+        /* Page-specific styles to ensure footer stays at bottom */
+        body.events-page {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
         
-        @media (max-width: 768px) {
-            .menu-toggle {
-                display: flex !important; /* Only show on mobile */
-            }
-            
+        @media (max-width: 768px) {            
             .event-header {
                 flex-direction: column;
             }
@@ -37,13 +36,6 @@
                 height: auto;
                 max-height: none;
             }
-        }
-        
-        /* Page-specific styles to ensure footer stays at bottom */
-        body.events-page {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
         }
         
         .events-container {

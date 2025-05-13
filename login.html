@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Member Login - Blitz T Club</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="mobile-navigation.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -44,66 +45,6 @@
 
         /* Remove any existing .toggle-password styles */
         .toggle-password { display: none !important; }
-        
-        /* Mobile menu specific styles */
-        .menu-toggle {
-            display: none;
-            cursor: pointer;
-            z-index: 1000;
-            padding: 10px;
-        }
-        
-        .menu-toggle i {
-            font-size: 24px;
-            color: #fff;
-            transition: all 0.3s ease;
-        }
-        
-        @media (max-width: 768px) {
-            .menu-toggle {
-                display: flex !important;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            .nav-links {
-                position: fixed;
-                top: 0;
-                right: -100%;
-                width: 80%;
-                max-width: 300px;
-                height: 100vh;
-                background-color: #171a20;
-                flex-direction: column;
-                padding-top: 80px;
-                transition: right 0.3s ease;
-                z-index: 100;
-                box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
-            }
-            
-            .nav-links.active {
-                right: 0;
-            }
-            
-            .nav-links li {
-                width: 100%;
-                margin: 0;
-            }
-            
-            .nav-links a {
-                padding: 15px;
-                width: 100%;
-                display: flex;
-                align-items: center;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            }
-            
-            body.nav-open {
-                overflow: hidden;
-                position: fixed;
-                width: 100%;
-            }
-        }
     </style>
 </head>
 <body class="login-page">
@@ -276,66 +217,6 @@
                     console.error('Login error:', error);
                 }
             });
-            
-            // Direct mobile menu initialization
-            const initMobileMenuDirectly = () => {
-                const menuToggle = document.querySelector('.menu-toggle');
-                const navLinks = document.querySelector('.nav-links');
-                
-                console.log('Direct mobile menu init - Toggle found:', !!menuToggle);
-                console.log('Direct mobile menu init - Nav links found:', !!navLinks);
-                
-                if (!menuToggle || !navLinks) return;
-                
-                // Toggle menu on click
-                menuToggle.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    navLinks.classList.toggle('active');
-                    
-                    const icon = menuToggle.querySelector('i');
-                    if (icon) {
-                        icon.classList.toggle('fa-bars');
-                        icon.classList.toggle('fa-times');
-                    }
-                    
-                    document.body.classList.toggle('nav-open');
-                });
-                
-                // Close when clicking outside
-                document.addEventListener('click', (e) => {
-                    if (navLinks.classList.contains('active') && 
-                        !navLinks.contains(e.target) && 
-                        !menuToggle.contains(e.target)) {
-                        navLinks.classList.remove('active');
-                        
-                        const icon = menuToggle.querySelector('i');
-                        if (icon) {
-                            icon.classList.remove('fa-times');
-                            icon.classList.add('fa-bars');
-                        }
-                        
-                        document.body.classList.remove('nav-open');
-                    }
-                });
-                
-                // Close when clicking a link
-                navLinks.querySelectorAll('a').forEach(link => {
-                    link.addEventListener('click', () => {
-                        navLinks.classList.remove('active');
-                        
-                        const icon = menuToggle.querySelector('i');
-                        if (icon) {
-                            icon.classList.remove('fa-times');
-                            icon.classList.add('fa-bars');
-                        }
-                        
-                        document.body.classList.remove('nav-open');
-                    });
-                });
-            };
-            
-            // Initialize mobile menu directly
-            initMobileMenuDirectly();
         });
     </script>
 </body>

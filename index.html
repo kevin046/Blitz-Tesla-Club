@@ -99,7 +99,7 @@
             visibility: visible !important;
             opacity: 1 !important;
             width: 100% !important;
-            max-width: 300px !important;
+            max-width: 200px !important;
             height: auto !important;
             margin: 30px auto !important;
             transform: none !important;
@@ -110,7 +110,7 @@
             position: static !important;
             width: 100% !important;
             height: auto !important;
-            max-width: 300px !important;
+            max-width: 200px !important;
             margin: 0 auto !important;
             opacity: 1 !important;
             visibility: visible !important;
@@ -268,9 +268,13 @@
             }
             
             .hero-logo {
-                max-width: 160px;
+                max-width: 120px !important;
                 margin-bottom: 25px;
                 margin-top: 20px;
+            }
+            
+            .hero-logo img {
+                max-width: 120px !important;
             }
             
             .scroll-indicator {
@@ -321,21 +325,25 @@
                 width: auto;
                 max-width: 100%;
             }
-            
-            .hero-logo img {
-                max-width: 100%;
-            }
         }
         
         /* Ensure hero logo is visible on desktop */
         @media (min-width: 769px) {
             .hero-logo {
-                max-width: 300px !important;
+                max-width: 200px !important;
                 margin-bottom: 30px !important;
             }
             
             .hero-logo:hover img {
                 transform: scale(1.02) !important;
+            }
+        }
+        
+        /* Nuclear option override for mobile */
+        @media (max-width: 480px) {
+            body.home-page .hero-logo,
+            body.home-page .hero-logo img {
+                max-width: 120px !important;
             }
         }
 
@@ -598,9 +606,26 @@
             position: relative !important;
             z-index: 1000 !important;
             width: 100% !important;
-            max-width: 300px !important;
+            max-width: 200px !important;
             height: auto !important;
             margin: 30px auto !important;
+        }
+        
+        /* Mobile override for nuclear option */
+        @media (max-width: 480px) {
+            body.home-page .hero-logo,
+            body.home-page .hero-logo img {
+                all: unset !important;
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                position: relative !important;
+                z-index: 1000 !important;
+                width: 100% !important;
+                max-width: 120px !important;
+                height: auto !important;
+                margin: 20px auto 25px !important;
+            }
         }
     </style>
 </head>
@@ -623,7 +648,7 @@
     <main>
         <section class="hero" id="home">
             <div class="hero-logo">
-                <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" width="300" height="300" onerror="this.onerror=null; this.src='https://i.ibb.co/fkrdXZK/Logo4-white.png';">
+                <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" width="200" height="200" onerror="this.onerror=null; this.src='https://i.ibb.co/fkrdXZK/Logo4-white.png';">
             </div>
             <h1 class="hero-tagline">Experience the Future of Driving</h1>
             <div class="cta-buttons">

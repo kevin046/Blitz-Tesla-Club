@@ -321,18 +321,31 @@
                         }
                     }
 
+                    // Check the structure of the existing profile to see which fields exist
+                    const hasStatusField = existingProfile ? 'status' in existingProfile : true;
+                    const hasMembershipStatusField = existingProfile ? 'membership_status' in existingProfile : true;
+                    
+                    console.log('Profile fields - status:', hasStatusField, 'membership_status:', hasMembershipStatusField);
+
                     if (existingProfile) {
                         // Update existing profile
-                        const { data: updateData, error: updateError } = await window.supabaseClient
+                        const profileUpdateData = {
+                            updated_at: new Date().toISOString()
+                        };
+                        
+                        // Only include fields that exist in the database
+                        if (hasStatusField) profileUpdateData.status = 'active';
+                        if (hasMembershipStatusField) profileUpdateData.membership_status = 'active';
+                        
+                        // Add these only if they exist in the profile table
+                        if ('verification_token' in existingProfile) profileUpdateData.verification_token = null;
+                        if ('verification_sent_at' in existingProfile) profileUpdateData.verification_sent_at = null;
+                        
+                        console.log('Updating profile with data:', profileUpdateData);
+                        
+                        const { data: updatedProfile, error: updateError } = await window.supabaseClient
                             .from('profiles')
-                            .update({
-                                membership_status: 'active',
-                                email_verified: true,
-                                verification_token: null,
-                                verification_sent_at: null,
-                                status: 'active', // for backward compatibility
-                                updated_at: new Date().toISOString()
-                            })
+                            .update(profileUpdateData)
                             .eq('id', userId)
                             .select('*');
                             
@@ -346,48 +359,60 @@
                             
                             // Try upsert as fallback
                             console.log('Attempting profile update with upsert...');
-                            const { data: upsertData, error: upsertError } = await window.supabaseClient
+                            
+                            const profileUpsertData = {
+                                id: userId,
+                                email: userEmail,
+                                updated_at: new Date().toISOString()
+                            };
+                            
+                            // Only include fields that exist in the database
+                            if (hasStatusField) profileUpsertData.status = 'active';
+                            if (hasMembershipStatusField) profileUpsertData.membership_status = 'active';
+                            if (existingProfile.full_name) profileUpsertData.full_name = existingProfile.full_name;
+                            else if (fullName) profileUpsertData.full_name = fullName;
+                            
+                            console.log('Upserting profile with data:', profileUpsertData);
+                            
+                            const { data: upsertedProfile, error: upsertError } = await window.supabaseClient
                                 .from('profiles')
-                                .upsert({
-                                    id: userId,
-                                    email: userEmail,
-                                    full_name: existingProfile.full_name || fullName,
-                                    membership_status: 'active',
-                                    email_verified: true,
-                                    status: 'active',
-                                    updated_at: new Date().toISOString()
-                                }, { onConflict: 'id' })
-                                .select('id, email, membership_status');
+                                .upsert(profileUpsertData, { onConflict: 'id' })
+                                .select('id, email');
                             
                             if (upsertError) {
                                 console.error('Upsert profile failed:', upsertError);
                                 throw new Error(`Could not update profile (${upsertError.code}): ${upsertError.message}`);
                             }
                             
-                            console.log('Profile successfully updated via upsert:', upsertData);
+                            console.log('Profile successfully updated via upsert:', upsertedProfile);
                             return true;
                         } else {
-                            console.log('Profile successfully updated:', updateData);
+                            console.log('Profile successfully updated:', updatedProfile);
                             return true;
                         }
                     } else {
                         // No profile exists yet, we need to create one with minimal fields
                         console.log('Creating new profile for user:', userId);
                         
-                        const { data: insertData, error: insertError } = await window.supabaseClient
+                        const profileInsertData = {
+                            id: userId,
+                            email: userEmail,
+                            full_name: fullName,
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                            role: 'member'
+                        };
+                        
+                        // Only include fields that exist in the database
+                        if (hasStatusField) profileInsertData.status = 'active';
+                        if (hasMembershipStatusField) profileInsertData.membership_status = 'active';
+                        
+                        console.log('Inserting profile with data:', profileInsertData);
+                        
+                        const { data: insertedProfile, error: insertError } = await window.supabaseClient
                             .from('profiles')
-                            .insert({
-                                id: userId,
-                                email: userEmail,
-                                full_name: fullName,
-                                membership_status: 'active',
-                                email_verified: true,
-                                status: 'active',
-                                role: 'member',
-                                created_at: new Date().toISOString(),
-                                updated_at: new Date().toISOString()
-                            })
-                            .select('id, email, membership_status');
+                            .insert(profileInsertData)
+                            .select('id, email');
                         
                         if (insertError) {
                             console.error('Failed to create profile:', insertError);
@@ -399,7 +424,7 @@
                             throw new Error(`Could not create profile (${insertError.code}): ${insertError.message}`);
                         }
                         
-                        console.log('Created new profile:', insertData);
+                        console.log('Created new profile:', insertedProfile);
                         return true;
                     }
                 } catch (error) {

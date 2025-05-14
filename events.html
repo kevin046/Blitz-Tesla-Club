@@ -41,6 +41,37 @@
             visibility: visible !important;
         }
         
+        /* Additional styles to override any conflicting rules */
+        .logo img {
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+        
+        /* Fix for the logo text */
+        .logo span {
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            color: white !important;
+            font-weight: 600 !important;
+        }
+        
+        /* Fix for iOS Safari */
+        @supports (-webkit-touch-callout: none) {
+            nav .logo img {
+                display: block !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+            }
+            
+            .logo span {
+                display: inline-block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
+        }
+        
         @media (max-width: 768px) {
             nav .logo img {
                 width: 36px !important;
@@ -48,6 +79,11 @@
                 margin-right: 8px !important;
                 max-width: 36px !important;
                 max-height: 36px !important;
+            }
+            
+            .logo span {
+                font-size: 16px !important;
+                letter-spacing: 0.3rem !important;
             }
         }
         
@@ -582,8 +618,14 @@
     <nav>
         <div class="logo">
             <a href="index.html">
-                <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" loading="lazy" width="50" height="50" onerror="this.onerror=null; this.src='https://i.ibb.co/fkrdXZK/Logo4-white.png';">
-                <span>BLITZ T CLUB</span>
+                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" 
+                     alt="Blitz Tesla Club Logo" 
+                     loading="lazy" 
+                     width="40" 
+                     height="40" 
+                     style="display: block !important; width: 40px !important; height: 40px !important; border-radius: 8px !important; margin-right: 12px !important; max-width: 40px !important; max-height: 40px !important; opacity: 1 !important; visibility: visible !important; object-fit: contain !important; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2)) !important;"
+                     onerror="this.onerror=null; this.src='https://i.postimg.cc/BvmtNLtB/logo.png';">
+                <span style="display: inline-block !important; visibility: visible !important; opacity: 1 !important;">BLITZ T CLUB</span>
             </a>
         </div>
         <button class="menu-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="nav-links">

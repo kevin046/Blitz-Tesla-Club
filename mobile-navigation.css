@@ -207,6 +207,29 @@ nav {
         font-size: 16px;
     }
     
+    /* Add these adjustments to the mobile media query */
+    nav .logo {
+        display: flex !important;
+        align-items: center !important;
+        padding-left: 10px !important;
+    }
+
+    nav .logo a {
+        flex-direction: row !important;
+        gap: 8px !important;
+    }
+
+    nav .logo img {
+        position: relative !important;
+        z-index: 1001 !important;
+    }
+
+    nav .logo span {
+        position: relative !important;
+        z-index: 1001 !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
+    }
+    
     /* Show menu toggle on mobile */
     .menu-toggle {
         display: flex;

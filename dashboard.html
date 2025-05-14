@@ -84,16 +84,113 @@
             overflow-x: hidden;
             transition: all 0.3s ease;
         }
+
+        .dashboard-page main {
+            flex: 1;
+            padding: clamp(20px, 4vw, 40px); /* Updated padding */
+            z-index: 1;
+        }
+
+        /* Dashboard Grid Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        /* General Dashboard Card Styles */
+        .dashboard-card {
+            background: linear-gradient(145deg, #222a36, #1c2330);
+            border-radius: 20px;
+            padding: clamp(24px, 3vw, 32px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #00e676, #2196f3);
+            opacity: 0.8;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card-header h2 {
+            font-size: 1.25rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ffffff;
+        }
+
+        .card-header h2 i {
+            color: #00e676;
+            font-size: 1.1em;
+        }
+
+        .card-header .view-all {
+            color: #2196f3;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .card-header .view-all:hover {
+            color: #00e676;
+            text-decoration: underline;
+        }
+
+        .card-content {
+            color: rgba(255, 255, 255, 0.9);
+        }
         
         /* Profile Completion Alert Styles */
         .completion-alert {
-            background-color: #fff3e0;
+            background: linear-gradient(145deg, #fff3e0, #ffe0b2);
             border-left: 4px solid #ff9800;
             margin-bottom: 30px;
+            border: none;
+        }
+        
+        .completion-alert::before {
+            background: #ff9800;
+        }
+        
+        .completion-alert .card-header {
+            border-bottom-color: rgba(0, 0, 0, 0.1);
         }
         
         .completion-alert .card-header h2 {
             color: #e65100;
+        }
+        
+        .completion-alert .card-header h2 i {
+            color: #ff9800;
         }
         
         .completion-alert .card-content p {
@@ -131,6 +228,61 @@
             padding: 12px 25px;
             font-weight: 500;
         }
+
+        /* Badge Styling */
+        .badge.upcoming {
+            background: #ffca28;
+            color: #1a1a1a;
+            padding: 4px 8px;
+            margin-left: 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            vertical-align: middle;
+            display: inline-block;
+            position: relative;
+            top: -1px;
+        }
+
+        /* Quick Links Styling */
+        .quick-links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+        }
+
+        .quick-link-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            text-decoration: none;
+            color: #fff;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quick-link-item:hover {
+            background: rgba(0, 230, 118, 0.1);
+            transform: translateY(-3px);
+        }
+
+        .quick-link-item i {
+            font-size: 1.5rem;
+            color: #00e676;
+        }
+
+        .quick-link-item span {
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
         
         /* Dashboard Content Styles */
         
@@ -143,12 +295,6 @@
             top: 0 !important;
             left: 0 !important;
             touch-action: none !important; /* JavaScript in navigation.js already handles this */
-        }
-        
-        .dashboard-page main {
-            flex: 1;
-            padding: 20px;
-            z-index: 1;
         }
         
         /* iOS Optimizations */
@@ -1199,6 +1345,89 @@
                 font-size: 0.9rem;
             }
         }
+
+        /* Stats Grid Styling */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .stat-item:hover {
+            background: rgba(0, 230, 118, 0.08);
+            transform: translateY(-3px);
+        }
+
+        .stat-label {
+            display: block;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        /* Member ID specific styling - ensure it's white and visible */
+        #memberId {
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.5px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* Coupon Styling - ensure text is white and visible */
+        .coupon-container {
+            text-align: center;
+            padding: 10px;
+        }
+        
+        .coupon-icon {
+            font-size: 2.5rem;
+            color: #00e676;
+            margin-bottom: 15px;
+        }
+        
+        .coupon-status h3 {
+            margin-top: 0;
+            font-size: 1.3rem;
+            color: #ffffff !important;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        
+        .coupon-status p {
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        
+        .coupon-badge {
+            display: inline-block;
+            background: rgba(0, 230, 118, 0.2);
+            color: #00e676;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin: 15px 0;
+        }
+        
+        .coupon-badge.redeemed {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* iOS Optimizations */
     </style>
     <!-- Add this in the head section -->
     <script>
@@ -1340,8 +1569,14 @@
     <nav>
         <div class="logo">
             <a href="index.html">
-                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo" loading="lazy" width="50" height="50">
-                <span>BLITZ T CLUB</span>
+                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" 
+                     alt="Blitz Tesla Club Logo" 
+                     loading="lazy" 
+                     width="40" 
+                     height="40" 
+                     style="display: block !important; width: 40px !important; height: 40px !important; border-radius: 8px !important; margin-right: 12px !important; max-width: 40px !important; max-height: 40px !important; opacity: 1 !important; visibility: visible !important; object-fit: contain !important; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2)) !important;"
+                     onerror="this.onerror=null; this.src='https://i.postimg.cc/BvmtNLtB/logo.png';">
+                <span style="display: inline-block !important; visibility: visible !important; opacity: 1 !important;">BLITZ T CLUB</span>
             </a>
         </div>
         <button class="menu-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="nav-links">
@@ -1403,8 +1638,29 @@
                     <a href="events.html" class="view-all">View All</a>
                 </div>
                 <div class="card-content" id="upcomingEventsList">
-                    <div class="loading-spinner">
-                        <i class="fas fa-spinner fa-spin"></i>
+                    <div class="event-item">
+                        <div class="event-date">
+                            <span class="event-month">MAY</span>
+                            <span class="event-day">30</span>
+                            <span class="event-year">2025</span>
+                        </div>
+                        <div class="event-info">
+                            <h3 class="event-title">Tesla Light Show Spectacular</h3>
+                            <p class="event-location">
+                                <i class="fas fa-map-marker-alt"></i> Golf IT Up Parking Lot, Thornhill, ON
+                            </p>
+                            <p class="event-time">
+                                <i class="fas fa-clock"></i> 7:30 PM EST
+                            </p>
+                            <div class="event-highlights">
+                                <span class="highlight-tag"><i class="fas fa-lightbulb"></i> Light Show</span>
+                                <span class="highlight-tag"><i class="fas fa-users"></i> Networking</span>
+                                <span class="highlight-tag"><i class="fas fa-camera"></i> Photo Ops</span>
+                            </div>
+                            <a href="events.html" class="btn event-btn">
+                                <i class="fas fa-info-circle"></i> Details
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1422,57 +1678,17 @@
                         </div>
                         <div class="stat-item">
                             <span class="stat-label">Member ID</span>
-                            <span class="stat-value" id="memberId" style="font-family: monospace; font-weight: bold;"></span>
+                            <span class="stat-value" id="memberId" style="font-family: monospace; font-weight: bold; color: #ffffff !important;"></span>
                         </div>
                         <div class="stat-item">
                             <span class="stat-label">Events Attended</span>
                             <span class="stat-value" id="eventsAttended">0</span>
                         </div>
                     </div>
-                    
-                    <div class="profile-completion-status" id="profileCompletionStatus">
-                        <div class="progress-container">
-                            <div class="progress-bar" style="width: 0%"></div>
-                        </div>
-                        <span>Profile 0% Complete</span>
-                    </div>
                 </div>
             </div>
 
-            <!-- Coupon Redemption Card -->
-            <div class="dashboard-card" id="couponCard">
-                <div class="card-header">
-                    <h2><i class="fas fa-ticket-alt"></i> Member Coupon</h2>
-                </div>
-                <div class="card-content">
-                    <div class="coupon-container">
-                        <div class="coupon-status" id="couponStatus">
-                            <div class="coupon-icon">
-                                <i class="fas fa-gift"></i>
-                            </div>
-                            <h3>Club Event Item Coupon</h3>
-                            <p>As a valued member, you receive one coupon to redeem for an exclusive club event item.</p>
-                            <div class="coupon-badge" id="couponBadge">Available</div>
-                            <button class="btn primary-btn" id="redeemCouponBtn">
-                                <i class="fas fa-ticket-alt"></i> Redeem Coupon
-                            </button>
-                        </div>
-                        <div class="coupon-redeemed" id="couponRedeemed" style="display: none;">
-                            <div class="coupon-icon redeemed">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <h3>Coupon Redeemed</h3>
-                            <p>You've already redeemed your club event item coupon.</p>
-                            <div class="coupon-badge redeemed">Redeemed</div>
-                            <div class="redemption-info">
-                                <p>Redeemed on: <span id="redemptionDate">-</span></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quick Links Card -->
+            <!-- Quick Links Card (now before Member Coupon) -->
             <div class="dashboard-card">
                 <div class="card-header">
                     <h2><i class="fas fa-link"></i> Quick Links</h2>
@@ -1494,6 +1710,39 @@
                             <i class="fas fa-cog"></i>
                             <span>Account Settings</span>
                         </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Member Coupon Card (now after Quick Links) -->
+            <div class="dashboard-card" id="couponCard">
+                <div class="card-header">
+                    <h2><i class="fas fa-ticket-alt"></i> Member Coupon</h2>
+                </div>
+                <div class="card-content">
+                    <div class="coupon-container">
+                        <div class="coupon-status" id="couponStatus">
+                            <div class="coupon-icon">
+                                <i class="fas fa-gift"></i>
+                            </div>
+                            <h3 style="color: #ffffff !important;">Club Event Item Coupon</h3>
+                            <p style="color: rgba(255, 255, 255, 0.9) !important;">As a valued member, you receive one coupon to redeem for an exclusive club event item.</p>
+                            <div class="coupon-badge" id="couponBadge">Available</div>
+                            <button class="btn primary-btn" id="redeemCouponBtn">
+                                <i class="fas fa-ticket-alt"></i> Redeem Coupon
+                            </button>
+                        </div>
+                        <div class="coupon-redeemed" id="couponRedeemed" style="display: none;">
+                            <div class="coupon-icon redeemed">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <h3>Coupon Redeemed</h3>
+                            <p>You've already redeemed your club event item coupon.</p>
+                            <div class="coupon-badge redeemed">Redeemed</div>
+                            <div class="redemption-info">
+                                <p>Redeemed on: <span id="redemptionDate">-</span></p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3648,6 +3897,14 @@
                     throw new Error('User profile initialization delayed');
                 }
             }
+            
+            // Don't override the hardcoded event in the HTML
+            // The event is already in the HTML and doesn't need to be loaded dynamically
+            
+            // Skip the rest of this function to prevent overriding the hardcoded event
+            return;
+
+            // The code below won't execute due to the return statement above
             const eventsContainer = document.getElementById('upcomingEventsList');
             if (eventsContainer) {
                 eventsContainer.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div>';
@@ -4483,5 +4740,296 @@ Blitz T Club Team`);
     }
     </script>
 
+    <!-- Update the Upcoming Events section to show the May 30, 2025 event -->
+    <div class="dashboard-card">
+        <div class="card-header">
+            <h2><i class="fas fa-calendar"></i> Upcoming Events</h2>
+            <a href="events.html" class="view-all">View All</a>
+        </div>
+        <div class="card-content" id="upcomingEventsList">
+            <div class="event-item">
+                <div class="event-date">
+                    <span class="event-month">MAY</span>
+                    <span class="event-day">30</span>
+                    <span class="event-year">2025</span>
+                </div>
+                <div class="event-info">
+                    <h3 class="event-title">Tesla Light Show Spectacular</h3>
+                    <p class="event-location">
+                        <i class="fas fa-map-marker-alt"></i> Golf IT Up Parking Lot, Thornhill, ON
+                    </p>
+                    <p class="event-time">
+                        <i class="fas fa-clock"></i> 7:30 PM EST
+                    </p>
+                    <div class="event-highlights">
+                        <span class="highlight-tag"><i class="fas fa-lightbulb"></i> Light Show</span>
+                        <span class="highlight-tag"><i class="fas fa-users"></i> Networking</span>
+                        <span class="highlight-tag"><i class="fas fa-camera"></i> Photo Ops</span>
+                    </div>
+                    <a href="events.html" class="btn event-btn">
+                        <i class="fas fa-info-circle"></i> Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ... existing code ... -->
+
+    <style>
+    /* ... existing styles ... */
+
+    /* Add styles for the event item in the dashboard */
+    .event-item {
+        display: flex;
+        flex-direction: column;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        flex-wrap: nowrap; /* Prevent wrapping */
+        width: 100%; /* Ensure full width */
+    }
+
+    .event-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .event-date {
+        background: linear-gradient(145deg, #00e676, #2196f3);
+        color: white;
+        padding: 8px 12px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+        width: 100%;
+        text-align: left;
+        flex-shrink: 0; /* Prevent date section from shrinking */
+        gap: 8px;
+        border-radius: 12px 12px 0 0;
+        position: relative;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .event-month {
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .event-day {
+        font-size: 1.4rem;
+        font-weight: 700;
+        line-height: 1;
+        margin: 0;
+    }
+
+    .event-year {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin-left: 2px;
+    }
+
+    /* Add a divider between date and time */
+    .event-date::after {
+        display: none;
+    }
+
+    /* Mobile optimizations for the new horizontal date layout */
+    @media (max-width: 768px) {
+        .event-date {
+            padding: 8px 10px;
+            gap: 4px;
+        }
+        
+        .event-day {
+            font-size: 1.2rem;
+        }
+        
+        .event-month, .event-year {
+            font-size: 0.75rem;
+        }
+        
+        .event-date::after {
+            right: 8px;
+            font-size: 0.9rem;
+        }
+    }
+
+    .event-info {
+        padding: 15px;
+        flex: 1;
+        min-width: 0; /* Allow proper text truncation */
+    }
+
+    .event-info h3 {
+        margin: 0 0 10px;
+        font-size: 1.1rem;
+        color: #ffffff;
+        white-space: normal; /* Allow wrapping of long titles */
+        word-break: break-word; /* Break long words if needed */
+    }
+
+    .event-location, .event-time {
+        font-size: 0.9rem;
+        margin: 5px 0;
+        color: rgba(255, 255, 255, 1); /* Changed from 0.8 to 1 for full white */
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: normal; /* Allow text to wrap */
+        word-break: break-word; /* Break long words if needed */
+    }
+
+    .event-time {
+        margin-bottom: 10px;
+    }
+
+    .event-location i, .event-time i {
+        flex-shrink: 0; /* Keep icons from shrinking */
+        color: #00e676; /* Keep the icons green for contrast */
+        width: 16px;
+        text-align: center;
+    }
+
+    .event-highlights {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 10px 0;
+    }
+
+    .highlight-tag {
+        background: rgba(0, 230, 118, 0.1);
+        color: #00e676;
+        font-size: 0.8rem;
+        padding: 4px 8px;
+        border-radius: 4px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-bottom: 5px; /* Add space between wrapped tags */
+    }
+
+    .highlight-tag i {
+        font-size: 0.75rem;
+    }
+
+    .event-btn {
+        margin-top: 10px;
+        padding: 8px 15px;
+        font-size: 0.9rem;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        align-self: flex-start; /* Align button to the left */
+    }
+
+    .event-btn:hover {
+        background: rgba(0, 230, 118, 0.2);
+    }
+
+    /* Improved mobile optimizations for events */
+    @media (max-width: 768px) {
+        .event-item {
+            flex-direction: column;
+            margin-bottom: 12px;
+        }
+        
+        .event-date {
+            min-width: 120px;
+            padding: 8px 10px;
+            gap: 4px;
+        }
+        
+        .event-day {
+            font-size: 1.2rem;
+        }
+        
+        .event-info {
+            padding: 12px 10px;
+        }
+        
+        .event-info h3 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+        
+        .event-location, .event-time {
+            font-size: 0.85rem;
+            margin: 4px 0;
+        }
+        
+        .event-highlights {
+            margin: 8px 0;
+            gap: 6px;
+        }
+        
+        .highlight-tag {
+            font-size: 0.75rem;
+            padding: 3px 6px;
+        }
+        
+        .event-btn {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            margin-top: 8px;
+        }
+        
+        /* Improve dashboard header on mobile */
+        .dashboard-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        
+        .quick-actions {
+            align-self: stretch;
+        }
+        
+        .quick-actions button {
+            width: 100%;
+        }
+        
+        /* Better spacing for footer on mobile */
+        .footer-content {
+            gap: 20px;
+        }
+    }
+    
+    /* Extra small screens optimization */
+    @media (max-width: 480px) {
+        .event-item {
+            flex-direction: column;
+        }
+        
+        .event-date {
+            width: 100%;
+            justify-content: center;
+            border-radius: 12px 12px 0 0;
+        }
+        
+        /* Better touch targets for mobile */
+        .event-btn, 
+        .quick-link-item,
+        .btn {
+            min-height: 44px;
+        }
+    }
+    </style>
+
+    <!-- ... existing code ... -->
 </body>
 </html> 

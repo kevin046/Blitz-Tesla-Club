@@ -58,8 +58,10 @@ function setupMobileMenu() {
     const newToggle = menuToggle.cloneNode(true);
     menuToggle.parentNode.replaceChild(newToggle, menuToggle);
     
-    // Add brand logo to the mobile menu
-    if (!navLinks.querySelector('.nav-brand')) {
+    // Add brand logo to the mobile menu only if it doesn't exist
+    // and we're not on events.html (which has its own logo implementation)
+    const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+    if (!navLinks.querySelector('.nav-brand') && currentPath !== 'events.html') {
         const brandLogo = document.createElement('div');
         brandLogo.className = 'nav-brand';
         brandLogo.innerHTML = `

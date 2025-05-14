@@ -977,8 +977,8 @@
                     .is('cancelled_at', null);
 
                 if (fetchErr) throw fetchErr;
-                if ((existingRegs?.length ?? 0) >= 2) {
-                    return alert('Max 2 vehicles per event');
+                if ((existingRegs?.length ?? 0) >= 1) {
+                    return alert('Max 1 vehicles per event');
                 }
 
                 // Insert new registration

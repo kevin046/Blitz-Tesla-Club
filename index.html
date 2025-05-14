@@ -227,6 +227,11 @@
                     -1px 1px 0 rgba(255, 255, 255, 0.9);
                 margin-bottom: 30px;
                 letter-spacing: 0.5px;
+                word-spacing: 0.05em; /* Add slight spacing between words */
+                width: 100%;
+                max-width: 90%;
+                margin-left: auto;
+                margin-right: auto;
             }
             
             /* Keep scroll indicator visible */
@@ -265,6 +270,9 @@
             .hero-tagline {
                 font-size: 1.8rem;
                 margin-bottom: 25px;
+                padding: 0 15px;
+                width: 100%;
+                max-width: 100%;
             }
             
             .hero-logo {
@@ -292,6 +300,14 @@
                 width: 100%;
                 max-width: 280px;
                 margin: 0 auto;
+            }
+            
+            /* Remove the conflicting style */
+            .hero .hero-tagline {
+                font-size: 1.8rem !important;
+                padding: 0 15px;
+                width: 100%;
+                max-width: 100%;
             }
         }
         
@@ -650,7 +666,7 @@
             <div class="hero-logo">
                 <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" width="200" height="200" onerror="this.onerror=null; this.src='https://i.ibb.co/fkrdXZK/Logo4-white.png';">
             </div>
-            <h1 class="hero-tagline">Experience the Future of Driving</h1>
+            <h1 class="hero-tagline">Experience the <span style="white-space: nowrap;">Future</span> of Driving</h1>
             <div class="cta-buttons">
                 <a href="register.html" class="btn">Join Now</a>
                 <a href="events.html" class="btn btn-outline">Upcoming Events</a>

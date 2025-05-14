@@ -279,6 +279,10 @@ nav {
         visibility: hidden;
         display: flex;
         overflow-y: auto;
+        max-height: 80vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 30px;
     }
     
     .nav-links.active {
@@ -379,6 +383,32 @@ nav {
         position: fixed !important;
         width: 100% !important;
         height: 100% !important;
+    }
+    
+    /* Improve scrollbar appearance */
+    .nav-links::-webkit-scrollbar {
+        width: 5px;
+    }
+    
+    .nav-links::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+    }
+    
+    .nav-links::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+    }
+    
+    .nav-links::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.5);
+    }
+    
+    /* Add some space for iOS devices with bottom home indicator */
+    @supports (padding-bottom: env(safe-area-inset-bottom)) {
+        .nav-links {
+            padding-bottom: calc(30px + env(safe-area-inset-bottom));
+        }
     }
 }
 

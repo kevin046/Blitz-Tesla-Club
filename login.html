@@ -192,13 +192,62 @@
                 e.preventDefault();
                 const email = document.getElementById('email').value;
                 const password = document.getElementById('password').value;
+                const submitButton = document.querySelector('.login-btn');
+                const errorContainer = document.querySelector('.form-error');
+                
+                // Create error container if it doesn't exist
+                if (!errorContainer) {
+                    const newErrorContainer = document.createElement('div');
+                    newErrorContainer.className = 'form-error';
+                    newErrorContainer.style.color = '#ff4444';
+                    newErrorContainer.style.marginTop = '10px';
+                    newErrorContainer.style.padding = '10px';
+                    newErrorContainer.style.borderRadius = '5px';
+                    newErrorContainer.style.backgroundColor = 'rgba(255, 68, 68, 0.1)';
+                    newErrorContainer.style.display = 'none';
+                    document.getElementById('loginForm').appendChild(newErrorContainer);
+                }
+                
+                const showError = (message) => {
+                    const errContainer = document.querySelector('.form-error') || newErrorContainer;
+                    errContainer.textContent = message;
+                    errContainer.style.display = 'block';
+                    // Scroll to the error message
+                    errContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                };
+                
+                const hideError = () => {
+                    const errContainer = document.querySelector('.form-error');
+                    if (errContainer) {
+                        errContainer.style.display = 'none';
+                    }
+                };
 
                 if (!window.supabaseClient?.auth) {
-                    alert('Authentication system not ready. Please try again.');
+                    showError('Authentication system not ready. Please refresh the page and try again.');
+                    return;
+                }
+                
+                // Basic validation
+                if (!email) {
+                    showError('Please enter your email address');
+                    return;
+                }
+                
+                if (!password) {
+                    showError('Please enter your password');
                     return;
                 }
 
                 try {
+                    // Clear previous errors
+                    hideError();
+                    
+                    // Show loading state
+                    const originalButtonText = submitButton.innerHTML;
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+                    
                     const { data, error } = await window.supabaseClient.auth.signInWithPassword({
                         email: email,
                         password: password
@@ -206,10 +255,31 @@
 
                     if (error) throw error;
                     
-                    window.location.href = 'dashboard.html';
+                    // Show success before redirecting
+                    submitButton.innerHTML = '<i class="fas fa-check"></i> Success! Redirecting...';
+                    
+                    // Delay redirect slightly for better UX
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1000);
                 } catch (error) {
-                    alert('Login failed: ' + error.message);
                     console.error('Login error:', error);
+                    
+                    // Handle specific error codes with user-friendly messages
+                    let errorMessage = 'Login failed: ';
+                    if (error.message.includes('credentials')) {
+                        errorMessage += 'Invalid email or password. Please try again.';
+                    } else if (error.message.includes('verified')) {
+                        errorMessage += 'Please verify your email before logging in. Check your inbox for a verification link.';
+                    } else {
+                        errorMessage += error.message;
+                    }
+                    
+                    showError(errorMessage);
+                    
+                    // Reset button
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalButtonText;
                 }
             });
         });

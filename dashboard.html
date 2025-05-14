@@ -20,8 +20,10 @@
     <script src="navigation.js" defer></script>
     <script>
         // Add a global direct logout function that can be called from anywhere
-        window.performLogout = async function() {
-            console.log('Direct logout function called');
+        window.performLogout = async function(options = {}) {
+            const { showMessage = true, redirectDelay = 3000, skipRedirect = false } = options;
+            console.log('Direct logout function called with options:', options);
+            
             try {
                 // Try to sign out through Supabase
                 if (window.supabaseClient) {
@@ -31,8 +33,8 @@
             } catch (error) {
                 console.error('Critical error during logout attempt:', error);
             } finally {
-                // Always clear storage and redirect regardless of errors
-                console.log('Clearing storage and redirecting to login');
+                // Always clear storage regardless of errors
+                console.log('Clearing auth storage');
                 localStorage.removeItem('supabase.auth.token');
                 sessionStorage.removeItem('supabase.auth.token');
                 
@@ -52,8 +54,23 @@
                     console.error('Error clearing storage:', e);
                 }
                 
-                // Force redirect to login page
-                window.location.href = 'login.html';
+                // Show a message to the user
+                if (showMessage) {
+                    const errorDisplay = document.getElementById('errorNotification');
+                    if (errorDisplay) {
+                        errorDisplay.querySelector('.error-message').textContent = 
+                            'You have been logged out. Redirecting to login page...';
+                        errorDisplay.style.display = 'flex';
+                    }
+                }
+                
+                // Allow skipping redirect or delaying it
+                if (!skipRedirect) {
+                    setTimeout(() => {
+                        // Force redirect to login page after delay
+                        window.location.href = 'login.html';
+                    }, redirectDelay);
+                }
             }
         };
         
@@ -1868,60 +1885,212 @@
             console.log('Session:', session);
             
             if (!session) {
-                window.location.href = 'login.html';
-                return;
+                // Don't immediately redirect, try to refresh the session first
+                try {
+                    console.log('No session found, attempting to refresh...');
+                    const { data: refreshData, error: refreshError } = await supabaseClient.auth.refreshSession();
+                    
+                    if (refreshError || !refreshData.session) {
+                        console.log('Session refresh failed, showing error message before redirect');
+                        const errorDisplay = document.getElementById('errorNotification');
+                        if (errorDisplay) {
+                            errorDisplay.querySelector('.error-message').textContent = 
+                                'Your session has expired. Please log in again.';
+                            errorDisplay.style.display = 'flex';
+                        }
+                        
+                        // Delay redirect to allow user to see error message
+                        setTimeout(() => {
+                            window.location.href = 'login.html';
+                        }, 5000); // Increased from 3000 to 5000ms
+                        return;
+                    } else {
+                        console.log('Session refreshed successfully:', refreshData.session);
+                        // Continue with the refreshed session
+                    }
+                } catch (refreshException) {
+                    console.error('Exception during session refresh:', refreshException);
+                    
+                    // Check for network errors which may be temporary
+                    if (refreshException instanceof TypeError && refreshException.message.includes('network')) {
+                        console.log('Network error during refresh. Showing temporary message.');
+                        const errorDisplay = document.getElementById('errorNotification');
+                        if (errorDisplay) {
+                            errorDisplay.querySelector('.error-message').textContent = 
+                                'Network error detected. Please check your connection.';
+                            errorDisplay.style.display = 'flex';
+                            setTimeout(() => errorDisplay.style.display = 'none', 5000);
+                        }
+                        
+                        // Don't redirect - user may recover when network returns
+                        return;
+                    }
+                    
+                    // Delay redirect to allow error to be seen
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 5000); // Increased from 3000 to 5000ms
+                    return;
+                }
             }
 
                 // Get user profile
                 const { data: userData, error: profileError } = await supabaseClient
                     .from('profiles')
                     .select('*')
-                .eq('email', session.user.email) // Consider changing to .eq('id', session.user.id) if email isn't unique or primary linkage
+                    .eq('id', session.user.id) // Use UUID instead of email
                     .single();
 
-            console.log('Fetching profile for email:', session.user.email);
+                console.log('Fetching profile for user ID:', session.user.id);
                 console.log('Profile query result:', { profile: userData, profileError });
 
-            let profileDataToSanitize;
+                let profileDataToSanitize;
 
-            if (profileError && profileError.code === 'PGRST116') {
-                // Profile doesn't exist, create one
-                console.log('No profile found, creating new profile...');
-                
-                const memberId = await generateSequentialMemberId(); // Make sure this function is defined earlier
-                
-                const { data: newProfile, error: createError } = await supabaseClient
+                if (profileError && profileError.code === 'PGRST116') {
+                    // Profile doesn't exist, try to fetch by email before creating a new one
+                    console.log('No profile found by ID, trying email fallback...');
+                    const { data: emailProfileData, error: emailProfileError } = await supabaseClient
                         .from('profiles')
-                    .insert([
-                        {
-                            id: session.user.id,
-                            email: session.user.email,
-                            full_name: session.user.user_metadata?.full_name || session.user.email.split('@')[0],
-                            username: session.user.email.split('@')[0],
-                            membership_status: 'pending',
-                            membership_type: 'standard',
-                            member_id: memberId, // Use generated memberId
-                            created_at: new Date().toISOString()
-                        }
-                    ])
-                        .select()
+                        .select('*')
+                        .eq('email', session.user.email)
                         .single();
+                        
+                    if (!emailProfileError && emailProfileData) {
+                        console.log('Found profile by email, updating with correct ID...');
+                        // Update the profile to have the correct ID
+                        const { error: updateError } = await supabaseClient
+                            .from('profiles')
+                            .update({ id: session.user.id })
+                            .eq('email', session.user.email);
+                            
+                        if (updateError) {
+                            console.warn('Could not update profile ID, but will use existing profile:', updateError);
+                        }
+                        
+                        profileDataToSanitize = emailProfileData;
+                    } else {
+                        // Profile doesn't exist by ID or email, create one
+                        console.log('No profile found by ID or email, creating new profile...');
+                        
+                        try {
+                            const memberId = await generateSequentialMemberId();
+                            
+                            const { data: newProfile, error: createError } = await supabaseClient
+                                .from('profiles')
+                                .insert([
+                                    {
+                                        id: session.user.id,
+                                        email: session.user.email,
+                                        full_name: session.user.user_metadata?.full_name || session.user.email.split('@')[0],
+                                        username: session.user.email.split('@')[0],
+                                        membership_status: 'pending',
+                                        membership_type: 'standard',
+                                        member_id: memberId,
+                                        created_at: new Date().toISOString()
+                                    }
+                                ])
+                                .select()
+                                .single();
 
-                if (createError) {
-                    console.error('Error creating profile:', createError);
-                    // It's critical to handle this error, e.g., by logging out or showing a message
-                    window.performLogout(); 
-                    return; // Stop execution if profile creation fails
-                }
-                profileDataToSanitize = newProfile;
-                console.log('New profile created (before sanitization):', newProfile);
-            } else if (profileError) {
-                console.error('Error fetching profile:', profileError);
-                window.performLogout(); // Log out user if profile can't be fetched
-                return; // Stop execution
+                            if (createError) {
+                                console.error('Error creating profile:', createError);
+                                
+                                // Attempt to handle duplicate key errors gracefully
+                                if (createError.code === '23505') { // PostgreSQL duplicate key error
+                                    console.log('Profile exists but could not be fetched. Using session data for display.');
+                                    // Create a basic profile from session data as fallback
+                                    profileDataToSanitize = {
+                                        id: session.user.id,
+                                        email: session.user.email,
+                                        full_name: session.user.user_metadata?.full_name || session.user.email.split('@')[0],
+                                        username: session.user.email.split('@')[0],
+                                        membership_status: 'pending',
+                                        membership_type: 'standard',
+                                        created_at: new Date().toISOString()
+                                    };
+                                    
+                                    // Show error but don't log out
+                                    const errorDisplay = document.getElementById('errorNotification');
+                                    if (errorDisplay) {
+                                        errorDisplay.querySelector('.error-message').textContent = 
+                                            'Could not load your complete profile. Some features may be limited.';
+                                        errorDisplay.style.display = 'flex';
+                                        setTimeout(() => errorDisplay.style.display = 'none', 5000);
+                                    }
+                                } else {
+                                    // For non-duplicate errors, show message but don't log out
+                                    const errorDisplay = document.getElementById('errorNotification');
+                                    if (errorDisplay) {
+                                        errorDisplay.querySelector('.error-message').textContent = 
+                                            'Error loading your profile: ' + createError.message;
+                                        errorDisplay.style.display = 'flex';
+                                        setTimeout(() => errorDisplay.style.display = 'none', 5000);
+                                    }
+                                    
+                                    // Use fallback profile from session
+                                    profileDataToSanitize = {
+                                        id: session.user.id,
+                                        email: session.user.email,
+                                        full_name: session.user.user_metadata?.full_name || session.user.email.split('@')[0],
+                                        username: session.user.email.split('@')[0],
+                                        membership_status: 'pending',
+                                        membership_type: 'standard',
+                                        created_at: new Date().toISOString()
+                                    };
+                                }
+                            } else {
+                                profileDataToSanitize = newProfile;
+                                console.log('New profile created (before sanitization):', newProfile);
+                            }
+                        } catch (createException) {
+                            console.error('Exception during profile creation:', createException);
+                            
+                            // Use fallback profile from session
+                            profileDataToSanitize = {
+                                id: session.user.id,
+                                email: session.user.email,
+                                full_name: session.user.user_metadata?.full_name || session.user.email.split('@')[0],
+                                username: session.user.email.split('@')[0],
+                                membership_status: 'pending',
+                                membership_type: 'standard',
+                                created_at: new Date().toISOString()
+                            };
+                            
+                            // Show error but don't log out
+                            const errorDisplay = document.getElementById('errorNotification');
+                            if (errorDisplay) {
+                                errorDisplay.querySelector('.error-message').textContent = 
+                                    'Could not create your profile. Using basic information.';
+                                errorDisplay.style.display = 'flex';
+                                setTimeout(() => errorDisplay.style.display = 'none', 5000);
+                            }
+                        }
+                    }
+                } else if (profileError) {
+                    // Other profile fetch error - don't log out, just show error and use session data
+                    console.error('Error fetching profile:', profileError);
+                    
+                    const errorDisplay = document.getElementById('errorNotification');
+                    if (errorDisplay) {
+                        errorDisplay.querySelector('.error-message').textContent = 
+                            'Could not load your profile data. Using basic information.';
+                        errorDisplay.style.display = 'flex';
+                        setTimeout(() => errorDisplay.style.display = 'none', 5000);
+                    }
+                    
+                    // Create fallback profile from session data
+                    profileDataToSanitize = {
+                        id: session.user.id,
+                        email: session.user.email,
+                        full_name: session.user.user_metadata?.full_name || session.user.email.split('@')[0],
+                        username: session.user.email.split('@')[0],
+                        membership_status: 'pending',
+                        membership_type: 'standard',
+                        created_at: new Date().toISOString()
+                    };
                 } else {
-                profileDataToSanitize = userData;
-            }
+                    profileDataToSanitize = userData;
+                }
 
             // Sanitize the initially fetched data specifically for UI display purposes first
             const initialDisplayProfile = sanitizeProfileData(JSON.parse(JSON.stringify(profileDataToSanitize))); // Use a deep copy for safety
@@ -2019,7 +2188,10 @@
                     
                     if (sessionError || !sessionData.session) {
                         console.error('Error getting session or user not authenticated:', sessionError);
-                        window.performLogout(); // Log out user if session can't be fetched
+                        window.performLogout({
+                            showMessage: true,
+                            redirectDelay: 5000
+                        }); // Log out user if session can't be fetched with delay
                         return;
                     }
                     
@@ -2210,8 +2382,11 @@
             logoutButtons.forEach(button => {
                 button.addEventListener('click', function(e) {
                     e.preventDefault();
-                    // Call our direct logout function
-                    window.performLogout();
+                    // Call our direct logout function with explicit user action
+                    window.performLogout({
+                        showMessage: true,
+                        redirectDelay: 2000 // Shorter delay for user-initiated logout
+                    });
                 });
             });
 
@@ -3855,7 +4030,9 @@
             errorContainer.style.display = 'block';
             setTimeout(() => errorContainer.style.display = 'none', 5000);
         }
-        if (error.message.includes('401')) window.location.href = 'login.html';
+        
+        // Don't redirect on 401 errors, just display the message
+        // if (error.message.includes('401')) window.location.href = 'login.html';
     }
     </script>
 
@@ -3905,51 +4082,208 @@
     <script>
     async function loadUserEvents() {
         try {
-            if (!window.userProfile?.id) {
-                await new Promise(resolve => setTimeout(resolve, 500));
-                if (!window.userProfile?.id) {
-                    throw new Error('User profile initialization delayed');
-                }
+            // Get the events container element
+            const eventsContainer = document.getElementById('upcomingEventsList');
+            
+            // If there's no container, exit early
+            if (!eventsContainer) {
+                console.log('Events container not found in DOM');
+                return;
             }
             
-            // Don't override the hardcoded event in the HTML
-            // The event is already in the HTML and doesn't need to be loaded dynamically
+            // Check if the container already has event items (static HTML)
+            const hasStaticEvents = eventsContainer.querySelector('.event-item') !== null;
+            if (hasStaticEvents) {
+                console.log('Found static event items, keeping them');
+                
+                // Remove any loading spinners
+                const spinners = eventsContainer.querySelectorAll('.loading-spinner');
+                spinners.forEach(spinner => spinner.remove());
+                
+                return;
+            }
             
-            // Skip the rest of this function to prevent overriding the hardcoded event
-            return;
-
-            // The code below won't execute due to the return statement above
-            const eventsContainer = document.getElementById('upcomingEventsList');
-            if (eventsContainer) {
+            // Show loading state if needed
+            if (!eventsContainer.querySelector('.loading-spinner')) {
                 eventsContainer.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div>';
             }
-
-            if (!window.userProfile?.id) {
-                throw new Error('User profile not initialized');
-            }
-
-            const { data: events, error } = await window.supabaseClient
-                .from('user_events')
-                .select('*')
-                .eq('user_id', window.userProfile.id);
-
-            if (error) throw error;
             
-            if (eventsContainer) {
-                eventsContainer.innerHTML = events.length > 0 
-                    ? events.map(event => `
-                        <div class="event-item">
-                            <i class="fas fa-calendar-day"></i>
-                            <div class="event-details">
-                                <h3>${event.name}</h3>
-                                <p>${new Date(event.date).toLocaleDateString()}</p>
-                            </div>
-                        </div>
-                    `).join('')
-                    : '<p class="no-events">No upcoming events found</p>';
+            // Check if we have a user profile with ID
+            if (!window.userProfile?.id) {
+                console.log('User profile ID not available, showing Tesla Light Show example');
+                
+                // Show example event as fallback
+                displayExampleEvent(eventsContainer);
+                return;
+            }
+            
+            console.log('Attempting to load events for user ID:', window.userProfile.id);
+            
+            // Attempt to fetch registered events
+            try {
+                // Fetch from event_registrations table
+                const { data: registrations, error: regError } = await window.supabaseClient
+                    .from('event_registrations')
+                    .select('event_id')
+                    .eq('user_id', window.userProfile.id)
+                    .is('cancelled_at', null);
+                
+                if (regError) {
+                    console.warn('Error fetching event registrations:', regError);
+                    displayExampleEvent(eventsContainer);
+                    return;
+                }
+                
+                if (!registrations || registrations.length === 0) {
+                    console.log('No event registrations found, showing example event');
+                    displayExampleEvent(eventsContainer);
+                    return;
+                }
+                
+                // Extract event IDs
+                const eventIds = registrations.map(reg => reg.event_id);
+                
+                // Fetch event details
+                const { data: events, error: eventsError } = await window.supabaseClient
+                    .from('events')
+                    .select('*')
+                    .in('id', eventIds);
+                
+                if (eventsError || !events || events.length === 0) {
+                    console.warn('Error fetching events or no events found:', eventsError);
+                    displayExampleEvent(eventsContainer);
+                    return;
+                }
+                
+                // Display the events
+                displayEvents(eventsContainer, events);
+                
+            } catch (fetchError) {
+                console.error('Error in event fetch process:', fetchError);
+                displayExampleEvent(eventsContainer);
             }
         } catch (error) {
-            handleDashboardError(error);
+            console.error('Error in loadUserEvents:', error);
+            window.dashboardErrors.addError('events', error.message, false);
+            
+            // Fallback to example event
+            const eventsContainer = document.getElementById('upcomingEventsList');
+            if (eventsContainer) {
+                displayExampleEvent(eventsContainer);
+            }
+        }
+    }
+    
+    // Helper function to display events
+    function displayEvents(container, events) {
+        if (!container) return;
+        
+        if (!events || events.length === 0) {
+            container.innerHTML = '<p class="no-events">No upcoming events found</p>';
+            return;
+        }
+        
+        const eventHtml = events.map(event => `
+            <div class="event-item">
+                <div class="event-date">
+                    <span class="event-month">${formatEventMonth(event.date)}</span>
+                    <span class="event-day">${formatEventDay(event.date)}</span>
+                    <span class="event-year">${formatEventYear(event.date)}</span>
+                </div>
+                <div class="event-info">
+                    <h3>${event.title || 'Upcoming Event'}</h3>
+                    <div class="event-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        ${event.location || 'Location TBA'}
+                    </div>
+                    <div class="event-time">
+                        <i class="fas fa-clock"></i>
+                        ${formatEventTime(event.date)}
+                    </div>
+                    <div class="event-highlights">
+                        <span class="highlight-tag"><i class="fas fa-star"></i> Registered</span>
+                    </div>
+                    <a href="events.html" class="event-btn">
+                        <i class="fas fa-info-circle"></i> More Details
+                    </a>
+                </div>
+            </div>
+        `).join('');
+        
+        container.innerHTML = eventHtml;
+    }
+    
+    // Helper function to display example event
+    function displayExampleEvent(container) {
+        if (!container) return;
+        
+        // Show Tesla Light Show example
+        container.innerHTML = `
+            <div class="event-item">
+                <div class="event-date">
+                    <span class="event-month">May</span>
+                    <span class="event-day">30</span>
+                    <span class="event-year">2025</span>
+                </div>
+                <div class="event-info">
+                    <h3>Tesla Light Show Spectacular</h3>
+                    <div class="event-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Golf IT Up Parking Lot, Thornhill
+                    </div>
+                    <div class="event-time">
+                        <i class="fas fa-clock"></i>
+                        7:30 PM EST
+                    </div>
+                    <div class="event-highlights">
+                        <span class="highlight-tag"><i class="fas fa-star"></i> Featured</span>
+                    </div>
+                    <a href="events.html" class="event-btn">
+                        <i class="fas fa-info-circle"></i> More Details
+                    </a>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Helper functions for formatting event data
+    function formatEventMonth(dateStr) {
+        try {
+            const date = new Date(dateStr);
+            return date.toLocaleString('default', { month: 'short' });
+        } catch {
+            return 'TBA';
+        }
+    }
+    
+    function formatEventDay(dateStr) {
+        try {
+            const date = new Date(dateStr);
+            return date.getDate();
+        } catch {
+            return '--';
+        }
+    }
+    
+    function formatEventYear(dateStr) {
+        try {
+            const date = new Date(dateStr);
+            return date.getFullYear();
+        } catch {
+            return 'TBA';
+        }
+    }
+    
+    function formatEventTime(dateStr) {
+        try {
+            const date = new Date(dateStr);
+            return date.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+        } catch {
+            return 'Time TBA';
         }
     }
     </script>
@@ -3967,28 +4301,41 @@
     <script>
     async function updateEventStats() {
         try {
-            // Initialize with empty array
+            // Initialize with empty array and default values
             let registrations = [];
+            let attended = 0;
             
+            // Safely get the user ID, using fallbacks if necessary
+            const userId = window.userProfile?.id || 
+                          (await window.supabaseClient.auth.getUser()).data?.user?.id;
+            
+            if (!userId) {
+                console.warn('Could not determine user ID for event stats');
+                // Update UI with default values rather than throwing an error
+                safeTextUpdate('eventsAttended', '0');
+                safeTextUpdate('upcomingEvents', '0');
+                return;
+            }
+            
+            console.log('Updating event stats for user ID:', userId);
+            
+            // Try to get event registrations
             try {
-                // Attempt to fetch data - FIXED QUERY SYNTAX
                 const response = await window.supabaseClient
-                .from('event_registrations')
-                    .select('event_id')  // First get just the event IDs
-                .eq('user_id', window.userProfile.id);
+                    .from('event_registrations')
+                    .select('event_id')
+                    .eq('user_id', userId);
 
-                // Use response data if available
                 registrations = response?.data || [];
+                console.log('Found registrations:', registrations.length);
                 
                 // If we have registrations, try to get event data
                 if (registrations.length > 0) {
                     try {
-                        // Get all events (simpler approach to avoid 'in' operator issues)
                         const { data: allEvents } = await window.supabaseClient
                             .from('events')
                             .select('id, status');
                             
-                        // If we got events data, merge it with registrations
                         if (allEvents && allEvents.length > 0) {
                             registrations = registrations.map(reg => ({
                                 ...reg,
@@ -4002,40 +4349,48 @@
                 }
             } catch (queryError) {
                 console.error('Error fetching event registrations:', queryError);
-                // Continue with empty registrations array
+                // Continue with empty registrations
             }
 
             // Calculate upcoming events count
             const upcoming = registrations.filter(r => r?.events?.status === 'upcoming').length;
             
-            // Get the events_attended count directly from the user's profile
-            let attended = 0;
+            // Try to get events_attended from profile
             try {
-                // Fetch the latest profile data to get the most up-to-date events_attended count
-                const { data: profileData, error: profileError } = await window.supabaseClient
-                    .from('profiles')
-                    .select('events_attended')
-                    .eq('id', window.userProfile.id)
-                    .single();
-                    
-                if (profileError) {
-                    console.error('Error fetching profile for events_attended count:', profileError);
-                } else {
-                    // Use the events_attended count from the profile, or default to 0 if not available
-                    attended = profileData?.events_attended || 0;
-                    
-                    // Update the userProfile object with the latest events_attended count
-                    window.userProfile.events_attended = attended;
+                if (userId) {
+                    const { data: profileData, error: profileError } = await window.supabaseClient
+                        .from('profiles')
+                        .select('events_attended')
+                        .eq('id', userId)
+                        .single();
+                        
+                    if (profileError) {
+                        console.warn('Could not fetch events_attended:', profileError);
+                        // Just use default value (0) instead of throwing
+                    } else {
+                        attended = profileData?.events_attended || 0;
+                        
+                        // Update userProfile if it exists
+                        if (window.userProfile) {
+                            window.userProfile.events_attended = attended;
+                        }
+                    }
                 }
             } catch (profileError) {
-                console.error('Error handling profile fetch for events_attended:', profileError);
+                console.warn('Error handling profile fetch for events_attended:', profileError);
+                // Continue with default value
             }
             
-            // Update the UI elements
+            // Update UI with the values we have
             safeTextUpdate('eventsAttended', attended);
             safeTextUpdate('upcomingEvents', upcoming);
+            console.log('Event stats updated successfully:', {attended, upcoming});
+            
         } catch (error) {
             console.error('Event stats error:', error);
+            // Show error but don't throw
+            safeTextUpdate('eventsAttended', '0');
+            safeTextUpdate('upcomingEvents', '0');
         }
     }
     </script>
@@ -4190,10 +4545,63 @@
             setTimeout(() => errorDisplay.style.display = 'none', 5000);
         }
         
-        if (error.message.includes('auth')) {
-            window.location.href = 'login.html';
-        }
+        // Never redirect to login page on errors
+        // Only the authentication system should control redirects
+        
+        // Prevent the error from propagating to other handlers
+        event.preventDefault();
+        event.stopPropagation();
+        return true; // Prevents default error handler
     });
+    
+    // Add global unhandled promise rejection handler
+    window.addEventListener('unhandledrejection', (event) => {
+        console.error('Unhandled Promise Rejection:', event.reason);
+        
+        const errorDisplay = document.getElementById('errorNotification');
+        if (errorDisplay) {
+            errorDisplay.querySelector('.error-message').textContent = 
+                `Error: ${event.reason?.message || 'Unhandled promise rejection occurred'}`;
+            errorDisplay.style.display = 'flex';
+            setTimeout(() => errorDisplay.style.display = 'none', 5000);
+        }
+        
+        // Prevent the error from propagating
+        event.preventDefault();
+        event.stopPropagation();
+        return true;
+    });
+    
+    // Add a recovery function to create a reliable profile if needed
+    window.recoverUserProfile = async function() {
+        if (window.userProfile) return window.userProfile;
+        
+        try {
+            // Get current session
+            const { data: { session } } = await window.supabaseClient.auth.getSession();
+            if (!session?.user) return null;
+            
+            // Create minimal profile
+            const minimalProfile = {
+                id: session.user.id,
+                email: session.user.email,
+                full_name: session.user.user_metadata?.full_name || session.user.email.split('@')[0],
+                username: session.user.email.split('@')[0],
+                membership_status: 'pending',
+                membership_type: 'standard',
+                created_at: new Date().toISOString()
+            };
+            
+            // Set global profile
+            window.userProfile = minimalProfile;
+            console.log('Created recovery profile from session');
+            
+            return minimalProfile;
+        } catch (e) {
+            console.error('Error creating recovery profile:', e);
+            return null;
+        }
+    };
     </script>
 
     <!-- Add at the end of body -->
@@ -5011,6 +5419,378 @@ Blitz T Club Team`);
     }
     </style>
 
-    <!-- ... existing code ... -->
+    <!-- ... existing code ... */
+
+    <!-- Add resilient initialization with retry -->
+    <script>
+    // Function to initialize with retry capability
+    async function initWithRetry(maxRetries = 3, delay = 1000) {
+        let attempts = 0;
+        
+        while (attempts < maxRetries) {
+            try {
+                console.log(`Dashboard initialization attempt ${attempts + 1}/${maxRetries}`);
+                
+                // First make sure we have a user profile
+                if (!window.userProfile) {
+                    await window.recoverUserProfile();
+                }
+                
+                // Try to initialize all sections independently
+                
+                // Profile section
+                try {
+                    if (typeof initializeProfileSection === 'function') {
+                        initializeProfileSection();
+                    }
+                } catch (profileError) {
+                    console.warn('Could not initialize profile section:', profileError);
+                }
+                
+                // Events
+                try {
+                    if (typeof loadUserEvents === 'function') {
+                        await loadUserEvents();
+                    }
+                } catch (eventsError) {
+                    console.warn('Could not load user events:', eventsError);
+                }
+                
+                // Stats
+                try {
+                    if (typeof updateEventStats === 'function') {
+                        await updateEventStats();
+                    }
+                } catch (statsError) {
+                    console.warn('Could not update event stats:', statsError);
+                }
+                
+                console.log('Dashboard initialization completed successfully');
+                return;
+            } catch (error) {
+                attempts++;
+                console.error(`Initialization attempt ${attempts} failed:`, error);
+                
+                // Show an error message but keep trying
+                const errorDisplay = document.getElementById('errorNotification');
+                if (errorDisplay) {
+                    errorDisplay.querySelector('.error-message').textContent = 
+                        `Dashboard load issue: ${error.message}. Retrying...`;
+                    errorDisplay.style.display = 'flex';
+                    setTimeout(() => {
+                        if (errorDisplay.querySelector('.error-message').textContent.includes('Retrying')) {
+                            errorDisplay.style.display = 'none';
+                        }
+                    }, 3000);
+                }
+                
+                if (attempts < maxRetries) {
+                    console.log(`Waiting ${delay}ms before retry ${attempts + 1}/${maxRetries}`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    // Increase delay for next retry
+                    delay *= 1.5;
+                }
+            }
+        }
+        
+        console.warn('All dashboard initialization attempts failed');
+        // Show a persistent message
+        const errorDisplay = document.getElementById('errorNotification');
+        if (errorDisplay) {
+            errorDisplay.querySelector('.error-message').textContent = 
+                'Dashboard could not be fully loaded. Some features may be limited.';
+            errorDisplay.style.display = 'flex';
+            setTimeout(() => errorDisplay.style.display = 'none', 8000);
+        }
+    }
+    
+    // Run initialization with retry when the DOM is loaded
+    document.addEventListener('DOMContentLoaded', initWithRetry);
+    </script>
+
+    <!-- Replace the global error handlers with improved versions -->
+    <script>
+    // Create a centralized error handling system
+    window.dashboardErrors = {
+        _errors: [],
+        _notificationTimeout: null,
+        _notificationDisplayed: false,
+        
+        // Add an error to the tracking system
+        addError: function(source, message, isCritical = false) {
+            const error = {
+                source: source,
+                message: message,
+                timestamp: new Date(),
+                isCritical: isCritical
+            };
+            
+            console.error(`Dashboard Error [${source}]:`, message);
+            this._errors.push(error);
+            
+            // Don't show notifications during initialization
+            const isInitializing = window._dashboardInitializing === true;
+            
+            // Only show notifications for critical errors or after initialization
+            if ((isCritical || !isInitializing) && !this._notificationDisplayed) {
+                this.showNotification(message);
+            }
+            
+            return error;
+        },
+        
+        // Display an error notification
+        showNotification: function(message, duration = 5000) {
+            const errorDisplay = document.getElementById('errorNotification');
+            if (!errorDisplay) return;
+            
+            // Clear any existing timeout
+            if (this._notificationTimeout) {
+                clearTimeout(this._notificationTimeout);
+            }
+            
+            // Set notification content and display it
+            errorDisplay.querySelector('.error-message').textContent = message;
+            errorDisplay.style.display = 'flex';
+            this._notificationDisplayed = true;
+            
+            // Auto-hide after duration
+            this._notificationTimeout = setTimeout(() => {
+                errorDisplay.style.display = 'none';
+                this._notificationDisplayed = false;
+            }, duration);
+        },
+        
+        // Clear all notifications
+        clearNotification: function() {
+            const errorDisplay = document.getElementById('errorNotification');
+            if (!errorDisplay) return;
+            
+            // Clear any existing timeout
+            if (this._notificationTimeout) {
+                clearTimeout(this._notificationTimeout);
+            }
+            
+            // Hide the notification
+            errorDisplay.style.display = 'none';
+            this._notificationDisplayed = false;
+        },
+        
+        // Get all errors
+        getErrors: function() {
+            return [...this._errors]; // Return a copy
+        },
+        
+        // Check if we have critical errors
+        hasCriticalErrors: function() {
+            return this._errors.some(e => e.isCritical);
+        }
+    };
+    
+    // Replace window error handler
+    window.addEventListener('error', (event) => {
+        const error = event.error || new Error(event.message || 'Unknown error');
+        
+        // Add to our tracking system
+        window.dashboardErrors.addError('global', error.message, false);
+        
+        // Prevent the error from bubbling to default handler
+        event.preventDefault();
+        return true;
+    });
+    
+    // Replace unhandled promise rejection handler
+    window.addEventListener('unhandledrejection', (event) => {
+        const message = event.reason?.message || 'Unhandled promise rejection';
+        
+        // Add to our tracking system
+        window.dashboardErrors.addError('promise', message, false);
+        
+        // Prevent from bubbling to default handler
+        event.preventDefault();
+        return true;
+    });
+    
+    // More user-friendly handleDashboardError function
+    function handleDashboardError(error, source = 'dashboard') {
+        // Add to our error tracking system
+        window.dashboardErrors.addError(source, error.message || 'Unknown error', false);
+        
+        // No automatic redirects to login page
+    }
+    </script>
+
+    <!-- Update the initialization retry function to use the new error system -->
+    <script>
+    // Set a flag during initialization to suppress excessive notifications
+    window._dashboardInitializing = true;
+    
+    // Master initialization function with dashboard loading logic
+    async function initializeDashboard() {
+        console.log('Starting unified dashboard initialization');
+        
+        try {
+            // First check if we already have a profile
+            if (!window.userProfile) {
+                console.log('No user profile found, attempting to create from session');
+                
+                try {
+                    // First attempt - get from session
+                    const { data: { session } } = await window.supabaseClient.auth.getSession();
+                    
+                    if (!session?.user) {
+                        window.dashboardErrors.addError('auth', 'No active session found', true);
+                        // Redirect to login in 3 seconds with message
+                        window.dashboardErrors.showNotification('Your session has expired. Redirecting to login...', 3000);
+                        
+                        setTimeout(() => {
+                            window.location.href = 'login.html';
+                        }, 3000);
+                        return;
+                    }
+                    
+                    // Get profile from database
+                    console.log('Getting profile for user:', session.user.id);
+                    const { data: profileData, error: profileError } = await window.supabaseClient
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', session.user.id)
+                        .single();
+                    
+                    if (profileError) {
+                        // Try email fallback if ID search fails
+                        console.log('Failed to get profile by ID, trying email fallback');
+                        const { data: emailProfileData, error: emailProfileError } = await window.supabaseClient
+                            .from('profiles')
+                            .select('*')
+                            .eq('email', session.user.email)
+                            .single();
+                            
+                        if (emailProfileData && !emailProfileError) {
+                            // Found by email but not ID - update the ID
+                            console.log('Found profile by email, updating ID');
+                            await window.supabaseClient
+                                .from('profiles')
+                                .update({ id: session.user.id })
+                                .eq('email', session.user.email);
+                                
+                            window.userProfile = emailProfileData;
+                            window.userProfile.id = session.user.id;
+                        } else {
+                            // Create minimal profile
+                            window.userProfile = {
+                                id: session.user.id,
+                                email: session.user.email,
+                                full_name: session.user.user_metadata?.full_name || session.user.email.split('@')[0],
+                                username: session.user.email.split('@')[0],
+                                membership_status: 'pending',
+                                created_at: new Date().toISOString()
+                            };
+                        }
+                    } else {
+                        // Profile found by ID
+                        window.userProfile = profileData;
+                    }
+                    
+                    console.log('Profile loaded successfully:', window.userProfile);
+                    
+                } catch (sessionError) {
+                    window.dashboardErrors.addError('profile', 'Error loading profile: ' + sessionError.message, false);
+                    // Create empty profile but don't throw
+                    window.userProfile = {
+                        full_name: 'Guest User',
+                        membership_status: 'pending',
+                        created_at: new Date().toISOString()
+                    };
+                }
+            }
+            
+            // Initialize UI sections in sequence with independent error handling
+            
+            console.log('Initializing profile section');
+            // Profile section
+            try {
+                if (typeof initializeProfileSection === 'function') {
+                    initializeProfileSection();
+                }
+            } catch (profileError) {
+                window.dashboardErrors.addError('profile', 'Could not initialize profile section', false);
+            }
+            
+            console.log('Loading user events');
+            // Events
+            try {
+                if (typeof loadUserEvents === 'function') {
+                    await loadUserEvents();
+                }
+            } catch (eventsError) {
+                window.dashboardErrors.addError('events', 'Could not load user events', false);
+            }
+            
+            console.log('Updating event stats');
+            // Stats
+            try {
+                await updateEventStats();
+            } catch (statsError) {
+                window.dashboardErrors.addError('stats', 'Could not update event stats', false);
+            }
+            
+            console.log('Checking profile completion');
+            // Profile completion check
+            try {
+                if (typeof checkProfileCompletion === 'function') {
+                    checkProfileCompletion();
+                }
+            } catch (completionError) {
+                window.dashboardErrors.addError('completion', 'Could not check profile completion', false);
+            }
+            
+            console.log('Dashboard initialization completed successfully');
+            
+        } catch (error) {
+            window.dashboardErrors.addError('init', 'Error in master initialization: ' + error.message, true);
+        } finally {
+            // Mark initialization as complete
+            window._dashboardInitializing = false;
+        }
+    }
+    
+    // Set up the initialization with retry
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, starting initialization with retry');
+        
+        let attempts = 0;
+        const maxAttempts = 3;
+        const attemptInit = async () => {
+            try {
+                await initializeDashboard();
+                // Clear any initialization messages on success
+                window.dashboardErrors.clearNotification();
+            } catch (error) {
+                attempts++;
+                console.error(`Dashboard initialization attempt ${attempts} failed:`, error);
+                
+                if (attempts < maxAttempts) {
+                    console.log(`Retrying initialization (${attempts + 1}/${maxAttempts})...`);
+                    // Show a retry message
+                    window.dashboardErrors.showNotification(`Dashboard load issue. Retrying (${attempts + 1}/${maxAttempts})...`, 2000);
+                    setTimeout(attemptInit, 1000 * attempts); // Increasing delay between attempts
+                } else {
+                    console.error('All initialization attempts failed');
+                    // Only show error if we have critical errors, not for minor display issues
+                    if (window.dashboardErrors.hasCriticalErrors()) {
+                        window.dashboardErrors.showNotification('Dashboard could not be fully loaded due to critical errors.', 5000);
+                    } else {
+                        // Just clear any notifications for non-critical issues
+                        window.dashboardErrors.clearNotification();
+                    }
+                }
+            }
+        };
+        
+        // Start the initialization process
+        attemptInit();
+    });
+    </script>
 </body>
 </html> 

@@ -1516,22 +1516,29 @@
             <span class="close wechat-close">&times;</span>
             <h2><i class="fab fa-weixin"></i> Join Our WeChat Group</h2>
             <div class="qr-container">
-                <!-- Update to use the new QR code image -->
-                <img src="https://i.postimg.cc/pmgBmt3G/QR-code-for-light.jpg" 
-                     alt="WeChat Group QR Code" 
-                     class="qr-code"
-                     style="width: 280px; height: 280px; object-fit: contain; background-color: white; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); margin: 0 auto; border: 4px solid white; padding: 10px; box-sizing: border-box; display: block;">
+                <!-- Switch from img tag to div with background image for better QR code display -->
+                <div class="qr-code-background" 
+                     style="width: 280px; height: 280px; 
+                            background-image: url('https://i.postimg.cc/pmgBmt3G/QR-code-for-light.jpg'); 
+                            background-size: contain; 
+                            background-position: center; 
+                            background-repeat: no-repeat; 
+                            background-color: white; 
+                            border-radius: 8px; 
+                            box-shadow: 0 6px 20px rgba(0,0,0,0.15); 
+                            margin: 0 auto; 
+                            border: 4px solid white; 
+                            padding: 10px; 
+                            box-sizing: border-box;
+                            cursor: pointer;"
+                     title="Tap to download QR code">
+                </div>
                 
-                <!-- QR code actions (with updated download link) -->
+                <!-- QR code actions -->
                 <div class="qr-actions" style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
                     <a href="#" class="qr-btn download-btn" id="downloadQRBtn" style="background: #07C160; color: white; padding: 10px 20px; border-radius: 20px; text-decoration: none; display: flex; align-items: center; gap: 8px; font-weight: 500; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
                         <i class="fas fa-download"></i> Download QR Code
                     </a>
-                </div>
-                
-                <!-- Mobile-specific download reminder -->
-                <div class="mobile-only" style="text-align: center; margin-top: 10px; color: #555; font-size: 13px;">
-                    <i class="fas fa-info-circle"></i> Tap and hold on QR code to save directly
                 </div>
             </div>
             
@@ -2207,89 +2214,84 @@
         
         // Handle direct QR code download without third-party site visit
         const downloadQRBtn = document.getElementById('downloadQRBtn');
+        const qrCodeBg = document.querySelector('.qr-code-background');
+        const qrImageUrl = 'https://i.postimg.cc/pmgBmt3G/QR-code-for-light.jpg';
+        
         if (downloadQRBtn) {
             downloadQRBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                
-                // Get the QR code image
-                const qrCodeImg = document.querySelector('.qr-code');
-                
-                // Create a canvas element
-                const canvas = document.createElement('canvas');
-                
-                // Handle the image loading if it hasn't fully loaded yet
-                if (!qrCodeImg.complete) {
-                    qrCodeImg.onload = function() {
-                        downloadQRImage(qrCodeImg);
-                    };
-                } else {
-                    downloadQRImage(qrCodeImg);
-                }
+                downloadQRCode(qrImageUrl);
             });
         }
         
-        // Make the QR code directly tappable/downloadable for mobile users
-        if (isMobile) {
-            const qrCodeImg = document.querySelector('.qr-code');
-            if (qrCodeImg) {
-                // Add visual cues that it's clickable
-                qrCodeImg.style.cursor = 'pointer';
-                qrCodeImg.title = 'Tap to download QR code';
-                
-                // Add click event listener for direct download
-                qrCodeImg.addEventListener('click', function() {
-                    if (!qrCodeImg.complete) {
-                        qrCodeImg.onload = function() {
-                            downloadQRImage(qrCodeImg);
-                        };
-                    } else {
-                        downloadQRImage(qrCodeImg);
-                    }
-                });
-            }
+        // Make the QR code div directly tappable/downloadable
+        if (qrCodeBg) {
+            qrCodeBg.addEventListener('click', function() {
+                downloadQRCode(qrImageUrl);
+            });
         }
         
         // Helper function to download the QR image
-        function downloadQRImage(imgElement) {
-            // Create a canvas element
-            const canvas = document.createElement('canvas');
-            canvas.width = imgElement.naturalWidth || 280;
-            canvas.height = imgElement.naturalHeight || 280;
+        function downloadQRCode(imageUrl) {
+            // Create a temporary image to get the actual dimensions
+            const tempImage = new Image();
+            tempImage.crossOrigin = "Anonymous";
+            tempImage.src = imageUrl;
             
-            // Draw the image on the canvas
-            const ctx = canvas.getContext('2d');
-            try {
-                ctx.drawImage(imgElement, 0, 0);
+            tempImage.onload = function() {
+                // Create a canvas element
+                const canvas = document.createElement('canvas');
+                canvas.width = tempImage.naturalWidth || 280;
+                canvas.height = tempImage.naturalHeight || 280;
                 
-                // Convert canvas to blob and download
-                canvas.toBlob(function(blob) {
-                    // Create a temporary URL for the blob
-                    const url = URL.createObjectURL(blob);
+                // Draw the image on the canvas
+                const ctx = canvas.getContext('2d');
+                try {
+                    ctx.drawImage(tempImage, 0, 0);
                     
-                    // Create a link element and trigger download
+                    // Convert canvas to blob and download
+                    canvas.toBlob(function(blob) {
+                        // Create a temporary URL for the blob
+                        const url = URL.createObjectURL(blob);
+                        
+                        // Create a link element and trigger download
+                        const downloadLink = document.createElement('a');
+                        downloadLink.href = url;
+                        downloadLink.download = 'WeChat-QR-Code.jpg';
+                        document.body.appendChild(downloadLink);
+                        downloadLink.click();
+                        document.body.removeChild(downloadLink);
+                        
+                        // Release the blob URL
+                        setTimeout(function() {
+                            URL.revokeObjectURL(url);
+                        }, 100);
+                    }, 'image/jpeg');
+                } catch (e) {
+                    console.error('Error creating QR code download:', e);
+                    
+                    // Fallback - direct download from URL
                     const downloadLink = document.createElement('a');
-                    downloadLink.href = url;
+                    downloadLink.href = imageUrl;
                     downloadLink.download = 'WeChat-QR-Code.jpg';
                     document.body.appendChild(downloadLink);
                     downloadLink.click();
                     document.body.removeChild(downloadLink);
-                    
-                    // Release the blob URL
-                    setTimeout(function() {
-                        URL.revokeObjectURL(url);
-                    }, 100);
-                }, 'image/jpeg');
-            } catch (e) {
-                console.error('Error creating QR code download:', e);
+                }
+            };
+            
+            // Handle loading error
+            tempImage.onerror = function() {
+                console.error('Error loading QR code image');
                 
                 // Fallback - direct download from URL
                 const downloadLink = document.createElement('a');
-                downloadLink.href = imgElement.src;
+                downloadLink.href = imageUrl;
                 downloadLink.download = 'WeChat-QR-Code.jpg';
                 document.body.appendChild(downloadLink);
                 downloadLink.click();
                 document.body.removeChild(downloadLink);
-            }
+            };
         }
     });
     </script>

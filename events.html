@@ -602,6 +602,181 @@
             width: 100%;
             margin: 1rem 0;
         }
+
+        /* Enhance QR code modal styles */
+        .qr-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 12px;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.05);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .qr-code {
+            width: 280px;
+            height: 280px;
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            margin: 0 auto;
+            display: block;
+            border: 4px solid white;
+            object-fit: contain !important;
+            background-color: white;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        
+        .qr-instructions {
+            text-align: center;
+            margin: 15px 0;
+            color: #333;
+            font-size: 16px;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+        
+        .qr-subtitle {
+            display: block;
+            color: #555;
+            font-size: 14px;
+            margin-top: 8px;
+            font-weight: normal;
+        }
+        
+        #wechatModal .modal-content {
+            max-width: 450px;
+            text-align: center;
+            border-top: 5px solid #07C160;
+            padding-top: 25px;
+        }
+        
+        .qr-benefits {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .qr-benefit {
+            flex: 0 0 calc(50% - 10px);
+            background: rgba(7, 193, 96, 0.05);
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-align: left;
+        }
+        
+        .qr-benefit i {
+            color: #07C160;
+            font-size: 1.2em;
+        }
+        
+        .qr-benefit span {
+            font-size: 14px;
+            color: #333;
+        }
+        
+        @media (max-width: 480px) {
+            .qr-benefit {
+                flex: 0 0 100%;
+            }
+            
+            .qr-code {
+                width: 220px;
+                height: 220px;
+            }
+        }
+        
+        #closeQrBtn {
+            background: #07C160;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        #closeQrBtn:hover {
+            background: #06A050;
+        }
+
+        /* Re-add the WeChat branding elements */
+        #wechatModal h2 {
+            color: #07C160;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+        
+        #wechatModal .fab.fa-weixin {
+            color: #07C160;
+            font-size: 1.5em;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        
+        /* Modal animation */
+        .modal.fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Improve QR code visibility */
+        .qr-container:after {
+            content: "WeChat";
+            position: absolute;
+            bottom: -5px;
+            right: 30px;
+            background: #07C160;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 2;
+        }
+
+        /* Add open app button */
+        .open-wechat-btn {
+            background: #07C160;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 15px;
+            font-size: 14px;
+            margin-top: 10px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+        }
+        
+        .open-wechat-btn:hover {
+            background: #06A050;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .mobile-only {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-only {
+                display: block;
+            }
+        }
     </style>
 </head>
 <body class="events-page">
@@ -833,6 +1008,60 @@
         </div>
     </div>
 
+    <div id="wechatModal" class="modal">
+        <div class="modal-content">
+            <span class="close wechat-close">&times;</span>
+            <h2><i class="fab fa-weixin"></i> Join Our WeChat Group</h2>
+            <div class="qr-container">
+                <div class="qr-code-background" style="width: 280px; height: 280px; background-image: url('https://i.postimg.cc/sQ7x1fjf/QR-code.png'); background-size: contain; background-position: center; background-repeat: no-repeat; background-color: white; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); margin: 0 auto; border: 4px solid white; padding: 10px; box-sizing: border-box;"></div>
+                
+                <!-- Alternative QR code display method if background doesn't work -->
+                <div class="qr-alternative" style="margin-top: 15px;">
+                    <p style="font-size: 14px; color: #666; margin-bottom: 5px;">If QR code is not visible above:</p>
+                    <a href="https://postimg.cc/sQ7x1fjf" target="_blank" style="display: inline-block; padding: 8px 15px; background: #07C160; color: white; text-decoration: none; border-radius: 20px; font-size: 14px;">
+                        <i class="fas fa-qrcode"></i> View QR Code
+                    </a>
+                </div>
+                
+                <div style="margin-top: 10px; font-size: 14px;">
+                    <a href="https://i.postimg.cc/sQ7x1fjf/QR-code.png" download="WeChat-QR-Code.png" target="_blank" style="color: #07C160; text-decoration: underline;">
+                        <i class="fas fa-download"></i> Download QR Code
+                    </a>
+                </div>
+                <div class="mobile-only" style="margin-top: 10px;">
+                    <a href="weixin://" class="open-wechat-btn">
+                        <i class="fab fa-weixin"></i> Open WeChat App
+                    </a>
+                </div>
+            </div>
+            <p class="qr-instructions">
+                Scan this QR code with WeChat to join our Tesla owners community
+                <span class="qr-subtitle">Connect with other members in Canada's premier Tesla community</span>
+            </p>
+            <div class="qr-benefits">
+                <div class="qr-benefit">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Get early access to event announcements</span>
+                </div>
+                <div class="qr-benefit">
+                    <i class="fas fa-users"></i>
+                    <span>Connect with experienced Tesla owners</span>
+                </div>
+                <div class="qr-benefit">
+                    <i class="fas fa-lightbulb"></i>
+                    <span>Share tips and get your questions answered</span>
+                </div>
+                <div class="qr-benefit">
+                    <i class="fas fa-tag"></i>
+                    <span>Access member-exclusive offers and discounts</span>
+                </div>
+            </div>
+            <button class="btn primary-btn" id="closeQrBtn">
+                <i class="fas fa-check-circle"></i> Got it!
+            </button>
+        </div>
+    </div>
+
     <script>
     document.addEventListener('DOMContentLoaded', async () => {
         // Wait for Supabase client initialization
@@ -1035,8 +1264,18 @@
 
                 document.getElementById('registrationModal').style.display = 'none';
                 await updateRegistrationCount();
-                alert(`Successfully registered your ${model}!`);
-                window.location.href = 'dashboard.html';
+                
+                // Show WeChat QR code modal with animation
+                const wechatModal = document.getElementById('wechatModal');
+                wechatModal.classList.add('fade-in');
+                wechatModal.style.display = 'block';
+                
+                // Track that the user has seen the QR code
+                try {
+                    localStorage.setItem('wechatQrShown', 'true');
+                } catch (e) {
+                    console.error('Could not save QR shown state to localStorage', e);
+                }
 
             } catch (error) {
                 console.error('Registration process failed:', error);
@@ -1156,6 +1395,24 @@
                 alert(`Cancellation failed: ${error.message}`);
             }
         });
+
+        // Handle closing the QR code modal
+        document.querySelector('.wechat-close').addEventListener('click', () => {
+            document.getElementById('wechatModal').style.display = 'none';
+            window.location.href = 'dashboard.html'; // Redirect after closing
+        });
+
+        document.getElementById('closeQrBtn').addEventListener('click', () => {
+            document.getElementById('wechatModal').style.display = 'none';
+            window.location.href = 'dashboard.html'; // Redirect after clicking button
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === document.getElementById('wechatModal')) {
+                document.getElementById('wechatModal').style.display = 'none';
+                window.location.href = 'dashboard.html'; // Redirect after clicking outside
+            }
+        });
     });
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -1187,6 +1444,49 @@
         // Keep only the event registration code
         const registrationModal = document.getElementById('registrationModal');
         // ... rest of your existing event-specific code
+    });
+
+    // Check if we're on a mobile device
+    document.addEventListener('DOMContentLoaded', function() {
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        const openWechatBtn = document.querySelector('.open-wechat-btn');
+        
+        if (openWechatBtn) {
+            if (isMobile) {
+                openWechatBtn.parentElement.style.display = 'block';
+            } else {
+                openWechatBtn.parentElement.style.display = 'none';
+            }
+        }
+        
+        // QR code modal functions - kept for potential future use
+        window.showQRCodeForTesting = function() {
+            const wechatModal = document.getElementById('wechatModal');
+            if (wechatModal) {
+                console.log('Displaying WeChat QR code modal');
+                wechatModal.classList.add('fade-in');
+                wechatModal.style.display = 'block';
+            } else {
+                console.error('WeChat modal element not found');
+            }
+        };
+        
+        window.hideQRCodeModal = function() {
+            const wechatModal = document.getElementById('wechatModal');
+            if (wechatModal) {
+                wechatModal.style.display = 'none';
+            }
+        };
+        
+        // Auto-display removed from production mode
+        // setTimeout(showQRCodeForTesting, 1000);
+        
+        // Auto-hide confirmation removed from production mode
+        // setTimeout(function() {
+        //     if (confirm('Do you want to restore normal behavior now?')) {
+        //         hideQRCodeModal();
+        //     }
+        // }, 10000);
     });
     </script>
 </body>

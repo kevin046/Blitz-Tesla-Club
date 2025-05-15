@@ -24,6 +24,7 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            min-height: calc(var(--vh, 1vh) * 100); /* Mobile viewport height fix */
         }
         
         /* Ensure the logo displays correctly */
@@ -359,6 +360,180 @@
             .registration-icon {
                 margin-bottom: 0.8rem;
                 font-size: 1.5em;
+            }
+        }
+
+        /* Landscape mode optimizations for mobile devices */
+        @media (max-width: 768px) and (orientation: landscape) {
+            body.events-page {
+                padding-top: 60px; /* Add space below fixed navigation */
+            }
+            
+            .events-container {
+                padding-top: 20px;
+                min-height: auto;
+            }
+            
+            .event-header {
+                grid-template-columns: 1fr 1fr; /* Return to two columns for landscape */
+                gap: 15px;
+                padding: 1rem;
+            }
+            
+            .event-image-container {
+                height: 300px; /* Shorter height for landscape */
+            }
+            
+            .event-details {
+                padding: 1rem;
+            }
+            
+            .event-meta-grid {
+                grid-template-columns: 1fr 1fr; /* Two columns for meta info */
+                gap: 10px;
+                margin-bottom: 1rem;
+            }
+            
+            .meta-item {
+                padding: 0.8rem;
+            }
+            
+            .event-description {
+                padding-top: 1rem;
+            }
+            
+            .event-description h3 {
+                font-size: 1.2rem;
+                margin-bottom: 0.8rem;
+            }
+            
+            .feature-list {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            
+            .event-actions {
+                flex-direction: row; /* Horizontal layout for buttons in landscape */
+                flex-wrap: wrap;
+                justify-content: center;
+                margin-top: 1rem;
+                padding-top: 1rem;
+                gap: 10px;
+            }
+            
+            /* Make buttons more compact in landscape */
+            .event-actions button {
+                flex: 0 0 auto;
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+            
+            /* Adjust registration count display for landscape */
+            .registration-count {
+                flex-direction: row;
+                padding: 0.8rem;
+                max-width: 100%;
+                margin-top: 10px;
+            }
+            
+            .registration-icon {
+                margin-bottom: 0;
+                margin-right: 10px;
+            }
+            
+            /* Adjust modal positioning for landscape */
+            .modal-content {
+                max-height: 85vh;
+                overflow-y: auto;
+                padding: 1.2rem;
+                max-width: 85%;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            /* QR code container adjustments for landscape */
+            .qr-container {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 15px;
+                padding: 10px;
+            }
+            
+            .qr-code-background {
+                width: 180px !important;
+                height: 180px !important;
+                margin: 0;
+                flex: 0 0 auto;
+            }
+            
+            /* Align QR code instructions next to QR code in landscape */
+            .qr-instructions {
+                text-align: left;
+                flex: 1;
+                margin: 0;
+                min-width: 150px;
+            }
+            
+            /* Keep Open WeChat button visible and properly sized */
+            .open-wechat-btn {
+                margin-top: 5px;
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+            
+            /* Adjust benefits layout for landscape */
+            .qr-benefits {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                width: 100%;
+                gap: 5px;
+                margin: 8px 0;
+            }
+            
+            .qr-benefit {
+                padding: 6px;
+                font-size: 12px;
+            }
+            
+            /* Optimize WeChat modal specifically */
+            #wechatModal .modal-content {
+                padding: 15px;
+            }
+            
+            #wechatModal h2 {
+                font-size: 1.2rem;
+                margin-bottom: 10px;
+            }
+            
+            #closeQrBtn {
+                margin-top: 5px;
+                padding: 8px 15px;
+            }
+            
+            /* Registration modal landscape optimizations */
+            #registrationModal .modal-content,
+            #cancelModal .modal-content,
+            #statusModal .modal-content {
+                padding: 15px;
+            }
+            
+            /* Improve status modal for landscape */
+            .status-actions {
+                flex-direction: row;
+                gap: 10px;
+            }
+            
+            .status-details {
+                padding: 10px;
+                margin-bottom: 10px;
+            }
+            
+            /* Map sizing for landscape */
+            .event-map iframe {
+                height: 200px;
             }
         }
 
@@ -1467,6 +1642,21 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', async () => {
+        // Set viewport height for mobile browsers
+        function setViewportHeight() {
+            // First we get the viewport height and we multiply it by 1% to get a value for a vh unit
+            let vh = window.innerHeight * 0.01;
+            // Then we set the value in the --vh custom property to the root of the document
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        
+        // Set the height initially
+        setViewportHeight();
+        
+        // Reset on resize and orientationchange
+        window.addEventListener('resize', setViewportHeight);
+        window.addEventListener('orientationchange', setViewportHeight);
+        
         // Wait for Supabase client initialization
         await new Promise(resolve => {
             if (window.supabaseClient) return resolve();

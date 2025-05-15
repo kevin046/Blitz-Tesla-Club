@@ -934,6 +934,172 @@
                 display: block;
             }
         }
+        
+        /* Registration Status Modal Styles */
+        #statusModal .modal-content {
+            text-align: center;
+            max-width: 480px;
+            padding: 2.5rem 2rem;
+        }
+        
+        .status-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        
+        .status-icon.registered {
+            color: #00e676;
+        }
+        
+        .status-icon.not-registered {
+            color: #ff9800;
+        }
+        
+        #statusModal h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            color: #171a20;
+        }
+        
+        .status-details {
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+        
+        .event-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #171a20;
+        }
+        
+        .event-date, .event-location {
+            margin-bottom: 0.8rem;
+            color: #5c5e62;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .event-date i, .event-location i {
+            color: #00e676;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .registration-info, .not-registered-info {
+            margin-top: 1.2rem;
+            padding-top: 1.2rem;
+            border-top: 1px solid #eee;
+        }
+        
+        .registered-model, .registered-date {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 0.5rem;
+            color: #5c5e62;
+        }
+        
+        .registered-model i, .registered-date i {
+            color: #00e676;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .registered-model strong {
+            color: #171a20;
+            font-weight: 600;
+        }
+        
+        .not-registered-info p {
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .not-registered-info i {
+            color: #ff9800;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .spots-left {
+            font-style: italic;
+            color: #5c5e62;
+        }
+        
+        .spots-left strong {
+            color: #171a20;
+            font-weight: 600;
+        }
+        
+        .status-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        
+        .secondary-btn {
+            background: #f4f4f4;
+            color: #5c5e62;
+            border: none;
+            border-radius: 4px;
+            padding: 0.8rem 1.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .secondary-btn:hover {
+            background: #eaeaea;
+            color: #171a20;
+        }
+        
+        @media (max-width: 480px) {
+            #statusModal .modal-content {
+                padding: 1.5rem 1rem;
+                width: 95%;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+            
+            .status-icon {
+                font-size: 3rem;
+                margin-bottom: 0.8rem;
+            }
+            
+            #statusModal h2 {
+                font-size: 1.5rem;
+                margin-bottom: 1rem;
+            }
+            
+            .status-details {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .event-name {
+                font-size: 1.1rem;
+                margin-bottom: 0.8rem;
+            }
+            
+            .status-actions {
+                flex-direction: column;
+                gap: 0.8rem;
+            }
+            
+            .status-actions button {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body class="events-page">
@@ -1027,6 +1193,9 @@
             <div class="event-actions">
                 <button class="btn primary-btn" id="eventRegisterBtn">
                     <i class="fas fa-car"></i> Register Your Tesla
+                </button>
+                <button class="btn primary-btn" id="checkStatusBtn">
+                    <i class="fas fa-clipboard-check"></i> Check My Registration
                 </button>
                 <div class="registration-count">
                     <div class="registration-icon">
@@ -1228,6 +1397,73 @@
         </div>
     </div>
 
+    <!-- New Registration Status Modal -->
+    <div id="statusModal" class="modal">
+        <div class="modal-content">
+            <span class="close status-close">&times;</span>
+            
+            <!-- Registered Status Content -->
+            <div id="registeredContent" style="display: none;">
+                <div class="status-icon registered">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h2>You're Registered!</h2>
+                <div class="status-details">
+                    <p class="event-name">Tesla Light Show Spectacular</p>
+                    <p class="event-date"><i class="fas fa-calendar-day"></i> May 30, 2025 @ 7:30 PM EST</p>
+                    <p class="event-location"><i class="fas fa-map-marker-alt"></i> Golf IT Up Parking Lot, Thornhill</p>
+                    
+                    <div class="registration-info">
+                        <p class="registered-model">
+                            <i class="fas fa-car"></i> Registered Vehicle: <strong id="userRegisteredModel">Loading...</strong>
+                        </p>
+                        <p class="registered-date">
+                            <i class="fas fa-clock"></i> Registered on: <span id="userRegisteredDate">Loading...</span>
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="status-actions">
+                    <button class="btn danger-btn" id="openCancelBtn">
+                        <i class="fas fa-times-circle"></i> Cancel Registration
+                    </button>
+                    
+                    <button class="btn secondary-btn" id="closeStatusBtn">
+                        <i class="fas fa-check"></i> Close
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Not Registered Status Content -->
+            <div id="notRegisteredContent" style="display: none;">
+                <div class="status-icon not-registered">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <h2>Not Registered Yet</h2>
+                <div class="status-details">
+                    <p class="event-name">Tesla Light Show Spectacular</p>
+                    <p class="event-date"><i class="fas fa-calendar-day"></i> May 30, 2025 @ 7:30 PM EST</p>
+                    <p class="event-location"><i class="fas fa-map-marker-alt"></i> Golf IT Up Parking Lot, Thornhill</p>
+                    
+                    <div class="not-registered-info">
+                        <p><i class="fas fa-info-circle"></i> You haven't registered for this event yet.</p>
+                        <p class="spots-left">Join <strong id="totalRegistered">0</strong> other Tesla owners who have already registered!</p>
+                    </div>
+                </div>
+                
+                <div class="status-actions">
+                    <button class="btn primary-btn" id="registerNowBtn">
+                        <i class="fas fa-car"></i> Register Now
+                    </button>
+                    
+                    <button class="btn secondary-btn" id="closeStatusBtn2">
+                        <i class="fas fa-times"></i> Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
     document.addEventListener('DOMContentLoaded', async () => {
         // Wait for Supabase client initialization
@@ -1269,6 +1505,12 @@
             // Update total count
             const total = Object.values(modelCounts).reduce((sum, count) => sum + count, 0);
             document.getElementById('totalCount').textContent = total;
+            
+            // Also update in the registration status modal
+            const totalRegisteredElement = document.getElementById('totalRegistered');
+            if (totalRegisteredElement) {
+                totalRegisteredElement.textContent = total;
+            }
 
             // Update model list
             const modelList = document.getElementById('modelList');
@@ -1280,7 +1522,81 @@
                     </div>
                 `).join('') || '<div class="no-registrations">No registrations yet</div>';
         };
-
+        
+        // Function to check user's registration status
+        const checkRegistrationStatus = async () => {
+            try {
+                const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+                
+                if (userError || !user) {
+                    alert('Please login to check your registration status');
+                    return { registered: false };
+                }
+                
+                const { data, error } = await supabaseClient
+                    .from('event_registrations')
+                    .select('id, vehicle_model, registered_at')
+                    .eq('user_id', user.id)
+                    .eq('event_id', EVENT_ID)
+                    .is('cancelled_at', null)
+                    .maybeSingle();
+                
+                if (error) {
+                    console.error('Error checking registration status:', error);
+                    return { registered: false };
+                }
+                
+                return { 
+                    registered: !!data, 
+                    details: data 
+                };
+            } catch (error) {
+                console.error('Error in registration status check:', error);
+                return { registered: false };
+            }
+        };
+        
+        // Function to show registration status modal
+        const showStatusModal = async () => {
+            const statusModal = document.getElementById('statusModal');
+            const registeredContent = document.getElementById('registeredContent');
+            const notRegisteredContent = document.getElementById('notRegisteredContent');
+            
+            // First update total registration count
+            await updateRegistrationCount();
+            
+            // Check the user's registration status
+            const { registered, details } = await checkRegistrationStatus();
+            
+            if (registered && details) {
+                // Show registered content
+                registeredContent.style.display = 'block';
+                notRegisteredContent.style.display = 'none';
+                
+                // Update registration details
+                document.getElementById('userRegisteredModel').textContent = details.vehicle_model;
+                
+                // Format the registration date nicely
+                const registeredDate = new Date(details.registered_at);
+                const formattedDate = registeredDate.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                document.getElementById('userRegisteredDate').textContent = formattedDate;
+            } else {
+                // Show not registered content
+                registeredContent.style.display = 'none';
+                notRegisteredContent.style.display = 'block';
+            }
+            
+            // Show the modal
+            statusModal.style.display = 'block';
+            statusModal.classList.add('fade-in');
+        };
+        
         // Modal handling
         document.getElementById('eventRegisterBtn').addEventListener('click', async () => {
             const { data: { user } } = await supabaseClient.auth.getUser();
@@ -1291,9 +1607,50 @@
         document.querySelector('.close').addEventListener('click', () => {
             document.getElementById('registrationModal').style.display = 'none';
         });
+        
+        // Check status button click handler
+        document.getElementById('checkStatusBtn').addEventListener('click', showStatusModal);
+        
+        // Close buttons for status modal
+        document.querySelector('.status-close').addEventListener('click', () => {
+            document.getElementById('statusModal').style.display = 'none';
+        });
+        
+        document.getElementById('closeStatusBtn')?.addEventListener('click', () => {
+            document.getElementById('statusModal').style.display = 'none';
+        });
+        
+        document.getElementById('closeStatusBtn2')?.addEventListener('click', () => {
+            document.getElementById('statusModal').style.display = 'none';
+        });
+        
+        // Register Now button in the status modal
+        document.getElementById('registerNowBtn')?.addEventListener('click', () => {
+            document.getElementById('statusModal').style.display = 'none';
+            document.getElementById('registrationModal').style.display = 'block';
+        });
+        
+        // Open Cancel Modal button in the status modal
+        document.getElementById('openCancelBtn')?.addEventListener('click', () => {
+            document.getElementById('statusModal').style.display = 'none';
+            document.getElementById('cancelModal').style.display = 'block';
+        });
 
         window.addEventListener('click', (e) => {
-            if (e.target === document.getElementById('registrationModal')) document.getElementById('registrationModal').style.display = 'none';
+            const registrationModal = document.getElementById('registrationModal');
+            const statusModal = document.getElementById('statusModal');
+            
+            if (e.target === registrationModal) {
+                registrationModal.style.display = 'none';
+            }
+            
+            if (e.target === statusModal) {
+                statusModal.style.display = 'none';
+            }
+            
+            if (e.target === document.getElementById('cancelModal')) {
+                document.getElementById('cancelModal').style.display = 'none';
+            }
         });
 
         // Modified registration handler
@@ -1430,12 +1787,12 @@
 
                 document.getElementById('registrationModal').style.display = 'none';
                 await updateRegistrationCount();
-                
+         
                 // Show WeChat QR code modal with animation
                 const wechatModal = document.getElementById('wechatModal');
                 wechatModal.classList.add('fade-in');
                 wechatModal.style.display = 'block';
-                
+         
                 // Track that the user has seen the QR code
                 try {
                     localStorage.setItem('wechatQrShown', 'true');
@@ -1465,12 +1822,12 @@
             }
             document.getElementById('cancelModal').style.display = 'block';
         });
-
+        
         // Close cancel modal
         document.querySelector('.cancel-close').addEventListener('click', () => {
             document.getElementById('cancelModal').style.display = 'none';
         });
-
+        
         // Cancel form submission
         document.getElementById('cancelForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -1480,7 +1837,7 @@
             try {
                 const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
                 if (authError || !user) throw new Error('Not authenticated');
-
+        
                 // Find active registrations (users might have more than one)
                 const { data: activeRegistrations, error: fetchError } = await supabaseClient
                     .from('event_registrations')

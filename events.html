@@ -1518,49 +1518,26 @@
             <div class="qr-container">
                 <div class="qr-code-background" style="width: 280px; height: 280px; background-image: url('https://i.postimg.cc/sQ7x1fjf/QR-code.png'); background-size: contain; background-position: center; background-repeat: no-repeat; background-color: white; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); margin: 0 auto; border: 4px solid white; padding: 10px; box-sizing: border-box;"></div>
                 
-                <!-- Mobile actions for QR code -->
+                <!-- QR code actions -->
                 <div class="qr-actions">
-                    <!-- Hidden on mobile to save space -->
-                    <div class="qr-alternative">
-                        <p style="font-size: 14px; color: #666; margin-bottom: 5px;">If QR code is not visible:</p>
-                        <a href="https://postimg.cc/sQ7x1fjf" target="_blank" class="qr-btn view-btn">
-                            <i class="fas fa-qrcode"></i> View QR Code
-                        </a>
-                    </div>
-                    
-                    <div class="qr-download">
-                        <a href="https://i.postimg.cc/sQ7x1fjf/QR-code.png" download="WeChat-QR-Code.png" target="_blank" class="qr-btn download-btn">
-                            <i class="fas fa-download"></i> Download QR
-                        </a>
-                    </div>
-                </div>
-                
-                <!-- Open WeChat button - now visible for all users -->
-                <div style="margin-top: 15px; text-align: center;">
-                    <a href="weixin://dl/groupchat" class="open-wechat-btn">
-                        <i class="fab fa-weixin"></i> Open WeChat & Join Group
+                    <a href="https://i.postimg.cc/sQ7x1fjf/QR-code.png" download="WeChat-QR-Code.png" target="_blank" class="qr-btn download-btn">
+                        <i class="fas fa-download"></i> Download QR Code
                     </a>
                 </div>
                 
-                <!-- Alternative joining methods -->
-                <div style="margin-top: 10px; text-align: center; font-size: 13px; color: #555;">
-                    <p style="margin-bottom: 8px;"><strong>Can't scan? Try these methods:</strong></p>
-                    <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
-                        <a href="weixin://dl/business/?t=VLRrpoiVuye" class="qr-btn view-btn" style="font-size: 12px;">
-                            <i class="fab fa-weixin"></i> Join via WeChat ID
-                        </a>
-                        <a href="#" class="qr-btn download-btn" id="copyGroupCodeBtn" style="font-size: 12px;">
-                            <i class="fas fa-copy"></i> Copy Group Code
-                        </a>
-                    </div>
+                <!-- Open WeChat button -->
+                <div style="margin-top: 15px; text-align: center;">
+                    <a href="weixin://" class="open-wechat-btn">
+                        <i class="fab fa-weixin"></i> Open WeChat App
+                    </a>
                 </div>
             </div>
             
             <p class="qr-instructions">
                 <strong style="color: #07C160; font-size: 16px;">How to join our Tesla community:</strong><br>
-                1. Open WeChat app<br>
-                2. Tap the button above or scan this QR code<br>
-                3. Follow the prompts to join the group
+                1. Save this QR code to your device<br>
+                2. Open WeChat and tap "+" > "Scan"<br>
+                3. Select the saved QR code or scan directly from your screen
                 <span class="qr-subtitle">Connect with 200+ Tesla owners across Canada</span>
             </p>
             
@@ -2185,191 +2162,15 @@
             // Always make WeChat button visible regardless of device
             openWechatBtn.parentElement.style.display = 'block';
             
-            // Modify the href attribute based on device type
+            // Simple WeChat opening - just use the basic protocol
             if (isMobile) {
-                // Use the most direct WeChat app protocol available for group joining
-                // Note: WeChat doesn't officially support direct group joining via URL scheme,
-                // but we can use the best available options
-                if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-                    // iOS-specific handling
-                    openWechatBtn.href = "weixin://dl/groupchat?GroupId=BlitzTClub"; // This is a placeholder format
-                } else if (/Android/i.test(navigator.userAgent)) {
-                    // Android-specific handling 
-                    openWechatBtn.href = "weixin://dl/groupchat";
-                } else {
-                    // Generic fallback
-                    openWechatBtn.href = "weixin://";
-                }
-                
-                // Add a helper function to share QR codes on supported devices
-                openWechatBtn.addEventListener('click', function(e) {
-                    // If Web Share API is available (modern mobile browsers)
-                    if (navigator.share && navigator.canShare) {
-                        e.preventDefault();
-                        
-                        // Create a blob from the QR code
-                        fetch('https://i.postimg.cc/sQ7x1fjf/QR-code.png')
-                            .then(response => response.blob())
-                            .then(blob => {
-                                const file = new File([blob], 'wechat-group-qr.png', { type: 'image/png' });
-                                
-                                // Check if we can share files
-                                const shareData = {
-                                    title: 'Join Blitz T Club WeChat Group',
-                                    text: 'Scan this QR code to join our Tesla owners WeChat group',
-                                    files: [file]
-                                };
-                                
-                                if (navigator.canShare && navigator.canShare(shareData)) {
-                                    navigator.share(shareData)
-                                        .then(() => console.log('QR code shared successfully'))
-                                        .catch(error => {
-                                            console.error('Error sharing QR code:', error);
-                                            // If sharing fails, fall back to opening WeChat
-                                            window.location.href = this.href;
-                                        });
-                                } else {
-                                    // If file sharing is not supported, try sharing just the text and URL
-                                    navigator.share({
-                                        title: 'Join Blitz T Club WeChat Group',
-                                        text: 'Join our Tesla owners WeChat group',
-                                        url: 'https://i.postimg.cc/sQ7x1fjf/QR-code.png'
-                                    }).catch(() => {
-                                        // If all sharing fails, fall back to opening WeChat
-                                        window.location.href = this.href;
-                                    });
-                                }
-                            })
-                            .catch(() => {
-                                // If fetch fails, just open WeChat
-                                window.location.href = this.href;
-                            });
-                    }
-                    // If Web Share API not available, let the normal link behavior happen
-                });
+                openWechatBtn.href = "weixin://";
             } else {
-                // For desktop users, direct to WeChat web or download page
+                // For desktop users, direct to WeChat web
                 openWechatBtn.href = "https://www.wechat.com/en/";
                 openWechatBtn.setAttribute('target', '_blank');
-                
-                // Additional info for desktop users
-                openWechatBtn.addEventListener('click', function(e) {
-                    // Create instructional popup
-                    const modal = document.createElement('div');
-                    modal.style.position = 'fixed';
-                    modal.style.top = '50%';
-                    modal.style.left = '50%';
-                    modal.style.transform = 'translate(-50%, -50%)';
-                    modal.style.backgroundColor = 'white';
-                    modal.style.padding = '20px';
-                    modal.style.borderRadius = '10px';
-                    modal.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)';
-                    modal.style.zIndex = '2001';
-                    modal.style.maxWidth = '400px';
-                    modal.style.textAlign = 'center';
-                    
-                    modal.innerHTML = `
-                        <h3 style="color: #07C160; margin-top: 0;">WeChat Desktop Instructions</h3>
-                        <p>1. Open WeChat on your phone</p>
-                        <p>2. Go to Discover > Scan</p>
-                        <p>3. Scan this QR code from your computer screen:</p>
-                        <img src="https://i.postimg.cc/sQ7x1fjf/QR-code.png" style="width: 200px; height: 200px; margin: 10px auto; display: block; border: 1px solid #eee; padding: 5px;">
-                        <button id="closePopupBtn" style="background: #07C160; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; margin-top: 10px;">Got it</button>
-                    `;
-                    
-                    // Prevent opening WeChat web
-                    e.preventDefault();
-                    
-                    // Add modal to body
-                    document.body.appendChild(modal);
-                    
-                    // Close button handler
-                    document.getElementById('closePopupBtn').addEventListener('click', function() {
-                        document.body.removeChild(modal);
-                    });
-                });
             }
         }
-        
-        // Handle copy group code button
-        const copyGroupCodeBtn = document.getElementById('copyGroupCodeBtn');
-        if (copyGroupCodeBtn) {
-            copyGroupCodeBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                // The WeChat group code or invitation text to copy
-                const groupCode = "BlitzTClub"; // Replace with your actual group code
-                
-                // Create a temporary textarea element to copy from
-                const textarea = document.createElement('textarea');
-                textarea.value = groupCode;
-                textarea.setAttribute('readonly', '');
-                textarea.style.position = 'absolute';
-                textarea.style.left = '-9999px';
-                document.body.appendChild(textarea);
-                
-                // Select and copy the text
-                textarea.select();
-                document.execCommand('copy');
-                
-                // Remove the textarea
-                document.body.removeChild(textarea);
-                
-                // Show a notification
-                const notification = document.createElement('div');
-                notification.textContent = '✓ Group code copied!';
-                notification.style.position = 'fixed';
-                notification.style.bottom = '20px';
-                notification.style.left = '50%';
-                notification.style.transform = 'translateX(-50%)';
-                notification.style.backgroundColor = '#07C160';
-                notification.style.color = 'white';
-                notification.style.padding = '8px 16px';
-                notification.style.borderRadius = '20px';
-                notification.style.fontSize = '14px';
-                notification.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
-                notification.style.zIndex = '2000';
-                document.body.appendChild(notification);
-                
-                // Remove the notification after 2 seconds
-                setTimeout(function() {
-                    notification.style.opacity = '0';
-                    notification.style.transition = 'opacity 0.5s ease';
-                    setTimeout(function() {
-                        document.body.removeChild(notification);
-                    }, 500);
-                }, 2000);
-            });
-        }
-        
-        // QR code modal functions - kept for potential future use
-        window.showQRCodeForTesting = function() {
-            const wechatModal = document.getElementById('wechatModal');
-            if (wechatModal) {
-                console.log('Displaying WeChat QR code modal');
-                wechatModal.classList.add('fade-in');
-                wechatModal.style.display = 'block';
-            } else {
-                console.error('WeChat modal element not found');
-            }
-        };
-        
-        window.hideQRCodeModal = function() {
-            const wechatModal = document.getElementById('wechatModal');
-            if (wechatModal) {
-                wechatModal.style.display = 'none';
-            }
-        };
-        
-        // Auto-display removed from production mode
-        // setTimeout(showQRCodeForTesting, 1000);
-        
-        // Auto-hide confirmation removed from production mode
-        // setTimeout(function() {
-        //     if (confirm('Do you want to restore normal behavior now?')) {
-        //         hideQRCodeModal();
-        //     }
-        // }, 10000);
     });
     </script>
 </body>

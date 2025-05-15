@@ -1360,9 +1360,10 @@
                     </div>
                 </div>
                 
-                <div class="mobile-only" style="margin-top: 8px;">
+                <!-- Open WeChat button - now visible for all users -->
+                <div style="margin-top: 15px; text-align: center;">
                     <a href="weixin://" class="open-wechat-btn">
-                        <i class="fab fa-weixin"></i> Open WeChat
+                        <i class="fab fa-weixin"></i> Open WeChat App
                     </a>
                 </div>
             </div>
@@ -1975,10 +1976,17 @@
         const openWechatBtn = document.querySelector('.open-wechat-btn');
         
         if (openWechatBtn) {
+            // Always make WeChat button visible regardless of device
+            openWechatBtn.parentElement.style.display = 'block';
+            
+            // Modify the href attribute based on device type
             if (isMobile) {
-                openWechatBtn.parentElement.style.display = 'block';
+                // Use the WeChat app protocol on mobile devices
+                openWechatBtn.href = "weixin://";
             } else {
-                openWechatBtn.parentElement.style.display = 'none';
+                // For desktop users, direct to WeChat web or download page
+                openWechatBtn.href = "https://www.wechat.com/en/";
+                openWechatBtn.setAttribute('target', '_blank');
             }
         }
         

@@ -107,6 +107,7 @@
     margin-bottom: 30px;
 }
 
+/* Stat Card with Rich Information */
 .stat-card {
     background-color: #2a2f38; /* Darker card background */
     padding: 20px;
@@ -116,6 +117,8 @@
     flex-direction: column;
     justify-content: space-between;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+    overflow: hidden;
 }
 
 .stat-card:hover {
@@ -127,24 +130,82 @@
     font-size: 1rem;
     color: #a0a8b5;
     margin-top: 0;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     font-weight: 500;
+    display: flex;
+    align-items: center;
+}
+
+.stat-card h4::before {
+    content: '';
+    display: inline-block;
+    width: 5px;
+    height: 16px;
+    background-color: #007bff;
+    margin-right: 10px;
+    border-radius: 3px;
 }
 
 .stat-card p {
-    font-size: 2rem;
     color: #ffffff;
     margin-bottom: 10px;
     font-weight: 600;
+    margin-top: 0;
 }
 
 .stat-card i {
-    font-size: 2.5rem;
+    font-size: 3.5rem;
     color: #007bff; /* Accent color for icons */
-    align-self: flex-end;
-    opacity: 0.6;
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    opacity: 0.1;
 }
 
+.stat-number {
+    font-size: 2.2rem;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.stat-breakdown {
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 10px;
+    margin-top: 5px;
+    font-size: 0.85rem;
+}
+
+.breakdown-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+    color: #b0b8c5;
+}
+
+.breakdown-item span:first-child {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+/* Status/Event Indicator Colors */
+.status-active, .event-upcoming, .reg-events {
+    background-color: #28a745;
+}
+
+.status-pending-verification, .event-total, .reg-users {
+    background-color: #17a2b8;
+}
+
+.status-pending-approval {
+    background-color: #ffc107;
+}
+
+.status-suspended, .status-cancelled, .status-inactive, .event-past {
+    background-color: #dc3545;
+}
 
 /* Keyframes for fade-in animation */
 @keyframes fadeIn {
@@ -495,4 +556,134 @@ table td .action-btn {
 
 .download-btn:hover {
     background-color: #0056b3;
+}
+
+/* Recent Activity Section Styling */
+.recent-activity-section {
+    background-color: #2a2f38;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    margin-bottom: 30px;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.recent-activity-section h3 {
+    font-size: 1.2rem;
+    color: #e0e0e0;
+    margin-top: 0;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #333a45;
+}
+
+.activity-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 20px;
+}
+
+.activity-column {
+    background-color: #1e2229;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #333a45;
+}
+
+.activity-column h4 {
+    font-size: 1rem;
+    color: #b0b8c5;
+    margin-top: 0;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #333a45;
+}
+
+.activity-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.activity-item {
+    background-color: #2a2f38;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 10px;
+    transition: transform 0.2s ease;
+}
+
+.activity-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.activity-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding-bottom: 8px;
+}
+
+.activity-name {
+    font-weight: 600;
+    color: #e0e0e0;
+}
+
+.activity-date {
+    font-size: 0.8rem;
+    color: #a0a8b5;
+}
+
+.activity-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.85rem;
+}
+
+.activity-user {
+    color: #e0e0e0;
+    font-weight: 500;
+}
+
+.activity-email, .activity-id, .activity-model {
+    color: #a0a8b5;
+    background-color: rgba(255,255,255,0.05);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.loading-text, .error-text, .empty-text {
+    text-align: center;
+    padding: 20px;
+    color: #a0a8b5;
+    font-style: italic;
+}
+
+.error-text {
+    color: #dc3545;
+}
+
+.empty-text {
+    color: #6c757d;
+}
+
+/* Responsive adjustments for recent activity */
+@media (max-width: 768px) {
+    .activity-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .activity-item {
+        padding: 10px;
+    }
+    
+    .activity-header {
+        flex-direction: column;
+    }
+    
+    .activity-date {
+        margin-top: 5px;
+    }
 } 

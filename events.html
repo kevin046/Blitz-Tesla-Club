@@ -1516,28 +1516,33 @@
             <span class="close wechat-close">&times;</span>
             <h2><i class="fab fa-weixin"></i> Join Our WeChat Group</h2>
             <div class="qr-container">
-                <div class="qr-code-background" style="width: 280px; height: 280px; background-image: url('https://i.postimg.cc/sQ7x1fjf/QR-code.png'); background-size: contain; background-position: center; background-repeat: no-repeat; background-color: white; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); margin: 0 auto; border: 4px solid white; padding: 10px; box-sizing: border-box;"></div>
+                <div class="qr-code-background" style="width: 280px; height: 280px; background-image: url('https://i.postimg.cc/21qqLLDm/QR-code-for-light.jpg'); background-size: contain; background-position: center; background-repeat: no-repeat; background-color: white; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); margin: 0 auto; border: 4px solid white; padding: 10px; box-sizing: border-box;"></div>
                 
                 <!-- QR code actions -->
-                <div class="qr-actions">
-                    <a href="https://i.postimg.cc/sQ7x1fjf/QR-code.png" download="WeChat-QR-Code.png" target="_blank" class="qr-btn download-btn">
+                <div class="qr-actions" style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
+                    <a href="https://i.postimg.cc/21qqLLDm/QR-code-for-light.jpg" download="WeChat-QR-Code.jpg" target="_blank" class="qr-btn download-btn" style="background: #07C160; color: white; padding: 10px 20px; border-radius: 20px; text-decoration: none; display: flex; align-items: center; gap: 8px; font-weight: 500; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
                         <i class="fas fa-download"></i> Download QR Code
                     </a>
                 </div>
                 
-                <!-- Open WeChat button -->
+                <!-- Mobile-specific download reminder -->
+                <div class="mobile-only" style="text-align: center; margin-top: 10px; color: #555; font-size: 13px;">
+                    <i class="fas fa-info-circle"></i> Tap and hold on QR code to save directly
+                </div>
+                
+                <!-- Open WeChat button with direct group link -->
                 <div style="margin-top: 15px; text-align: center;">
-                    <a href="weixin://" class="open-wechat-btn">
-                        <i class="fab fa-weixin"></i> Open WeChat App
+                    <a href="https://weixin.qq.com/g/CQYAALcAeyOtrsp0D8_4QpeR_bvp0KJ51iDo3pbzkY_3ZE-Hp-6mnOjkRQWBAVQN" class="open-wechat-btn" target="_blank">
+                        <i class="fab fa-weixin"></i> Open WeChat & Join Group
                     </a>
                 </div>
             </div>
             
             <p class="qr-instructions">
                 <strong style="color: #07C160; font-size: 16px;">How to join our Tesla community:</strong><br>
-                1. Save this QR code to your device<br>
-                2. Open WeChat and tap "+" > "Scan"<br>
-                3. Select the saved QR code or scan directly from your screen
+                1. Scan this QR code with your WeChat app<br>
+                2. Or tap the "Open WeChat & Join Group" button<br>
+                3. Follow the prompts to join our community
                 <span class="qr-subtitle">Connect with 200+ Tesla owners across Canada</span>
             </p>
             
@@ -2158,17 +2163,43 @@
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         const openWechatBtn = document.querySelector('.open-wechat-btn');
         
+        // Make the QR code directly tappable/downloadable for mobile users
+        if (isMobile) {
+            const qrCodeBackground = document.querySelector('.qr-code-background');
+            if (qrCodeBackground) {
+                // Make the QR code background tappable to save on mobile
+                qrCodeBackground.addEventListener('click', function() {
+                    // Create a link to download the image and trigger it
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = 'https://i.postimg.cc/21qqLLDm/QR-code-for-light.jpg';
+                    downloadLink.download = 'WeChat-QR-Code.jpg';
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                });
+                
+                // Add visual cues that it's clickable
+                qrCodeBackground.style.cursor = 'pointer';
+                qrCodeBackground.title = 'Tap to download QR code';
+            }
+        }
+        
         if (openWechatBtn) {
             // Always make WeChat button visible regardless of device
             openWechatBtn.parentElement.style.display = 'block';
             
-            // Simple WeChat opening - just use the basic protocol
+            // Use the direct WeChat group link for all devices
+            openWechatBtn.href = "https://weixin.qq.com/g/CQYAALcAeyOtrsp0D8_4QpeR_bvp0KJ51iDo3pbzkY_3ZE-Hp-6mnOjkRQWBAVQN";
+            openWechatBtn.setAttribute('target', '_blank');
+            
+            // Add special handling for mobile to try opening the WeChat app first
             if (isMobile) {
-                openWechatBtn.href = "weixin://";
-            } else {
-                // For desktop users, direct to WeChat web
-                openWechatBtn.href = "https://www.wechat.com/en/";
-                openWechatBtn.setAttribute('target', '_blank');
+                openWechatBtn.addEventListener('click', function(e) {
+                    // Try to open WeChat app first (might not work on all devices)
+                    setTimeout(function() {
+                        window.location.href = "weixin://";
+                    }, 100);
+                });
             }
         }
     });

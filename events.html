@@ -293,10 +293,20 @@
             align-items: center;
             gap: 15px;
             border: 1px solid rgba(255,255,255,0.1);
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .registration-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
         }
 
         .registration-count:hover {
-            transform: scale(1.05);
+            transform: scale(1.02);
         }
 
         #participantCount {
@@ -332,6 +342,23 @@
             
             .event-main-image {
                 max-width: 90%;
+            }
+            
+            /* Mobile optimizations for registration count */
+            .registration-count {
+                padding: 1rem;
+                flex-direction: column;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            
+            .registration-details {
+                width: 100%;
+            }
+            
+            .registration-icon {
+                margin-bottom: 0.8rem;
+                font-size: 1.5em;
             }
         }
 
@@ -432,6 +459,7 @@
             flex-wrap: wrap;
             gap: 0.8rem;
             padding: 0.5rem 0;
+            justify-content: center;
         }
 
         .model-item {
@@ -458,6 +486,7 @@
             margin-top: 1rem;
             padding-top: 1rem;
             border-top: 1px solid rgba(255,255,255,0.08);
+            width: 100%;
         }
 
         .model-breakdown h4 {
@@ -482,18 +511,40 @@
 
         @media (max-width: 768px) {
             .model-list {
-                overflow-x: auto;
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.6rem;
                 padding-bottom: 10px;
-                scrollbar-width: thin;
-                flex-wrap: nowrap;
+                width: 100%;
+                overflow-x: visible;
             }
             
             .model-item {
                 flex-shrink: 0;
+                padding: 0.5rem 0.8rem;
+                justify-content: center;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            
+            .model-name, .model-count {
+                font-size: 0.8em;
+            }
+            
+            /* For very small screens, switch to one column */
+            @media (max-width: 340px) {
+                .model-list {
+                    grid-template-columns: 1fr;
+                }
             }
             
             ::-webkit-scrollbar {
                 height: 4px;
+            }
+            
+            ::-webkit-scrollbar-thumb {
+                background: rgba(255,255,255,0.3);
+                border-radius: 4px;
             }
         }
 
@@ -615,6 +666,39 @@
             z-index: 1;
         }
         
+        .qr-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .qr-btn {
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        
+        .view-btn {
+            background: #07C160;
+            color: white;
+        }
+        
+        .download-btn {
+            background: #f8f9fa;
+            color: #07C160;
+            border: 1px solid #07C160;
+        }
+        
+        .qr-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
         .qr-code {
             width: 280px;
             height: 280px;
@@ -652,6 +736,8 @@
             text-align: center;
             border-top: 5px solid #07C160;
             padding-top: 25px;
+            max-height: 85vh;
+            overflow-y: auto;
         }
         
         .qr-benefits {
@@ -686,11 +772,82 @@
         @media (max-width: 480px) {
             .qr-benefit {
                 flex: 0 0 100%;
+                padding: 8px;
             }
             
-            .qr-code {
-                width: 220px;
-                height: 220px;
+            .qr-code-background {
+                width: 200px !important;
+                height: 200px !important;
+                padding: 5px !important;
+                border-width: 2px !important;
+            }
+            
+            #wechatModal .modal-content {
+                padding: 15px 10px;
+                width: 95%;
+                max-height: 90vh;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            #wechatModal h2 {
+                font-size: 1.3rem;
+                margin-bottom: 8px;
+            }
+            
+            .qr-instructions {
+                font-size: 13px;
+                margin: 8px 0;
+            }
+            
+            .qr-subtitle {
+                font-size: 11px;
+            }
+            
+            .qr-actions {
+                display: none;
+            }
+            
+            .qr-container {
+                padding: 8px;
+                margin: 8px 0;
+            }
+            
+            #closeQrBtn {
+                margin-top: 5px;
+                padding: 8px 16px;
+                width: 100%;
+            }
+            
+            .open-wechat-btn {
+                margin-top: 5px;
+                justify-content: center;
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            
+            .qr-benefits {
+                gap: 6px;
+                margin: 10px 0;
+            }
+            
+            .qr-benefit {
+                padding: 8px;
+                gap: 8px;
+            }
+            
+            .qr-benefit i {
+                font-size: 1.1em;
+            }
+            
+            .qr-benefit span {
+                font-size: 12px;
+            }
+            
+            .close.wechat-close {
+                right: 0.8rem;
+                top: 0.8rem;
+                font-size: 1.3rem;
             }
         }
         
@@ -872,7 +1029,9 @@
                     <i class="fas fa-car"></i> Register Your Tesla
                 </button>
                 <div class="registration-count">
-                    <i class="fas fa-car"></i>
+                    <div class="registration-icon">
+                        <i class="fas fa-car"></i>
+                    </div>
                     <div class="registration-details">
                         <div class="total-count">
                             <i class="fas fa-users"></i> Total Registered: <strong id="totalCount">0</strong>
@@ -1015,47 +1174,54 @@
             <div class="qr-container">
                 <div class="qr-code-background" style="width: 280px; height: 280px; background-image: url('https://i.postimg.cc/sQ7x1fjf/QR-code.png'); background-size: contain; background-position: center; background-repeat: no-repeat; background-color: white; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); margin: 0 auto; border: 4px solid white; padding: 10px; box-sizing: border-box;"></div>
                 
-                <!-- Alternative QR code display method if background doesn't work -->
-                <div class="qr-alternative" style="margin-top: 15px;">
-                    <p style="font-size: 14px; color: #666; margin-bottom: 5px;">If QR code is not visible above:</p>
-                    <a href="https://postimg.cc/sQ7x1fjf" target="_blank" style="display: inline-block; padding: 8px 15px; background: #07C160; color: white; text-decoration: none; border-radius: 20px; font-size: 14px;">
-                        <i class="fas fa-qrcode"></i> View QR Code
-                    </a>
+                <!-- Mobile actions for QR code -->
+                <div class="qr-actions">
+                    <!-- Hidden on mobile to save space -->
+                    <div class="qr-alternative">
+                        <p style="font-size: 14px; color: #666; margin-bottom: 5px;">If QR code is not visible:</p>
+                        <a href="https://postimg.cc/sQ7x1fjf" target="_blank" class="qr-btn view-btn">
+                            <i class="fas fa-qrcode"></i> View QR Code
+                        </a>
+                    </div>
+                    
+                    <div class="qr-download">
+                        <a href="https://i.postimg.cc/sQ7x1fjf/QR-code.png" download="WeChat-QR-Code.png" target="_blank" class="qr-btn download-btn">
+                            <i class="fas fa-download"></i> Download QR
+                        </a>
+                    </div>
                 </div>
                 
-                <div style="margin-top: 10px; font-size: 14px;">
-                    <a href="https://i.postimg.cc/sQ7x1fjf/QR-code.png" download="WeChat-QR-Code.png" target="_blank" style="color: #07C160; text-decoration: underline;">
-                        <i class="fas fa-download"></i> Download QR Code
-                    </a>
-                </div>
-                <div class="mobile-only" style="margin-top: 10px;">
+                <div class="mobile-only" style="margin-top: 8px;">
                     <a href="weixin://" class="open-wechat-btn">
-                        <i class="fab fa-weixin"></i> Open WeChat App
+                        <i class="fab fa-weixin"></i> Open WeChat
                     </a>
                 </div>
             </div>
+            
             <p class="qr-instructions">
-                Scan this QR code with WeChat to join our Tesla owners community
-                <span class="qr-subtitle">Connect with other members in Canada's premier Tesla community</span>
+                Scan with WeChat to join our Tesla community
+                <span class="qr-subtitle">Connect with members across Canada</span>
             </p>
+            
             <div class="qr-benefits">
                 <div class="qr-benefit">
                     <i class="fas fa-calendar-alt"></i>
-                    <span>Get early access to event announcements</span>
+                    <span>Event updates</span>
                 </div>
                 <div class="qr-benefit">
                     <i class="fas fa-users"></i>
-                    <span>Connect with experienced Tesla owners</span>
+                    <span>Owner network</span>
                 </div>
                 <div class="qr-benefit">
                     <i class="fas fa-lightbulb"></i>
-                    <span>Share tips and get your questions answered</span>
+                    <span>Tips & advice</span>
                 </div>
                 <div class="qr-benefit">
                     <i class="fas fa-tag"></i>
-                    <span>Access member-exclusive offers and discounts</span>
+                    <span>Member perks</span>
                 </div>
             </div>
+            
             <button class="btn primary-btn" id="closeQrBtn">
                 <i class="fas fa-check-circle"></i> Got it!
             </button>

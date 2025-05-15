@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Admin Dashboard - Blitz T Club</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="mobile-navigation.css">
+    <link rel="stylesheet" href="admin-dashboard.css"> <!-- New CSS for admin dashboard -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="navigation.js" defer></script>
+    <script src="admin-dashboard.js" defer></script>
+</head>
+<body class="admin-dashboard-page">
+    <nav>
+        <div class="logo">
+            <a href="index.html">
+                <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" 
+                     alt="Blitz Tesla Club Logo" 
+                     loading="lazy" 
+                     width="40" 
+                     height="40">
+                <span>BLITZ T CLUB</span>
+            </a>
+        </div>
+        <button class="menu-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="nav-links">
+            <i class="fas fa-bars"></i>
+        </button>
+        <ul class="nav-links" id="nav-links">
+            <!-- Navigation items will be dynamically inserted by navigation.js -->
+        </ul>
+    </nav>
+
+    <div class="admin-container">
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <h3>Admin Menu</h3>
+            </div>
+            <ul class="sidebar-nav">
+                <li><a href="#" class="active" data-target="dashboard-overview"><i class="fas fa-tachometer-alt"></i> Overview</a></li>
+                <li><a href="#" data-target="user-management"><i class="fas fa-users-cog"></i> User Management</a></li>
+                <li><a href="#" data-target="event-management"><i class="fas fa-calendar-alt"></i> Event Management</a></li>
+                <li><a href="#" data-target="content-management"><i class="fas fa-file-alt"></i> Content Management</a></li>
+                <li><a href="#" data-target="settings"><i class="fas fa-cogs"></i> Settings</a></li>
+            </ul>
+        </aside>
+
+        <main class="admin-content">
+            <section id="dashboard-overview" class="admin-section active">
+                <h2>Dashboard Overview</h2>
+                <!-- Overview content will go here -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>Total Users</h4>
+                        <p id="totalUsersStat">Loading...</p>
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Active Events</h4>
+                        <p id="activeEventsStat">Loading...</p>
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Pending Verifications</h4>
+                        <p id="pendingVerificationsStat">Loading...</p>
+                        <i class="fas fa-user-clock"></i>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Recent Registrations (24h)</h4>
+                        <p id="recentRegistrationsStat">Loading...</p>
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                </div>
+                
+                <!-- Quick action to fetch user profiles -->
+                <div class="quick-actions">
+                    <h3>Quick Actions</h3>
+                    <button id="fetchProfilesBtn" class="btn primary-btn">
+                        <i class="fas fa-users"></i> Fetch All User Profiles
+                    </button>
+                    <button id="exportUsersBtn" class="btn secondary-btn">
+                        <i class="fas fa-file-export"></i> Export Users CSV
+                    </button>
+                </div>
+                
+                <!-- Display area for fetched profiles data -->
+                <div id="fetchedProfilesData" class="data-display-area">
+                    <h3>Fetched User Profiles</h3>
+                    <div id="profilesDataContent" class="data-content">
+                        <p class="placeholder-text">Click "Fetch All User Profiles" to see the data here.</p>
+                    </div>
+                </div>
+                <!-- More detailed sections like recent activity, quick actions etc. -->
+            </section>
+
+            <section id="user-management" class="admin-section">
+                <h2>User Management</h2>
+                <div class="table-controls">
+                    <input type="text" id="userSearchInput" placeholder="Search users (Name, Email, Member ID)...">
+                    <select id="userStatusFilter">
+                        <option value="all">All Statuses</option>
+                        <option value="active">Active</option>
+                        <option value="pending_verification">Pending Verification</option>
+                        <option value="pending_approval">Pending Approval</option>
+                        <option value="suspended">Suspended</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                    <button id="addUserBtn" class="btn primary-btn"><i class="fas fa-plus"></i> Add User</button>
+                </div>
+                <div class="table-responsive">
+                    <table id="usersTable">
+                        <thead>
+                            <tr>
+                                <th>Member ID</th>
+                                <th>Full Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Membership Status</th>
+                                <th>Role</th>
+                                <th>Joined</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <!-- User data will be populated here by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination-controls" id="userPagination">
+                    <!-- Pagination will be added here -->
+                </div>
+            </section>
+
+            <section id="event-management" class="admin-section">
+                <h2>Event Management & Registrations</h2>
+                <div class="table-controls">
+                    <input type="text" id="eventSearchInput" placeholder="Search registrations (Event, Name, Email, Member ID)...">
+                    <select id="eventFilter">
+                        <option value="all">All Events</option>
+                        <!-- Event options will be populated here -->
+                    </select>
+                    <select id="registrationStatusFilter">
+                        <option value="active">Active Registrations Only</option>
+                        <option value="cancelled">Cancelled Registrations Only</option>
+                        <option value="all">All Registrations</option>
+                    </select>
+                    <button id="createEventBtn" class="btn primary-btn"><i class="fas fa-plus"></i> Create Event</button>
+                </div>
+                <div class="table-responsive">
+                    <table id="eventRegistrationsTable">
+                        <thead>
+                            <tr>
+                                <th>Event Name</th>
+                                <th>User</th>
+                                <th>Contact</th>
+                                <th>Member ID</th>
+                                <th>Vehicle Model</th>
+                                <th>Registered At</th>
+                                <th>Status</th> 
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="eventRegistrationsTableBody">
+                            <!-- Event registration data will be populated here by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination-controls" id="eventPagination">
+                    <!-- Pagination will be added here -->
+                </div>
+            </section>
+
+            <section id="content-management" class="admin-section">
+                <h2>Content Management</h2>
+                <!-- Tools for managing website content (e.g., news, gallery) will go here -->
+            </section>
+            
+            <section id="settings" class="admin-section">
+                <h2>Settings</h2>
+                <!-- Admin settings will go here -->
+            </section>
+        </main>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <div class="footer-links">
+                    <a href="index.html">Home</a>
+                    <a href="events.html">Events</a>
+                    <a href="gallery.html">Gallery</a>
+                    <a href="contact.html">Contact</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Member Area</h3>
+                <div class="footer-links">
+                    <a href="sponsors.html">Our Sponsors</a>
+                    <a href="#member-benefits">Member Benefits</a>
+                    <a href="#" id="footerLogoutBtn">Logout</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Legal</h3>
+                <div class="footer-links">
+                    <a href="privacy.html">Privacy Policy</a>
+                    <a href="terms.html">Terms of Service</a>
+                    <a href="about.html">About Us</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Connect With Us</h3>
+                <div class="footer-social">
+                    <a href="https://x.com/BlitzTClub" target="_blank" aria-label="Follow us on X"><i class="fa-brands fa-square-x-twitter"></i></a>
+                    <a href="https://www.instagram.com/blitztclub/" target="_blank" aria-label="Follow us on Instagram"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2024 Blitz T Club. All rights reserved.</p>
+            <p class="powered-by">Website powered by <a href="http://www.summitpixels.com" target="_blank">SummitPixels</a></p>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize Supabase client
+        const SUPABASE_URL = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
+        window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // Dispatch event to signal Supabase is ready
+        document.dispatchEvent(new Event('supabase:ready'));
+
+        // Note: We don't need this sidebar navigation logic anymore as it's handled in admin-dashboard.js
+        // Keeping only the Supabase initialization
+    </script>
+</body>
+</html> 

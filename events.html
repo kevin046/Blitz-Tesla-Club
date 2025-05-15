@@ -1516,11 +1516,15 @@
             <span class="close wechat-close">&times;</span>
             <h2><i class="fab fa-weixin"></i> Join Our WeChat Group</h2>
             <div class="qr-container">
-                <div class="qr-code-background" style="width: 280px; height: 280px; background-image: url('https://i.postimg.cc/21qqLLDm/QR-code-for-light.jpg'); background-size: contain; background-position: center; background-repeat: no-repeat; background-color: white; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); margin: 0 auto; border: 4px solid white; padding: 10px; box-sizing: border-box;"></div>
+                <!-- Use a regular img tag instead of a div with background-image -->
+                <img src="data:image/png;base64,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" 
+                     alt="WeChat Group QR Code" 
+                     class="qr-code"
+                     style="width: 280px; height: 280px; object-fit: contain; background-color: white; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); margin: 0 auto; border: 4px solid white; padding: 10px; box-sizing: border-box; display: block;">
                 
                 <!-- QR code actions -->
                 <div class="qr-actions" style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <a href="https://i.postimg.cc/21qqLLDm/QR-code-for-light.jpg" download="WeChat-QR-Code.jpg" target="_blank" class="qr-btn download-btn" style="background: #07C160; color: white; padding: 10px 20px; border-radius: 20px; text-decoration: none; display: flex; align-items: center; gap: 8px; font-weight: 500; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                    <a href="#" class="qr-btn download-btn" id="downloadQRBtn" style="background: #07C160; color: white; padding: 10px 20px; border-radius: 20px; text-decoration: none; display: flex; align-items: center; gap: 8px; font-weight: 500; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
                         <i class="fas fa-download"></i> Download QR Code
                     </a>
                 </div>
@@ -1529,20 +1533,13 @@
                 <div class="mobile-only" style="text-align: center; margin-top: 10px; color: #555; font-size: 13px;">
                     <i class="fas fa-info-circle"></i> Tap and hold on QR code to save directly
                 </div>
-                
-                <!-- Open WeChat button with direct group link -->
-                <div style="margin-top: 15px; text-align: center;">
-                    <a href="https://weixin.qq.com/g/CQYAALcAeyOtrsp0D8_4QpeR_bvp0KJ51iDo3pbzkY_3ZE-Hp-6mnOjkRQWBAVQN" class="open-wechat-btn" target="_blank">
-                        <i class="fab fa-weixin"></i> Open WeChat & Join Group
-                    </a>
-                </div>
             </div>
             
             <p class="qr-instructions">
                 <strong style="color: #07C160; font-size: 16px;">How to join our Tesla community:</strong><br>
-                1. Scan this QR code with your WeChat app<br>
-                2. Or tap the "Open WeChat & Join Group" button<br>
-                3. Follow the prompts to join our community
+                1. Save this QR code to your device<br>
+                2. Open WeChat and tap "+" > "Scan"<br>
+                3. Select the saved QR code or scan directly from your screen
                 <span class="qr-subtitle">Connect with 200+ Tesla owners across Canada</span>
             </p>
             
@@ -2199,6 +2196,91 @@
                     setTimeout(function() {
                         window.location.href = "weixin://";
                     }, 100);
+                });
+            }
+        }
+    });
+
+    // Update the QR code handling
+    document.addEventListener('DOMContentLoaded', function() {
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
+        // Handle direct QR code download without third-party site visit
+        const downloadQRBtn = document.getElementById('downloadQRBtn');
+        if (downloadQRBtn) {
+            downloadQRBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Get the QR code image
+                const qrCodeImg = document.querySelector('.qr-code');
+                
+                // Create a canvas element
+                const canvas = document.createElement('canvas');
+                canvas.width = qrCodeImg.naturalWidth;
+                canvas.height = qrCodeImg.naturalHeight;
+                
+                // Draw the image on the canvas
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(qrCodeImg, 0, 0);
+                
+                // Convert canvas to blob and download
+                canvas.toBlob(function(blob) {
+                    // Create a temporary URL for the blob
+                    const url = URL.createObjectURL(blob);
+                    
+                    // Create a link element and trigger download
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = url;
+                    downloadLink.download = 'WeChat-QR-Code.png';
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                    
+                    // Release the blob URL
+                    setTimeout(function() {
+                        URL.revokeObjectURL(url);
+                    }, 100);
+                });
+            });
+        }
+        
+        // Make the QR code directly tappable/downloadable for mobile users
+        if (isMobile) {
+            const qrCodeImg = document.querySelector('.qr-code');
+            if (qrCodeImg) {
+                // Add visual cues that it's clickable
+                qrCodeImg.style.cursor = 'pointer';
+                qrCodeImg.title = 'Tap to download QR code';
+                
+                // Add click event listener for direct download
+                qrCodeImg.addEventListener('click', function() {
+                    // Create a canvas element
+                    const canvas = document.createElement('canvas');
+                    canvas.width = qrCodeImg.naturalWidth;
+                    canvas.height = qrCodeImg.naturalHeight;
+                    
+                    // Draw the image on the canvas
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(qrCodeImg, 0, 0);
+                    
+                    // Convert canvas to blob and download
+                    canvas.toBlob(function(blob) {
+                        // Create a temporary URL for the blob
+                        const url = URL.createObjectURL(blob);
+                        
+                        // Create a link element and trigger download
+                        const downloadLink = document.createElement('a');
+                        downloadLink.href = url;
+                        downloadLink.download = 'WeChat-QR-Code.png';
+                        document.body.appendChild(downloadLink);
+                        downloadLink.click();
+                        document.body.removeChild(downloadLink);
+                        
+                        // Release the blob URL
+                        setTimeout(function() {
+                            URL.revokeObjectURL(url);
+                        }, 100);
+                    });
                 });
             }
         }

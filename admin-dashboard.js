@@ -256,8 +256,7 @@ async function initializeAdminDashboard() {
 }
 
 /**
- * Loads the dashboard data, initializes the dashboard UI,
- * and sets up event listeners for dashboard functionality
+ * Load dashboard data and initialize UI components
  */
 async function loadDashboardData() {
     console.log('Starting to load dashboard data...');
@@ -281,12 +280,21 @@ async function loadDashboardData() {
             dashboardOverview.style.display = 'block';
             dashboardOverview.classList.add('active');
             
-            // Add active class to menu item
-            const overviewMenuItem = document.querySelector('.nav-item[data-target="dashboard-overview"]');
-            if (overviewMenuItem) {
-                document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-                overviewMenuItem.classList.add('active');
-            }
+            // Add active class to both sidebar and top menu items for Overview
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            
+            // Activate both sidebar and top menu items for Overview
+            const sidebarMenuItem = document.querySelector('.sidebar-nav a[data-target="dashboard-overview"]');
+            const topMenuItem = document.querySelector('.admin-top-menu-items a[data-target="dashboard-overview"]');
+            
+            if (sidebarMenuItem) sidebarMenuItem.classList.add('active');
+            if (topMenuItem) topMenuItem.classList.add('active');
+        }
+        
+        // On mobile, ensure the admin container has the correct class
+        const adminContainer = document.querySelector('.admin-container');
+        if (adminContainer && window.innerWidth <= 768) {
+            adminContainer.classList.add('with-top-menu');
         }
         
         // Load dashboard overview stats
@@ -1925,14 +1933,21 @@ function initializeDashboardMenus() {
     console.log('Initializing dashboard menus and sidebar...');
     
     try {
-        // Get all menu items (both from sidebar and any other nav-items)
-        const menuItems = document.querySelectorAll('.nav-item, .sidebar-nav a');
+        // Get all menu items (from sidebar, top menu, and any other nav-items)
+        const menuItems = document.querySelectorAll('.nav-item, .sidebar-nav a, .admin-top-menu-items a');
+        console.log(`Found ${menuItems.length} menu items`);
+        
+        // Get all content sections
         const contentSections = document.querySelectorAll('.dashboard-content-section');
+        console.log(`Found ${contentSections.length} content sections`);
         
-        console.log(`Found ${menuItems.length} menu items and ${contentSections.length} content sections`);
+        if (!menuItems || menuItems.length === 0) {
+            console.error('No menu items found in the DOM');
+            return;
+        }
         
-        if (!menuItems.length || !contentSections.length) {
-            console.warn('No menu items or content sections found, dashboard menus will not work properly');
+        if (!contentSections || contentSections.length === 0) {
+            console.error('No content sections found in the DOM');
             return;
         }
         
@@ -1940,773 +1955,187 @@ function initializeDashboardMenus() {
         const sidebarToggle = document.querySelector('#sidebar-toggle');
         const sidebar = document.querySelector('.admin-sidebar');
         const adminContent = document.querySelector('.admin-content');
+        const adminContainer = document.querySelector('.admin-container');
         
-        // Create overlay for mobile
-        let overlay = document.querySelector('.sidebar-overlay');
-        if (!overlay) {
-            overlay = document.createElement('div');
-            overlay.className = 'sidebar-overlay';
-            document.body.appendChild(overlay);
+        // On mobile, add the with-top-menu class to adjust padding
+        if (window.innerWidth <= 768 && adminContainer) {
+            adminContainer.classList.add('with-top-menu');
         }
         
-        // Close sidebar when overlay is clicked
-        overlay.addEventListener('click', () => {
-            closeSidebar();
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth <= 768 && adminContainer) {
+                adminContainer.classList.add('with-top-menu');
+                // Ensure sidebar is hidden on mobile by default
+                if (sidebar) sidebar.classList.remove('visible');
+            } else {
+                if (adminContainer) adminContainer.classList.remove('with-top-menu');
+                // Ensure sidebar is visible on desktop
+                if (sidebar) {
+                    sidebar.classList.remove('collapsed');
+                    sidebar.classList.remove('visible');
+                }
+                if (adminContent) adminContent.classList.remove('expanded');
+            }
         });
         
-        // Function to open sidebar for mobile
-        function openSidebar() {
-            sidebar.classList.add('visible');
-            sidebar.classList.remove('collapsed');
-            document.body.classList.add('sidebar-open');
-            overlay.classList.add('active');
-            adminContent.classList.add('expanded');
-        }
-        
-        // Function to close sidebar for mobile
-        function closeSidebar() {
-            sidebar.classList.remove('visible');
-            sidebar.classList.add('collapsed');
-            document.body.classList.remove('sidebar-open');
-            overlay.classList.remove('active');
-            adminContent.classList.add('expanded');
-        }
-        
-        // Toggle sidebar based on screen size
-        function toggleSidebar() {
-            console.log('Sidebar toggle clicked');
-            
-            // For mobile devices
-            if (window.innerWidth <= 768) {
-                if (sidebar.classList.contains('visible')) {
-                    closeSidebar();
-                } else {
-                    openSidebar();
-                }
-            } 
-            // For desktop
-            else {
-                sidebar.classList.toggle('collapsed');
-                adminContent.classList.toggle('expanded');
-                
-                // Save the sidebar state for desktop
-                try {
-                    localStorage.setItem('adminSidebarCollapsed', sidebar.classList.contains('collapsed') ? 'true' : 'false');
-                } catch (err) {
-                    console.error('Error saving sidebar state:', err);
+        // Desktop: Add keyboard shortcut for toggling sidebar (Alt+S)
+        document.addEventListener('keydown', function(e) {
+            // Only on desktop
+            if (window.innerWidth > 768 && sidebar && adminContent) {
+                // Alt+S keyboard shortcut
+                if (e.altKey && e.key === 's') {
+                    sidebar.classList.toggle('collapsed');
+                    adminContent.classList.toggle('expanded');
+                    e.preventDefault(); // Prevent browser's default behavior
                 }
             }
-        }
+        });
         
-        // Set up toggle button
+        // Add a toggle button in the content header (for desktop)
+        const adminSectionHeaders = document.querySelectorAll('.admin-section h2');
+        adminSectionHeaders.forEach(header => {
+            // Create a small toggle button in section headers for desktop
+            const headerToggle = document.createElement('button');
+            headerToggle.className = 'header-sidebar-toggle';
+            headerToggle.innerHTML = '<i class="fas fa-bars"></i>';
+            headerToggle.title = 'Toggle Sidebar';
+            headerToggle.style.marginLeft = '10px';
+            headerToggle.style.background = 'none';
+            headerToggle.style.border = 'none';
+            headerToggle.style.color = '#b0b8c5';
+            headerToggle.style.cursor = 'pointer';
+            headerToggle.style.display = 'none'; // Initially hidden
+            
+            // Add click event to toggle sidebar
+            headerToggle.addEventListener('click', function() {
+                if (sidebar && adminContent) {
+                    sidebar.classList.toggle('collapsed');
+                    adminContent.classList.toggle('expanded');
+                }
+            });
+            
+            // Only show on desktop
+            if (window.innerWidth > 768) {
+                headerToggle.style.display = 'inline-block';
+            }
+            
+            // Add resize listener for the button
+            window.addEventListener('resize', function() {
+                headerToggle.style.display = window.innerWidth > 768 ? 'inline-block' : 'none';
+            });
+            
+            header.appendChild(headerToggle);
+        });
+        
         if (sidebarToggle && sidebar) {
             console.log('Initializing sidebar toggle');
-            sidebarToggle.addEventListener('click', toggleSidebar);
-            
-            // Load saved state (collapsed/expanded) from local storage
-            try {
-                const savedState = localStorage.getItem('adminSidebarCollapsed');
-                if (savedState === 'true') {
-                    sidebar.classList.add('collapsed');
-                    adminContent.classList.add('expanded');
+            sidebarToggle.addEventListener('click', function() {
+                console.log('Sidebar toggle clicked');
+                
+                // Mobile only: toggle the visible class
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.toggle('visible');
                 }
-            } catch (err) {
-                console.error('Error reading saved sidebar state:', err);
-            }
+            });
         } else {
             console.warn('Sidebar toggle or sidebar element not found');
         }
         
-        // Create a function to activate a specific content section
-        const activateSection = (sectionId) => {
-            // Track if we found the section
-            let sectionFound = false;
-            
-            // Hide all sections and show the selected one
-            contentSections.forEach(section => {
-                section.classList.remove('active');
-                
-                if (section.id === sectionId) {
-                    section.classList.add('active');
-                    sectionFound = true;
-                    
-                    // Show mobile toast notification
-                    if (window.innerWidth <= 768) {
-                        let sectionTitle = section.querySelector('h2') ? 
-                            section.querySelector('h2').textContent : 
-                            sectionId.replace(/-/g, ' ');
-                        
-                        let iconName = 'tachometer-alt';
-                        
-                        // Set icon based on section
-                        if (sectionId.includes('user')) {
-                            iconName = 'users-cog';
-                        } else if (sectionId.includes('event')) {
-                            iconName = 'calendar-alt';
-                        } else if (sectionId.includes('content')) {
-                            iconName = 'file-alt';
-                        } else if (sectionId.includes('settings')) {
-                            iconName = 'cogs';
-                        }
-                        
-                        showMobileToast(`Viewing ${sectionTitle}`, iconName);
-                    }
-                    
-                    // Refresh data when switching to specific sections
-                    if (sectionId === 'user-management') {
-                        // Re-load the users table when this section is activated
-                        if (typeof loadUsersTable === 'function') {
-                            loadUsersTable('', document.getElementById('userStatusFilter')?.value || 'all');
-                        }
-                    } else if (sectionId === 'event-management') {
-                        // Re-load the events table when this section is activated
-                        if (typeof loadEventRegistrationsTable === 'function') {
-                            const eventFilter = document.getElementById('eventFilter')?.value || 'all';
-                            const regStatus = document.getElementById('registrationStatusFilter')?.value || 'active';
-                            loadEventRegistrationsTable('', eventFilter, regStatus);
-                        }
-                    }
-                }
-            });
-            
-            return sectionFound;
-        };
-        
-        // Add click event listener to menu items
+        // Add click event listeners to menu items
         menuItems.forEach(item => {
-            item.addEventListener('click', (e) => {
+            item.addEventListener('click', function(e) {
                 e.preventDefault();
-                const targetSection = item.getAttribute('data-target');
                 
-                // Only proceed if there's a target section
-                if (!targetSection) {
-                    console.warn('Menu item clicked with no data-target attribute:', item);
+                const targetId = this.getAttribute('data-target');
+                console.log(`Menu item clicked: ${this.textContent.trim()}, target: ${targetId}`);
+                
+                if (!targetId) {
+                    console.error('Menu item missing data-target attribute:', this);
                     return;
                 }
                 
-                // Remove 'active' class from all menu items
-                menuItems.forEach(mi => mi.classList.remove('active'));
+                // Remove active class from all menu items
+                menuItems.forEach(menuItem => menuItem.classList.remove('active'));
                 
-                // Add 'active' class to clicked menu item
-                item.classList.add('active');
+                // Add active class to clicked item
+                this.classList.add('active');
                 
-                // Try to activate the target section
-                const sectionActivated = activateSection(targetSection);
+                // Also update the corresponding item in the other menu (top or sidebar)
+                const sidebarItem = document.querySelector(`.sidebar-nav a[data-target="${targetId}"]`);
+                const topMenuItem = document.querySelector(`.admin-top-menu-items a[data-target="${targetId}"]`);
                 
-                if (!sectionActivated) {
-                    console.warn(`Section with ID "${targetSection}" not found`);
-                }
+                if (sidebarItem) sidebarItem.classList.add('active');
+                if (topMenuItem) topMenuItem.classList.add('active');
                 
-                // On mobile, auto-close the sidebar after selection
-                if (window.innerWidth <= 768) {
-                    setTimeout(() => {
-                        closeSidebar();
-                    }, 300);
+                // Hide all content sections
+                contentSections.forEach(section => {
+                    section.classList.remove('active');
+                    section.style.display = 'none';
+                });
+                
+                // Show the target content section
+                const targetSection = document.getElementById(targetId);
+                if (targetSection) {
+                    targetSection.classList.add('active');
+                    targetSection.style.display = 'block';
+                    console.log(`Activated section: ${targetId}`);
+                    
+                    // If we switched to event management, refresh the data
+                    if (targetId === 'event-management') {
+                        console.log('Switched to event management, refreshing data...');
+                        loadEventRegistrationsTable('', 'all', 'active');
+                        populateEventFilter();
+                    }
+                    
+                    // If we switched to user management, refresh the data
+                    if (targetId === 'user-management') {
+                        console.log('Switched to user management, refreshing data...');
+                        loadUsersTable();
+                    }
+                    
+                    // On mobile, auto-hide the sidebar after selection
+                    if (window.innerWidth <= 768 && sidebar) {
+                        sidebar.classList.remove('visible');
+                    }
+                } else {
+                    console.error(`Target section not found: ${targetId}`);
                 }
             });
         });
         
-        // Activate the first menu item with the active class, or the first menu item if none have active
-        const activeMenuItem = document.querySelector('.nav-item.active, .sidebar-nav a.active');
-        const defaultSection = document.querySelector('.nav-item[data-target="dashboard-overview"], .sidebar-nav a[data-target="dashboard-overview"]');
-        
-        if (activeMenuItem) {
-            const targetSection = activeMenuItem.getAttribute('data-target');
-            if (targetSection) {
-                activateSection(targetSection);
-            }
-        } else if (defaultSection) {
-            defaultSection.classList.add('active');
-            const targetSection = defaultSection.getAttribute('data-target');
-            if (targetSection) {
-                activateSection(targetSection);
-            }
-        }
-        
-        // Add window resize handler to reset sidebar state on mobile/desktop switch
-        window.addEventListener('resize', debounce(function() {
-            // Remove mobile-specific classes when going to desktop
-            if (window.innerWidth > 768) {
-                sidebar.classList.remove('visible');
-                document.body.classList.remove('sidebar-open');
-                overlay.classList.remove('active');
-                
-                try {
-                    // Apply saved state or default to expanded
-                    const savedState = localStorage.getItem('adminSidebarCollapsed');
-                    if (savedState === 'true') {
-                        sidebar.classList.add('collapsed');
-                        adminContent.classList.add('expanded');
-                    } else {
-                        sidebar.classList.remove('collapsed');
-                        adminContent.classList.remove('expanded');
-                    }
-                } catch (err) {
-                    console.error('Error applying saved sidebar state on resize:', err);
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(e) {
+            if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains('visible')) {
+                // Check if the click was outside the sidebar and not on the toggle button
+                if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                    sidebar.classList.remove('visible');
                 }
             }
-        }, 250));
+        });
+        
+        // Activate dashboard overview by default if nothing else is active
+        const activeSections = document.querySelectorAll('.admin-section.active');
+        if (activeSections.length === 0) {
+            const defaultSection = document.querySelector('.nav-item[data-target="dashboard-overview"], .sidebar-nav a[data-target="dashboard-overview"]');
+            if (defaultSection) {
+                console.log('No active section found, activating dashboard overview');
+                defaultSection.click();
+            } else {
+                console.error('Default dashboard overview menu item not found');
+                // Fallback: activate the first menu item
+                if (menuItems.length > 0) {
+                    console.log('Activating first available menu item');
+                    menuItems[0].click();
+                }
+            }
+        } else {
+            console.log(`Found ${activeSections.length} already active section(s)`);
+        }
         
         console.log('Dashboard menus and sidebar initialized successfully');
     } catch (error) {
         console.error('Error initializing dashboard menus:', error);
     }
 }
-    
-// At the end of the file
-// Initialize the dashboard when the DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM fully loaded, initializing admin dashboard...');
-    
-    // Function to optimize mobile performance
-    const optimizeMobilePerformance = () => {
-        // Only apply these optimizations on mobile
-        if (window.innerWidth <= 768) {
-            console.log('Applying mobile performance optimizations');
-            
-            // Force hardware acceleration for smoother animations on mobile
-            const acceleratedElements = [
-                '.admin-sidebar',
-                '.sidebar-toggle',
-                '.admin-content',
-                '.mobile-page-header',
-                '.sidebar-overlay',
-                '.table-responsive',
-                '.stat-card',
-                '.action-btn'
-            ];
-            
-            acceleratedElements.forEach(selector => {
-                const elements = document.querySelectorAll(selector);
-                elements.forEach(el => {
-                    if (el) {
-                        el.style.transform = 'translateZ(0)';
-                        el.style.backfaceVisibility = 'hidden';
-                        el.style.perspective = '1000px';
-                    }
-                });
-            });
-            
-            // Add touch handling for smoother sidebar interactions on mobile
-            const sidebar = document.querySelector('.admin-sidebar');
-            const content = document.querySelector('.admin-content');
-            
-            if (sidebar && content) {
-                let touchStartX = 0;
-                let touchEndX = 0;
-                const swipeThreshold = 70; // Minimum distance for a swipe
-                
-                // Track touch start position
-                document.addEventListener('touchstart', function(e) {
-                    touchStartX = e.changedTouches[0].screenX;
-                }, { passive: true });
-                
-                // Track touch end and determine swipe direction
-                document.addEventListener('touchend', function(e) {
-                    touchEndX = e.changedTouches[0].screenX;
-                    handleSwipe();
-                }, { passive: true });
-                
-                // Handle the swipe gesture
-                const handleSwipe = () => {
-                    const swipeDistance = touchEndX - touchStartX;
-                    
-                    // Right swipe (to open sidebar)
-                    if (swipeDistance > swipeThreshold) {
-                        if (sidebar && !sidebar.classList.contains('visible') && window.adminSidebar) {
-                            window.adminSidebar.open();
-                        }
-                    }
-                    
-                    // Left swipe (to close sidebar)
-                    else if (swipeDistance < -swipeThreshold) {
-                        if (sidebar && sidebar.classList.contains('visible') && window.adminSidebar) {
-                            window.adminSidebar.close();
-                        }
-                    }
-                };
-            }
-            
-            // Improve scrolling performance by debouncing scroll events
-            if (content) {
-                let scrollTimeout;
-                content.addEventListener('scroll', function() {
-                    if (!scrollTimeout) {
-                        scrollTimeout = setTimeout(function() {
-                            scrollTimeout = null;
-                            // Any scroll-related updates would go here
-                        }, 100);
-                    }
-                }, { passive: true });
-            }
-            
-            console.log('Mobile performance optimizations applied');
-        }
-    };
-    
-    // Run mobile optimization
-    optimizeMobilePerformance();
-    
-    // Enhance the mobileSetup function for better handling of sidebar and main navigation
-    const mobileSetup = () => {
-        // Initialize key elements
-        const sidebar = document.querySelector('.admin-sidebar');
-        const sidebarToggle = document.getElementById('sidebar-toggle');
-        const adminContent = document.querySelector('.admin-content');
-        const mainNav = document.querySelector('nav');
-        const mainNavToggle = document.querySelector('.menu-toggle');
-        const mainNavLinks = document.getElementById('nav-links');
-        const mobileHeader = document.querySelector('.mobile-page-header');
-        
-        // Check if critical elements exist
-        if (!sidebar || !sidebarToggle) {
-            console.error('Critical sidebar elements not found:', 
-                !sidebar ? 'Missing sidebar' : '',
-                !sidebarToggle ? 'Missing toggle button' : '');
-            return;
-        }
-        
-        console.log('Setting up mobile sidebar interaction with main nav coordination');
-        
-        // Create overlay for mobile if it doesn't exist
-        let overlay = document.querySelector('.sidebar-overlay');
-        if (!overlay) {
-            overlay = document.createElement('div');
-            overlay.className = 'sidebar-overlay';
-            document.body.appendChild(overlay);
-        }
-        
-        // Add animation class to toggle button for better visibility
-        sidebarToggle.classList.add('animated-toggle');
-        
-        // Function to open sidebar for mobile
-        function openSidebar() {
-            console.log('Opening sidebar on mobile');
-            
-            // If main nav is open, close it first to avoid conflicts
-            if (mainNavLinks && mainNavLinks.classList.contains('active')) {
-                mainNavLinks.classList.remove('active');
-                if (mainNavToggle) {
-                    mainNavToggle.classList.remove('nav-open');
-                    const icon = mainNavToggle.querySelector('i');
-                    if (icon) icon.classList.remove('fa-times');
-                }
-                document.body.classList.remove('nav-open');
-            }
-            
-            sidebar.classList.add('visible');
-            sidebar.classList.remove('collapsed');
-            document.body.classList.add('sidebar-open');
-            overlay.classList.add('active');
-            
-            if (adminContent) {
-                adminContent.classList.add('expanded');
-            }
-            
-            // Update toggle button icon
-            const toggleIcon = sidebarToggle.querySelector('i');
-            if (toggleIcon) {
-                toggleIcon.classList.remove('fa-bars');
-                toggleIcon.classList.add('fa-times');
-            }
-            
-            // Add event to close sidebar when clicking anywhere in the content area
-            adminContent.addEventListener('click', contentClickHandler);
-            
-            // Announce for screen readers
-            const srAnnouncement = document.createElement('div');
-            srAnnouncement.setAttribute('role', 'status');
-            srAnnouncement.classList.add('sr-only');
-            srAnnouncement.textContent = 'Sidebar menu opened';
-            document.body.appendChild(srAnnouncement);
-            setTimeout(() => document.body.removeChild(srAnnouncement), 1000);
-        }
-        
-        // Function to close sidebar for mobile
-        function closeSidebar() {
-            console.log('Closing sidebar on mobile');
-            sidebar.classList.remove('visible');
-            sidebar.classList.add('collapsed');
-            document.body.classList.remove('sidebar-open');
-            overlay.classList.remove('active');
-            
-            if (adminContent) {
-                adminContent.classList.remove('expanded');
-            }
-            
-            // Update toggle button icon
-            const toggleIcon = sidebarToggle.querySelector('i');
-            if (toggleIcon) {
-                toggleIcon.classList.remove('fa-times');
-                toggleIcon.classList.add('fa-bars');
-            }
-            
-            // Remove content click event listener
-            adminContent.removeEventListener('click', contentClickHandler);
-            
-            // Announce for screen readers
-            const srAnnouncement = document.createElement('div');
-            srAnnouncement.setAttribute('role', 'status');
-            srAnnouncement.classList.add('sr-only');
-            srAnnouncement.textContent = 'Sidebar menu closed';
-            document.body.appendChild(srAnnouncement);
-            setTimeout(() => document.body.removeChild(srAnnouncement), 1000);
-        }
-        
-        // Handler for clicks in the content area
-        function contentClickHandler(e) {
-            // Only close if we're not clicking on an interactive element
-            if (!e.target.closest('button') && !e.target.closest('a') && !e.target.closest('input') && 
-                !e.target.closest('select') && !e.target.closest('textarea')) {
-                closeSidebar();
-            }
-        }
-        
-        // Set initial mobile state based on screen size
-        const setInitialMobileState = () => {
-            if (window.innerWidth <= 768) {
-                closeSidebar();
-                
-                // Ensure correct header display
-                if (mobileHeader) {
-                    mobileHeader.style.display = 'flex';
-                }
-                
-                // Make sure toggle is visible
-                if (sidebarToggle) {
-                    sidebarToggle.classList.add('mobile-visible');
-                }
-            } else {
-                // On desktop, apply saved state or default to expanded
-                try {
-                    const savedState = localStorage.getItem('adminSidebarCollapsed');
-                    if (savedState === 'true') {
-                        sidebar.classList.add('collapsed');
-                        if (adminContent) adminContent.classList.add('expanded');
-                    } else {
-                        sidebar.classList.remove('collapsed');
-                        if (adminContent) adminContent.classList.remove('expanded');
-                    }
-                } catch (err) {
-                    console.error('Error applying saved state:', err);
-                }
-                
-                // Hide mobile-specific elements
-                if (mobileHeader) {
-                    mobileHeader.style.display = 'none';
-                }
-                
-                if (sidebarToggle) {
-                    sidebarToggle.classList.remove('mobile-visible');
-                }
-            }
-        };
-        
-        // Run initial state setup
-        setInitialMobileState();
-        
-        // Mobile toggle function with improved feedback
-        const toggleMobileSidebar = (e) => {
-            e.stopPropagation(); // Prevent event from reaching content
-            console.log('Mobile sidebar toggle clicked');
-            
-            // Add active state for better touch feedback
-            sidebarToggle.classList.add('active');
-            setTimeout(() => sidebarToggle.classList.remove('active'), 300);
-            
-            if (sidebar.classList.contains('visible')) {
-                closeSidebar();
-            } else {
-                openSidebar();
-            }
-        };
-        
-        // Add event listeners
-        sidebarToggle.addEventListener('click', toggleMobileSidebar);
-        overlay.addEventListener('click', closeSidebar);
-        
-        // Improve a11y with keyboard support
-        sidebarToggle.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                toggleMobileSidebar(e);
-            }
-        });
-        
-        // Add direct click listeners to all sidebar menu items
-        document.querySelectorAll('.sidebar-nav a').forEach(link => {
-            link.addEventListener('click', function(e) {
-                // Only track clicks that select menu items, not other link actions
-                const hasDataTarget = this.hasAttribute('data-target');
-                
-                if (hasDataTarget) {
-                    e.stopPropagation(); // Prevent clicks from bubbling to content
-                    
-                    // Add active state for better touch feedback
-                    this.classList.add('touch-active');
-                    setTimeout(() => this.classList.remove('touch-active'), 300);
-                    
-                    // On mobile, delay closing the sidebar slightly to allow for animation
-                    if (window.innerWidth <= 768) {
-                        setTimeout(closeSidebar, 300); // Small delay to allow the click to register
-                    }
-                }
-            });
-        });
-        
-        // Handle main navigation menu toggle to avoid conflicts
-        if (mainNavToggle) {
-            const originalToggleHandler = mainNavToggle.onclick;
-            
-            // Replace the click handler with our improved version
-            mainNavToggle.onclick = function(e) {
-                // If admin sidebar is open, close it first
-                if (sidebar.classList.contains('visible')) {
-                    closeSidebar();
-                }
-                
-                // Call the original handler if available
-                if (typeof originalToggleHandler === 'function') {
-                    originalToggleHandler.call(this, e);
-                }
-            };
-        }
-        
-        // Handle window resize to ensure proper state on orientation change
-        window.addEventListener('resize', function() {
-            // Update state based on current screen size
-            setInitialMobileState();
-        });
-        
-        // Add double-tap protection for iOS
-        let lastTapTime = 0;
-        sidebarToggle.addEventListener('touchend', function(e) {
-            const currentTime = new Date().getTime();
-            const tapLength = currentTime - lastTapTime;
-            if (tapLength < 300 && tapLength > 0) {
-                e.preventDefault();
-                return false;
-            }
-            lastTapTime = currentTime;
-        });
-        
-        // Better support for various mobile browsers
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const isAndroid = /Android/.test(navigator.userAgent);
-        
-        if (isIOS) {
-            // iOS-specific adjustments
-            document.documentElement.classList.add('ios-device');
-            
-            // Fix for iOS momentum scrolling issues
-            document.querySelectorAll('.admin-sidebar, .admin-content, .table-responsive').forEach(el => {
-                el.style.WebkitOverflowScrolling = 'touch';
-            });
-        } else if (isAndroid) {
-            // Android-specific adjustments
-            document.documentElement.classList.add('android-device');
-        }
-        
-        // Expose these functions globally for other scripts
-        window.adminSidebar = {
-            open: openSidebar,
-            close: closeSidebar,
-            toggle: toggleMobileSidebar,
-            isOpen: () => sidebar.classList.contains('visible'),
-            isMobile: () => window.innerWidth <= 768
-        };
-        
-        console.log('Enhanced mobile sidebar setup complete');
-    };
-    
-    // Run mobile setup immediately
-    mobileSetup();
-    
-    // Rest of the initialization code...
-    // Wait for Supabase to be ready
-    const initializeApp = async () => {
-        try {
-            if (!window.supabaseClient) {
-                console.log('Waiting for Supabase client to be available...');
-                await new Promise(resolve => {
-                    if (window.supabaseClient) return resolve();
-                    document.addEventListener('supabase:ready', resolve, { once: true });
-                    
-                    // Add a timeout in case the event never fires
-                    setTimeout(() => {
-                        if (!window.supabaseClient) {
-                            console.error('Supabase client not available after timeout');
-                            resolve();
-                        }
-                    }, 5000);
-                });
-            }
-            
-            // Check if sidebar elements exist
-            const sidebar = document.querySelector('.admin-sidebar');
-            const sidebarToggle = document.getElementById('sidebar-toggle');
-            
-            if (!sidebar || !sidebarToggle) {
-                console.warn('Sidebar elements not found in the DOM on load:',
-                    !sidebar ? 'Missing sidebar' : '',
-                    !sidebarToggle ? 'Missing toggle button' : '');
-            } else {
-                console.log('Sidebar elements found, ready for mobile interaction');
-                
-                // Set mobile styling class on initial load if needed
-                if (window.innerWidth <= 768) {
-                    // Start with sidebar closed on mobile
-                    sidebar.classList.add('collapsed');
-                    document.querySelector('.admin-content')?.classList.add('expanded');
-                }
-            }
-            
-            // Initialize the dashboard components
-            await initializeAdminDashboard();
-            
-            // Make sure the dashboard menus are initialized
-            // (sometimes this can fail to be called if there's an error in initializeAdminDashboard)
-            setTimeout(() => {
-                if (document.querySelectorAll('.admin-section.active').length === 0) {
-                    console.log('No active sections found after initialization, re-initializing menus...');
-                    initializeDashboardMenus();
-                }
-            }, 1000);
-            
-        } catch (error) {
-            console.error('Error initializing admin dashboard:', error);
-        }
-    };
-    
-    initializeApp();
-});
-    
-// After the optimizeMobilePerformance function
-
-// Add table scroll tracking for mobile
-function enhanceMobileTables() {
-    // Only apply on mobile
-    if (window.innerWidth <= 768) {
-        console.log('Enhancing mobile tables for better UX');
-        
-        // Find all responsive tables
-        const responsiveTables = document.querySelectorAll('.table-responsive');
-        
-        // Add scroll tracking to each
-        responsiveTables.forEach(tableContainer => {
-            // Skip if already initialized
-            if (tableContainer.dataset.scrollInitialized) return;
-            
-            tableContainer.dataset.scrollInitialized = 'true';
-            
-            // Add scroll listener
-            tableContainer.addEventListener('scroll', function() {
-                // Add/remove scrolled-left class based on scroll position
-                if (this.scrollLeft > 10) {
-                    this.classList.add('scrolled-left');
-                } else {
-                    this.classList.remove('scrolled-left');
-                }
-                
-                // Add visual indicator for scrollable tables
-                const maxScroll = this.scrollWidth - this.clientWidth - 10;
-                const isScrollable = this.scrollWidth > this.clientWidth + 20;
-                const isAtEnd = this.scrollLeft >= maxScroll;
-                
-                // Add/remove can-swipe-right/left classes for visual cues
-                if (isScrollable) {
-                    if (this.scrollLeft < 10) {
-                        this.classList.add('can-swipe-right');
-                        this.classList.remove('can-swipe-left');
-                    } else if (isAtEnd) {
-                        this.classList.add('can-swipe-left');
-                        this.classList.remove('can-swipe-right');
-                    } else {
-                        this.classList.add('can-swipe-left');
-                        this.classList.add('can-swipe-right');
-                    }
-                }
-            }, { passive: true });
-            
-            // Trigger once to set initial state
-            tableContainer.dispatchEvent(new Event('scroll'));
-        });
-        
-        // Add tap-to-scroll functionality for narrow tables
-        const mobileTables = document.querySelectorAll('table');
-        mobileTables.forEach(table => {
-            // Skip if already initialized
-            if (table.dataset.tapInitialized) return;
-            
-            table.dataset.tapInitialized = 'true';
-            
-            table.addEventListener('click', function(e) {
-                // Only handle clicks on table headers or cells
-                if (e.target.tagName === 'TH' || e.target.tagName === 'TD') {
-                    const container = this.closest('.table-responsive');
-                    if (!container) return;
-                    
-                    // Determine which direction to scroll based on click position
-                    const containerRect = container.getBoundingClientRect();
-                    const clickX = e.clientX - containerRect.left;
-                    const containerWidth = containerRect.width;
-                    
-                    // If clicked in the right third, scroll right
-                    if (clickX > containerWidth * 0.7) {
-                        container.scrollBy({ left: 100, behavior: 'smooth' });
-                    }
-                    // If clicked in the left third, scroll left
-                    else if (clickX < containerWidth * 0.3) {
-                        container.scrollBy({ left: -100, behavior: 'smooth' });
-                    }
-                }
-            });
-        });
-    }
-}
-
-// Add mobile toast notification function
-function showMobileToast(message, icon = 'info-circle', duration = 3000) {
-    // Only show on mobile
-    if (window.innerWidth > 768) return;
-    
-    // Remove any existing toasts
-    const existingToasts = document.querySelectorAll('.mobile-toast');
-    existingToasts.forEach(toast => document.body.removeChild(toast));
-    
-    // Create new toast
-    const toast = document.createElement('div');
-    toast.className = 'mobile-toast';
-    toast.innerHTML = `<i class="fas fa-${icon}"></i> ${message}`;
-    document.body.appendChild(toast);
-    
-    // Show the toast
-    setTimeout(() => toast.classList.add('show'), 10);
-    
-    // Hide and remove after duration
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => document.body.removeChild(toast), 300);
-    }, duration);
-}
-
-// Call enhance tables after DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Enhance mobile tables
-    enhanceMobileTables();
-    
-    // Re-enhance tables when content sections change
-    document.querySelectorAll('.admin-section').forEach(section => {
-        section.addEventListener('transitionend', function(e) {
-            if (e.propertyName === 'opacity' && this.classList.contains('active')) {
-                enhanceMobileTables();
-            }
-        });
-    });
-    
-    // Re-enhance tables on window resize
-    window.addEventListener('resize', debounce(function() {
-        enhanceMobileTables();
-    }, 250));
-});
     

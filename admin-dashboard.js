@@ -1951,8 +1951,7 @@ function initializeDashboardMenus() {
             return;
         }
         
-        // Initialize sidebar toggle button
-        const sidebarToggle = document.querySelector('#sidebar-toggle');
+        // Get references to elements
         const sidebar = document.querySelector('.admin-sidebar');
         const adminContent = document.querySelector('.admin-content');
         const adminContainer = document.querySelector('.admin-container');
@@ -1978,69 +1977,6 @@ function initializeDashboardMenus() {
                 if (adminContent) adminContent.classList.remove('expanded');
             }
         });
-        
-        // Desktop: Add keyboard shortcut for toggling sidebar (Alt+S)
-        document.addEventListener('keydown', function(e) {
-            // Only on desktop
-            if (window.innerWidth > 768 && sidebar && adminContent) {
-                // Alt+S keyboard shortcut
-                if (e.altKey && e.key === 's') {
-                    sidebar.classList.toggle('collapsed');
-                    adminContent.classList.toggle('expanded');
-                    e.preventDefault(); // Prevent browser's default behavior
-                }
-            }
-        });
-        
-        // Add a toggle button in the content header (for desktop)
-        const adminSectionHeaders = document.querySelectorAll('.admin-section h2');
-        adminSectionHeaders.forEach(header => {
-            // Create a small toggle button in section headers for desktop
-            const headerToggle = document.createElement('button');
-            headerToggle.className = 'header-sidebar-toggle';
-            headerToggle.innerHTML = '<i class="fas fa-bars"></i>';
-            headerToggle.title = 'Toggle Sidebar';
-            headerToggle.style.marginLeft = '10px';
-            headerToggle.style.background = 'none';
-            headerToggle.style.border = 'none';
-            headerToggle.style.color = '#b0b8c5';
-            headerToggle.style.cursor = 'pointer';
-            headerToggle.style.display = 'none'; // Initially hidden
-            
-            // Add click event to toggle sidebar
-            headerToggle.addEventListener('click', function() {
-                if (sidebar && adminContent) {
-                    sidebar.classList.toggle('collapsed');
-                    adminContent.classList.toggle('expanded');
-                }
-            });
-            
-            // Only show on desktop
-            if (window.innerWidth > 768) {
-                headerToggle.style.display = 'inline-block';
-            }
-            
-            // Add resize listener for the button
-            window.addEventListener('resize', function() {
-                headerToggle.style.display = window.innerWidth > 768 ? 'inline-block' : 'none';
-            });
-            
-            header.appendChild(headerToggle);
-        });
-        
-        if (sidebarToggle && sidebar) {
-            console.log('Initializing sidebar toggle');
-            sidebarToggle.addEventListener('click', function() {
-                console.log('Sidebar toggle clicked');
-                
-                // Mobile only: toggle the visible class
-                if (window.innerWidth <= 768) {
-                    sidebar.classList.toggle('visible');
-                }
-            });
-        } else {
-            console.warn('Sidebar toggle or sidebar element not found');
-        }
         
         // Add click event listeners to menu items
         menuItems.forEach(item => {
@@ -2108,7 +2044,7 @@ function initializeDashboardMenus() {
         document.addEventListener('click', function(e) {
             if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains('visible')) {
                 // Check if the click was outside the sidebar and not on the toggle button
-                if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                if (!sidebar.contains(e.target)) {
                     sidebar.classList.remove('visible');
                 }
             }

@@ -260,41 +260,17 @@ async function initializeAdminDashboard() {
  */
 async function loadDashboardData() {
     console.log('Starting to load dashboard data...');
-
+    
     try {
-        // Initialize the dashboard menus first to ensure proper navigation
-        console.log('Initializing dashboard menus...');
-        initializeDashboardMenus();
-        
-        // Check if dashboard overview section exists and make it visible by default
-        const dashboardOverview = document.getElementById('dashboard-overview');
-        if (dashboardOverview) {
-            console.log('Setting dashboard overview as active section');
-            
-            // Make dashboard overview visible by default
-            document.querySelectorAll('.dashboard-content-section').forEach(section => {
-                section.style.display = 'none';
+        // Show the dashboard overview section by default
+        const dashboardSection = document.getElementById('dashboard-overview');
+        if (dashboardSection) {
+            // Make sure all other sections are hidden
+            document.querySelectorAll('.admin-section').forEach(section => {
                 section.classList.remove('active');
             });
-            
-            dashboardOverview.style.display = 'block';
-            dashboardOverview.classList.add('active');
-            
-            // Add active class to both sidebar and top menu items for Overview
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            
-            // Activate both sidebar and top menu items for Overview
-            const sidebarMenuItem = document.querySelector('.sidebar-nav a[data-target="dashboard-overview"]');
-            const topMenuItem = document.querySelector('.admin-top-menu-items a[data-target="dashboard-overview"]');
-            
-            if (sidebarMenuItem) sidebarMenuItem.classList.add('active');
-            if (topMenuItem) topMenuItem.classList.add('active');
-        }
-        
-        // On mobile, ensure the admin container has the correct class
-        const adminContainer = document.querySelector('.admin-container');
-        if (adminContainer && window.innerWidth <= 768) {
-            adminContainer.classList.add('with-top-menu');
+            // Show the dashboard overview
+            dashboardSection.classList.add('active');
         }
         
         // Load dashboard overview stats
@@ -334,6 +310,10 @@ async function loadDashboardData() {
         console.log('Initializing event management controls...');
         initializeEventManagementControls();
         
+        // Initialize table sorting functionality
+        console.log('Initializing table sorting functionality...');
+        initializeTableSorting();
+        
         // Add action listeners to user and event tables after they are loaded
         console.log('Adding action listeners to user and event tables...');
         addUserActionListeners();
@@ -342,7 +322,6 @@ async function loadDashboardData() {
         console.log('Dashboard data loaded successfully');
     } catch (error) {
         console.error('Error loading dashboard data:', error);
-        alert('There was an error loading the dashboard data. Please try refreshing the page.');
     }
 }
 
@@ -1320,6 +1299,11 @@ async function loadUsersTable(searchTerm = '', statusFilter = 'all') {
 
         // Add event listeners for action buttons
         addUserActionListeners();
+        
+        // Reapply sorting if a column was previously sorted
+        if (window.reapplySorting) {
+            window.reapplySorting();
+        }
 
     } catch (error) {
         console.error('Failed to load users table:', error);
@@ -1510,6 +1494,11 @@ async function loadEventRegistrationsTable(searchTerm = '', eventFilter = 'all',
 
         // Add event listeners for action buttons
         addEventRegistrationActionListeners();
+        
+        // Reapply sorting if a column was previously sorted
+        if (window.reapplySorting) {
+            window.reapplySorting();
+        }
 
     } catch (error) {
         console.error('Failed to load event registrations table:', error);
@@ -2377,5 +2366,230 @@ function initializeDashboardMenus() {
     } catch (error) {
         console.error('Error initializing dashboard menus:', error);
     }
+}
+
+// Add the table sorting functionality
+function initializeTableSorting() {
+    console.log('Initializing table sorting functionality');
+    
+    // Track sort state for each table
+    const sortState = {
+        users: {
+            column: null,
+            ascending: true
+        },
+        events: {
+            column: null,
+            ascending: true
+        }
+    };
+    
+    // Add click event listeners to table headers in the users table
+    const usersTableHeaders = document.querySelectorAll('#usersTable thead th');
+    usersTableHeaders.forEach((header, index) => {
+        // Skip the Actions column which should not be sortable
+        if (header.textContent.trim() !== 'Actions') {
+            header.classList.add('sortable');
+            header.innerHTML = `${header.textContent} <i class="fas fa-sort"></i>`;
+            header.addEventListener('click', () => {
+                const column = header.textContent.trim().replace(' ▲', '').replace(' ▼', '').replace(/ <i.*<\/i>$/, '');
+                sortUsersTable(column, index);
+            });
+        }
+    });
+    
+    // Add click event listeners to table headers in the event registrations table
+    const eventTableHeaders = document.querySelectorAll('#eventRegistrationsTable thead th');
+    eventTableHeaders.forEach((header, index) => {
+        // Skip the Actions column which should not be sortable
+        if (header.textContent.trim() !== 'Actions') {
+            header.classList.add('sortable');
+            header.innerHTML = `${header.textContent} <i class="fas fa-sort"></i>`;
+            header.addEventListener('click', () => {
+                const column = header.textContent.trim().replace(' ▲', '').replace(' ▼', '').replace(/ <i.*<\/i>$/, '');
+                sortEventRegistrationsTable(column, index);
+            });
+        }
+    });
+    
+    // Function to sort the users table
+    function sortUsersTable(column, columnIndex) {
+        console.log(`Sorting users table by column: ${column}`);
+        
+        // Update sort state
+        if (sortState.users.column === column) {
+            // If clicking the same column, toggle sort direction
+            sortState.users.ascending = !sortState.users.ascending;
+        } else {
+            // If clicking a new column, set it as the sort column and default to ascending
+            sortState.users.column = column;
+            sortState.users.ascending = true;
+        }
+        
+        // Update header icons to show sort direction
+        usersTableHeaders.forEach(h => {
+            // Reset all headers
+            h.innerHTML = h.textContent.replace(' ▲', '').replace(' ▼', '').replace(/ <i.*<\/i>$/, '') + ' <i class="fas fa-sort"></i>';
+        });
+        
+        // Update the clicked header with the appropriate sort icon
+        const sortIcon = sortState.users.ascending ? '<i class="fas fa-sort-up"></i>' : '<i class="fas fa-sort-down"></i>';
+        usersTableHeaders[columnIndex].innerHTML = `${column} ${sortIcon}`;
+        
+        // Get all rows from the table body
+        const tbody = document.querySelector('#usersTableBody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        
+        // Sort the rows
+        rows.sort((a, b) => {
+            let aValue = a.cells[columnIndex].textContent.trim();
+            let bValue = b.cells[columnIndex].textContent.trim();
+            
+            // Special handling for dates
+            if (column === 'Joined') {
+                aValue = new Date(aValue);
+                bValue = new Date(bValue);
+                return sortState.users.ascending ? aValue - bValue : bValue - aValue;
+            }
+            
+            // Special handling for membership status
+            if (column === 'Membership Status') {
+                // Extract the status text, ignoring the HTML
+                aValue = a.cells[columnIndex].querySelector('span').textContent.trim();
+                bValue = b.cells[columnIndex].querySelector('span').textContent.trim();
+            }
+            
+            // Default string comparison
+            const comparison = aValue.localeCompare(bValue);
+            return sortState.users.ascending ? comparison : -comparison;
+        });
+        
+        // Remove existing rows
+        while (tbody.firstChild) {
+            tbody.removeChild(tbody.firstChild);
+        }
+        
+        // Add sorted rows
+        rows.forEach(row => tbody.appendChild(row));
+        
+        // Add highlight animation to rows
+        rows.forEach(row => {
+            row.classList.add('sort-highlight');
+            setTimeout(() => row.classList.remove('sort-highlight'), 1000);
+        });
+    }
+    
+    // Function to sort the event registrations table
+    function sortEventRegistrationsTable(column, columnIndex) {
+        console.log(`Sorting event registrations table by column: ${column}`);
+        
+        // Update sort state
+        if (sortState.events.column === column) {
+            // If clicking the same column, toggle sort direction
+            sortState.events.ascending = !sortState.events.ascending;
+        } else {
+            // If clicking a new column, set it as the sort column and default to ascending
+            sortState.events.column = column;
+            sortState.events.ascending = true;
+        }
+        
+        // Update header icons to show sort direction
+        eventTableHeaders.forEach(h => {
+            // Reset all headers
+            h.innerHTML = h.textContent.replace(' ▲', '').replace(' ▼', '').replace(/ <i.*<\/i>$/, '') + ' <i class="fas fa-sort"></i>';
+        });
+        
+        // Update the clicked header with the appropriate sort icon
+        const sortIcon = sortState.events.ascending ? '<i class="fas fa-sort-up"></i>' : '<i class="fas fa-sort-down"></i>';
+        eventTableHeaders[columnIndex].innerHTML = `${column} ${sortIcon}`;
+        
+        // Get all rows from the table body
+        const tbody = document.querySelector('#eventRegistrationsTableBody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        
+        // Sort the rows
+        rows.sort((a, b) => {
+            let aValue, bValue;
+            
+            // Special handling for Event Name column which has nested divs
+            if (column === 'Event Name') {
+                aValue = a.cells[columnIndex].querySelector('strong').textContent.trim();
+                bValue = b.cells[columnIndex].querySelector('strong').textContent.trim();
+            }
+            // Special handling for Contact column which has nested divs
+            else if (column === 'Contact') {
+                aValue = a.cells[columnIndex].querySelector('div').textContent.trim();
+                bValue = b.cells[columnIndex].querySelector('div').textContent.trim();
+            }
+            // Special handling for Status column
+            else if (column === 'Status') {
+                aValue = a.cells[columnIndex].querySelector('span').textContent.trim();
+                bValue = b.cells[columnIndex].querySelector('span').textContent.trim();
+            }
+            // Special handling for Registered At column which contains dates
+            else if (column === 'Registered At') {
+                aValue = new Date(a.cells[columnIndex].textContent.trim());
+                bValue = new Date(b.cells[columnIndex].textContent.trim());
+                return sortState.events.ascending ? aValue - bValue : bValue - aValue;
+            }
+            else {
+                aValue = a.cells[columnIndex].textContent.trim();
+                bValue = b.cells[columnIndex].textContent.trim();
+            }
+            
+            // Default string comparison
+            const comparison = aValue.localeCompare(bValue);
+            return sortState.events.ascending ? comparison : -comparison;
+        });
+        
+        // Remove existing rows
+        while (tbody.firstChild) {
+            tbody.removeChild(tbody.firstChild);
+        }
+        
+        // Add sorted rows
+        rows.forEach(row => tbody.appendChild(row));
+        
+        // Add highlight animation to rows
+        rows.forEach(row => {
+            row.classList.add('sort-highlight');
+            setTimeout(() => row.classList.remove('sort-highlight'), 1000);
+        });
+    }
+    
+    // Function to reapply the current sort after table data is refreshed
+    window.reapplySorting = function() {
+        // Reapply users table sorting if a column was previously sorted
+        if (sortState.users.column) {
+            // Find the column index
+            let columnIndex = -1;
+            usersTableHeaders.forEach((header, index) => {
+                if (header.textContent.includes(sortState.users.column)) {
+                    columnIndex = index;
+                }
+            });
+            
+            if (columnIndex !== -1) {
+                sortUsersTable(sortState.users.column, columnIndex);
+            }
+        }
+        
+        // Reapply event registrations table sorting if a column was previously sorted
+        if (sortState.events.column) {
+            // Find the column index
+            let columnIndex = -1;
+            eventTableHeaders.forEach((header, index) => {
+                if (header.textContent.includes(sortState.events.column)) {
+                    columnIndex = index;
+                }
+            });
+            
+            if (columnIndex !== -1) {
+                sortEventRegistrationsTable(sortState.events.column, columnIndex);
+            }
+        }
+    };
+    
+    console.log('Table sorting functionality initialized');
 }
     

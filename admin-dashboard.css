@@ -928,4 +928,53 @@ table td .action-btn {
     .admin-top-menu-items a {
         padding: 8px 12px;
     }
+}
+
+/* Add styles for sortable table headers */
+th.sortable {
+    cursor: pointer;
+    position: relative;
+    padding-right: 20px;
+    user-select: none;
+    transition: background-color 0.2s ease;
+}
+
+th.sortable:hover {
+    background-color: rgba(0, 230, 118, 0.1);
+}
+
+th.sortable i {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.5;
+    font-size: 0.8em;
+}
+
+th.sortable i.fa-sort-up,
+th.sortable i.fa-sort-down {
+    opacity: 1;
+    color: #00e676;
+}
+
+/* Add a subtle animation for sorting */
+@keyframes highlightSort {
+    0% { background-color: rgba(0, 230, 118, 0.2); }
+    100% { background-color: transparent; }
+}
+
+tbody tr.sort-highlight {
+    animation: highlightSort 1s ease;
+}
+
+/* Make sure the table headers align properly with the new sort icons */
+table th {
+    position: relative;
+    padding: 12px 10px;
+    background-color: #f8f9fa;
+    color: #171a20;
+    font-weight: 600;
+    text-align: left;
+    border-bottom: 2px solid #e9ecef;
 } 

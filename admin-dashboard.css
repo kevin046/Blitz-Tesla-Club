@@ -28,6 +28,10 @@
     border-right: 1px solid #333a45;
     flex-shrink: 0; /* Prevent sidebar from shrinking */
     overflow-y: auto; /* Allow scrolling if content overflows */
+    transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), width 0.3s ease;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    z-index: 99;
+    position: relative;
 }
 
 .sidebar-header h3 {
@@ -47,12 +51,12 @@
 .sidebar-nav li a {
     display: flex;
     align-items: center;
-    padding: 12px 15px;
+    padding: 14px 16px;
     color: #b0b8c5; /* Lighter text for readability */
     text-decoration: none;
-    border-radius: 6px;
-    margin-bottom: 8px;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    transition: all 0.2s ease;
     font-weight: 500;
 }
 
@@ -65,8 +69,14 @@
 
 .sidebar-nav li a:hover,
 .sidebar-nav li a.active {
-    background-color: #007bff; /* Tesla blue or a highlight color */
-    color: #ffffff;
+    background-color: rgba(0, 230, 118, 0.15); 
+    color: #00e676; /* Tesla green */
+}
+
+.sidebar-nav li a.active {
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0, 230, 118, 0.15);
+    border-left: 3px solid #00e676;
 }
 
 /* Admin Content Area */
@@ -75,28 +85,110 @@
     padding: 30px;
     overflow-y: auto; /* Allow scrolling for content */
     background-color: #171a20; /* Match body background */
+    transition: padding 0.3s ease;
 }
 
 .admin-section {
-    display: none; /* Hidden by default, shown by JS */
-    background-color: #1e2229; /* Card-like background for sections */
+    display: none;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    margin-bottom: 30px;
+    background-color: #202328;
+    border-radius: 12px;
     padding: 25px;
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    animation: fadeIn 0.5s ease-in-out;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
 }
 
 .admin-section.active {
     display: block;
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .admin-section h2 {
     font-size: 1.8rem;
-    color: #e0e0e0;
-    margin-top: 0;
+    font-weight: 600;
     margin-bottom: 25px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     padding-bottom: 15px;
-    border-bottom: 1px solid #333a45;
+}
+
+/* Stats Grid Layout */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background-color: #262a33;
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 7px 14px rgba(0, 0, 0, 0.2);
+}
+
+.stat-card h4 {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    color: #a0a8b8;
+    position: relative;
+    z-index: 2;
+}
+
+.stat-card h4::before {
+    content: '';
+    width: 30px;
+    height: 3px;
+    background-color: #00e676;
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    border-radius: 3px;
+}
+
+.stat-card p {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    margin-top: 10px;
+    color: #fff;
+    position: relative;
+    z-index: 2;
+}
+
+.stat-card i {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    font-size: 2.5rem;
+    color: rgba(255, 255, 255, 0.07);
+    opacity: 0.5;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.stat-card:hover i {
+    transform: translateY(-5px) scale(1.1);
+    opacity: 0.7;
 }
 
 /* Stats Grid for Overview */
@@ -351,34 +443,127 @@ table td .action-btn {
     }
 
     .admin-sidebar {
+        position: fixed;
+        top: 60px; /* Match nav height */
+        left: 0;
+        width: 85%; /* Take most but not all of the screen */
+        max-width: 320px;
+        height: calc(100vh - 60px);
+        z-index: 1999;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        overflow-y: auto;
+        box-shadow: 2px 0 25px rgba(0, 0, 0, 0.7);
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+        background-color: #1e2229;
+        padding: 15px;
+    }
+    
+    .admin-sidebar.visible {
+        transform: translateX(0);
+    }
+
+    /* Allow scrolling in the sidebar */
+    .sidebar-nav {
+        max-height: calc(100vh - 150px);
+        overflow-y: auto;
+        padding-bottom: 40px;
+        margin-top: 10px;
+    }
+    
+    /* Make sidebar toggle button larger and more prominent */
+    .sidebar-toggle {
+        position: fixed;
+        top: 70px;
+        left: 15px;
+        background: #00e676; /* Bright green for visibility */
+        color: #000;
+        padding: 0;
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000; /* Ensure it's above everything */
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        border: none;
+        transition: all 0.2s ease;
+    }
+
+    .sidebar-toggle i {
+        font-size: 1.5rem;
+        transition: transform 0.2s ease;
+    }
+    
+    .sidebar-toggle:active {
+        transform: scale(0.95);
+    }
+    
+    /* Make sidebar overlay more prominent */
+    .sidebar-overlay {
+        z-index: 1998;
+        background: rgba(0, 0, 0, 0.7); /* Darker, more opaque background */
+    }
+
+    /* Add bottom padding to content to avoid the toggle button */
+    .admin-content {
+        padding: 20px 15px 85px 15px; /* Increase bottom padding to avoid toggle */
         width: 100%;
-        border-right: none;
-        border-bottom: 1px solid #333a45;
-        max-height: 300px; /* Limit height on mobile, allow scroll */
+        min-height: calc(100vh - 60px);
+    }
+    
+    /* Hide body scrolling when sidebar is open */
+    body.sidebar-open {
+        overflow: hidden;
+    }
+    
+    /* Make the sidebar clickable overlay */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 1998;
+        transition: opacity 0.3s ease;
+    }
+    
+    .sidebar-overlay.active {
+        display: block;
     }
 
     .sidebar-header h3 {
-        font-size: 1.2rem;
-        margin-bottom: 15px;
+        font-size: 1.3rem;
+        margin-bottom: 20px;
     }
     
     .sidebar-nav li a {
-        padding: 10px 15px;
+        padding: 16px 15px;
+        margin-bottom: 8px;
+        border-radius: 8px;
+        font-weight: 500;
     }
+    
     .sidebar-nav li a i {
-        font-size: 1rem;
-    }
-
-    .admin-content {
-        padding: 20px;
+        font-size: 1.2rem;
+        margin-right: 15px;
     }
 
     .admin-section h2 {
         font-size: 1.5rem;
+        margin-bottom: 20px;
     }
 
     .stats-grid {
-        grid-template-columns: 1fr; /* Stack cards on smaller screens */
+        grid-template-columns: 1fr; /* Stack cards on mobile */
+        gap: 15px;
+    }
+
+    .stat-card {
+        padding: 16px;
     }
 
     .stat-card p {
@@ -391,27 +576,64 @@ table td .action-btn {
 
     .table-controls {
         flex-direction: column;
+        gap: 12px;
     }
+    
     .table-controls input[type="text"],
     .table-controls select,
     .table-controls button {
         width: 100%;
+        margin: 0;
     }
 
+    /* Mobile table optimizations */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -15px; /* Extend past padding */
+        padding: 0 15px; /* Add padding back */
+        position: relative;
+    }
+    
+    .table-responsive::after {
+        content: "";
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 30px;
+        background: linear-gradient(to right, transparent, rgba(32, 35, 40, 0.9));
+        pointer-events: none;
+        opacity: 0.8;
+        z-index: 5;
+    }
+
+    table {
+        min-width: 650px; /* Ensure table requires scrolling */
+    }
+    
     table th,
     table td {
-        white-space: normal; /* Allow wrapping on smaller screens */
+        white-space: nowrap; /* Prevent wrapping to maintain column alignment */
         font-size: 0.85rem;
+        padding: 12px 10px;
     }
+    
     table th {
         font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        position: sticky;
+        top: 0;
+        background: #202328;
+        z-index: 10;
     }
 
     table td .action-btn {
-        padding: 5px 8px;
+        padding: 6px 10px;
         font-size: 0.75rem;
-        display: inline-block; /* Ensure buttons wrap if needed */
-        margin-bottom: 5px;
+        margin: 2px;
+        border-radius: 6px;
     }
 }
 
@@ -736,4 +958,701 @@ table td .action-btn {
         width: 100%;
         padding-left: 15px;
     }
+}
+
+/* Additional mobile optimizations */
+@media (max-width: 768px) {
+    /* Add padding to sections to avoid toggle button overlap */
+    .admin-section {
+        padding-top: 30px;
+        margin-bottom: 30px;
+    }
+
+    /* Adjust stats grid to look better on mobile */
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    /* Make tables more mobile friendly */
+    .table-responsive {
+        margin: 0 -15px;
+        width: calc(100% + 30px);
+        border-left: none;
+        border-right: none;
+        border-radius: 0;
+    }
+    
+    /* Make sidebar navigation easier to tap */
+    .sidebar-nav li a {
+        padding: 15px;
+        margin-bottom: 10px;
+        font-size: 16px;
+    }
+    
+    .sidebar-nav li a i {
+        font-size: 18px;
+        margin-right: 15px;
+    }
+    
+    /* Position sidebar toggle in a more accessible spot */
+    .sidebar-toggle {
+        position: fixed;
+        top: 70px; 
+        left: 15px;
+        z-index: 1001;
+    }
+
+    /* Improve visibility of the active section */
+    .admin-section.active {
+        animation: fadeIn 0.4s ease;
+    }
+    
+    /* Make all content start with appropriate padding to account for the toggle button */
+    .admin-content {
+        padding-left: 20px;
+        padding-right: 20px;
+        padding-top: 70px;
+    }
+}
+
+/* Mobile-specific button class */
+.mobile-visible {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .mobile-visible {
+        display: flex !important;
+    }
+    
+    /* Position the mobile sidebar toggle button in a more visible spot */
+    .sidebar-toggle.mobile-visible {
+        position: fixed;
+        top: 70px;
+        left: 15px;
+        width: 55px;
+        height: 55px;
+        background-color: #00e676;
+        color: #000;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        border: 2px solid rgba(255, 255, 255, 0.4);
+    }
+    
+    .sidebar-toggle.mobile-visible i {
+        font-size: 1.6rem;
+    }
+}
+
+/* Fix mobile sidebar blur and improve visibility */
+@media (max-width: 768px) {
+    /* Remove blur effect and improve sidebar visibility */
+    .sidebar-overlay {
+        background: rgba(0, 0, 0, 0.7); /* Darker background for better contrast */
+        backdrop-filter: none; /* Remove blur effect that causes pixelation on some devices */
+        -webkit-backdrop-filter: none;
+    }
+    
+    /* Improve sidebar styling for better readability */
+    .admin-sidebar {
+        background-color: #1e2229; /* Ensure solid background color */
+        z-index: 1999; /* Keep below the toggle but above everything else */
+        width: 85%; /* Slightly wider for better use of space */
+        max-width: 320px; /* Allow slightly more width for readability */
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.8); /* Stronger shadow for better definition */
+        border-right: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border for definition */
+    }
+    
+    /* Ensure z-index order aligns with main navigation */
+    nav {
+        z-index: 2100 !important; /* Keep main nav above all admin elements */
+    }
+    
+    .sidebar-toggle.mobile-visible {
+        z-index: 2050; /* Below main nav but above sidebar */
+        top: 75px; /* Position slightly below main nav */
+    }
+    
+    /* Adjust content padding to avoid overlap with main nav and toggle */
+    .admin-content {
+        padding-top: 85px; /* Increased padding for better spacing */
+    }
+    
+    /* Make sidebar menu items more touch-friendly */
+    .sidebar-nav li a {
+        padding: 16px 15px;
+        margin-bottom: 8px;
+        border-radius: 8px;
+        background-color: rgba(0, 0, 0, 0.2); /* Subtle background for better visibility */
+        transition: all 0.2s ease;
+    }
+    
+    .sidebar-nav li a:active,
+    .sidebar-nav li a.active {
+        background-color: #00e676; /* Bright green for active state */
+        color: #000; /* Dark text on bright background for contrast */
+    }
+    
+    /* Remove animation from sidebar toggle to avoid performance issues */
+    .sidebar-toggle {
+        animation: none;
+    }
+}
+
+/* Improved mobile page header */
+.mobile-page-header {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .mobile-page-header {
+        display: flex;
+        position: fixed;
+        top: 60px; /* Position below the main navigation */
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, #171a20 0%, #1e2229 100%);
+        padding: 15px 15px 15px 80px; /* Extra padding on left for toggle button */
+        border-bottom: 1px solid rgba(0, 230, 118, 0.15);
+        z-index: 1900; /* Below toggle button but above other content */
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+        height: 60px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .mobile-page-header h1 {
+        font-size: 1.5rem;
+        color: #fff;
+        margin: 0;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .mobile-page-header h1::after {
+        content: '';
+        position: absolute;
+        bottom: -4px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 3px;
+        background-color: #00e676;
+        border-radius: 2px;
+    }
+    
+    /* Adjust admin content to account for mobile header */
+    .admin-content {
+        padding-top: 135px !important; /* Account for nav (60px) + header (60px) + padding */
+    }
+    
+    /* Adjust sidebar position to account for mobile header */
+    .admin-sidebar {
+        top: 120px; /* Position below nav and page header */
+        height: calc(100vh - 120px); /* Adjust height */
+    }
+    
+    /* Adjust sidebar toggle position */
+    .sidebar-toggle.mobile-visible {
+        top: 75px; /* Center with mobile header */
+        left: 15px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Improve sidebar navigation items for touch */
+    .sidebar-nav li a {
+        padding: 16px;
+        border-radius: 8px;
+        font-size: 16px;
+        margin-bottom: 10px;
+        transition: all 0.15s ease;
+        background-color: rgba(255, 255, 255, 0.03);
+    }
+    
+    .sidebar-nav li a.active {
+        background-color: #00e676;
+        color: #000;
+        font-weight: 600;
+    }
+    
+    .sidebar-nav li a i {
+        width: 22px;
+        font-size: 1.2rem;
+    }
+}
+
+/* Device-specific optimizations */
+@media (max-width: 480px) {
+    /* Extra small devices - phones */
+    .mobile-page-header h1 {
+        font-size: 1.3rem; /* Smaller title on very small screens */
+    }
+    
+    .sidebar-toggle.mobile-visible {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .admin-sidebar {
+        width: 85%; /* Take more space on small screens */
+        max-width: 300px;
+    }
+    
+    /* Improve visual hints for table scrolling */
+    .table-responsive:before {
+        content: "← Swipe to see more →";
+        display: block;
+        text-align: center;
+        font-size: 0.8rem;
+        color: #a0a8b8;
+        padding: 5px 0;
+        margin-bottom: 5px;
+        background-color: rgba(0, 230, 118, 0.1);
+        border-radius: 4px;
+    }
+    
+    /* Stack form controls better on small phones */
+    .table-controls {
+        gap: 10px;
+    }
+    
+    .table-controls button,
+    .table-controls input,
+    .table-controls select {
+        font-size: 14px;
+        padding: 10px 12px;
+    }
+    
+    /* Make text in stats cards more readable */
+    .stat-card h4 {
+        font-size: 0.9rem;
+    }
+    
+    .stat-card p {
+        font-size: 1.7rem;
+    }
+    
+    /* Make section headers more compact */
+    .admin-section {
+        padding: 20px 15px;
+    }
+    
+    .admin-section h2 {
+        font-size: 1.4rem;
+        padding-bottom: 12px;
+        margin-bottom: 15px;
+    }
+}
+
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+    /* Use different animation for iOS to avoid performance issues */
+    @media (max-width: 768px) {
+        .admin-sidebar {
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            -webkit-transform: translateX(-100%);
+            transform: translateX(-100%);
+        }
+        
+        .admin-sidebar.visible {
+            -webkit-transform: translateX(0);
+            transform: translateX(0);
+        }
+        
+        /* Fix iOS momentum scrolling issues */
+        .admin-sidebar, 
+        .table-responsive,
+        .admin-content {
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* iOS button appearance consistency */
+        .sidebar-toggle {
+            -webkit-appearance: none;
+        }
+        
+        /* Improve scrolling performance */
+        .admin-content,
+        .admin-sidebar,
+        .table-responsive {
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+        }
+    }
+}
+
+/* Android specific fixes */
+@supports (-webkit-appearance:none) and (not (-webkit-touch-callout:none)) {
+    @media (max-width: 768px) {
+        /* Improve tap highlights */
+        .sidebar-nav li a {
+            -webkit-tap-highlight-color: rgba(0, 230, 118, 0.3);
+        }
+        
+        /* Improve sidebar performance on Android */
+        .admin-sidebar {
+            transition: transform 0.28s ease-out;
+        }
+        
+        /* Better response on Android buttons */
+        .action-btn {
+            -webkit-tap-highlight-color: transparent;
+        }
+    }
+}
+
+/* Landscape mode optimizations */
+@media (max-width: 768px) and (orientation: landscape) {
+    .mobile-page-header {
+        padding: 8px 15px 8px 75px; /* Less padding in landscape */
+        height: 50px;
+    }
+    
+    .mobile-page-header h1 {
+        font-size: 1.2rem;
+    }
+    
+    /* Adjust content padding for landscape mode */
+    .admin-content {
+        padding-top: 120px !important; /* Less padding in landscape */
+    }
+    
+    /* Better positioning of sidebar in landscape */
+    .admin-sidebar {
+        top: 110px; /* Position below nav and smaller page header */
+        height: calc(100vh - 110px); /* Adjust height */
+        width: 280px; /* Fixed sidebar width in landscape */
+    }
+    
+    /* Improve stats grid layout for landscape */
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important; /* Two columns in landscape */
+        gap: 12px;
+    }
+    
+    /* Make sidebar toggle more visible in landscape */
+    .sidebar-toggle.mobile-visible {
+        top: 65px;
+        left: 12px;
+    }
+    
+    /* Improve scrolling in sidebar for landscape */
+    .sidebar-nav {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 8px;
+    }
+    
+    /* Adjust table controls layout for landscape */
+    .table-controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    
+    .table-controls button,
+    .table-controls input:first-child,
+    .table-controls select:first-child {
+        grid-column: 1 / -1;
+    }
+}
+
+/* Additional mobile enhancements */
+
+/* Animated toggle button */
+.sidebar-toggle.animated-toggle {
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.sidebar-toggle.animated-toggle:active,
+.sidebar-toggle.animated-toggle.active {
+    transform: scale(0.92);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Touch active state for sidebar items */
+.sidebar-nav li a.touch-active {
+    background-color: rgba(0, 230, 118, 0.25);
+    transform: scale(0.98);
+}
+
+/* Screen reader only class */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+/* Enhanced table display on mobile */
+@media (max-width: 768px) {
+    /* Better table scrolling indicators */
+    .table-responsive::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 10px;
+        background: linear-gradient(to right, rgba(32, 35, 40, 0.9), transparent);
+        pointer-events: none;
+        opacity: 0;
+        z-index: 5;
+        transition: opacity 0.3s ease;
+    }
+    
+    .table-responsive.scrolled-left::before {
+        opacity: 0.8;
+    }
+    
+    /* Improve focus states for accessibility */
+    button:focus, 
+    a:focus, 
+    input:focus, 
+    select:focus, 
+    textarea:focus,
+    .sidebar-toggle:focus,
+    .sidebar-nav li a:focus {
+        outline: 2px solid #00e676;
+        outline-offset: 2px;
+    }
+    
+    /* Make action buttons easier to tap */
+    .action-btn {
+        min-width: 36px;
+        min-height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Enhanced sidebar toggle animation */
+    .sidebar-toggle i {
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    .sidebar-toggle.active i.fa-bars {
+        transform: rotate(90deg);
+    }
+    
+    .sidebar-toggle.active i.fa-times {
+        transform: rotate(-90deg);
+    }
+    
+    /* CSS for better swipe indication */
+    .can-swipe-right,
+    .can-swipe-left {
+        position: relative;
+    }
+    
+    .can-swipe-right::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 30px;
+        background-color: rgba(0, 230, 118, 0.5);
+        border-radius: 2px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .can-swipe-left::after {
+        content: "";
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 30px;
+        background-color: rgba(0, 230, 118, 0.5);
+        border-radius: 2px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    /* Platform-specific adjustments */
+    .ios-device .admin-sidebar {
+        /* Smoother animations on iOS */
+        transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    
+    .android-device .admin-sidebar {
+        /* Slightly different animation for Android */
+        transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Improve scrollbar styling for touch devices */
+    .admin-sidebar::-webkit-scrollbar,
+    .admin-content::-webkit-scrollbar,
+    .table-responsive::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
+    }
+    
+    .admin-sidebar::-webkit-scrollbar-track,
+    .admin-content::-webkit-scrollbar-track,
+    .table-responsive::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .admin-sidebar::-webkit-scrollbar-thumb,
+    .admin-content::-webkit-scrollbar-thumb,
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 2px;
+    }
+    
+    /* Improved mobile section transitions */
+    .admin-section {
+        transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    
+    /* Enhanced active stats card */
+    .stat-card:active {
+        transform: scale(0.98);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+}
+
+/* Mobile form fields enhancements */
+@media (max-width: 768px) {
+    input[type="text"],
+    input[type="search"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    select,
+    textarea {
+        font-size: 16px !important; /* Prevent iOS zoom */
+        padding: 12px !important;
+        border-radius: 8px !important;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    input:focus,
+    select:focus,
+    textarea:focus {
+        border-color: #00e676 !important;
+        box-shadow: 0 0 0 2px rgba(0, 230, 118, 0.25) !important;
+    }
+    
+    /* Larger action buttons for touch */
+    .action-btn {
+        border-radius: 6px;
+        font-size: 14px;
+        padding: 8px 12px;
+    }
+    
+    /* Floating label effect for mobile forms */
+    .floating-label {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    
+    .floating-label input,
+    .floating-label select {
+        height: 56px;
+        padding-top: 20px !important;
+        padding-bottom: 4px !important;
+    }
+    
+    .floating-label label {
+        position: absolute;
+        top: 16px;
+        left: 12px;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.6);
+        transition: all 0.2s ease;
+        pointer-events: none;
+    }
+    
+    .floating-label input:focus + label,
+    .floating-label input:not(:placeholder-shown) + label,
+    .floating-label select:focus + label,
+    .floating-label select:not(:placeholder-shown) + label {
+        top: 6px;
+        font-size: 10px;
+        color: #00e676;
+    }
+}
+
+/* Extra small screens (narrower phones) */
+@media (max-width: 374px) {
+    .sidebar-toggle.mobile-visible {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .mobile-page-header h1 {
+        font-size: 1.2rem;
+    }
+    
+    .admin-section h2 {
+        font-size: 1.3rem;
+    }
+    
+    .stat-card p {
+        font-size: 1.6rem;
+    }
+}
+
+/* Toast notifications for mobile feedback */
+.mobile-toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.mobile-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.mobile-toast i {
+    font-size: 16px;
+    color: #00e676;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.mobile-toast.show {
+    animation: fadeInUp 0.3s forwards;
 } 

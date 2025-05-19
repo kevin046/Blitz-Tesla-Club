@@ -1574,10 +1574,104 @@ function addUserActionListeners() {
     // View user details
     document.querySelectorAll('.action-btn.view-btn').forEach(btn => {
         if (btn.closest('#usersTableBody')) {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', async () => {
                 const userId = btn.getAttribute('data-user-id');
                 console.log('View user clicked for ID:', userId);
-                alert('View user functionality will be implemented soon. User ID: ' + userId);
+                
+                try {
+                    // Fetch user profile data
+                    const { data: user, error } = await window.supabaseClient
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', userId)
+                        .single();
+                    
+                    if (error) {
+                        console.error('Error fetching user details:', error);
+                        alert('Failed to load user details: ' + error.message);
+                        return;
+                    }
+                    
+                    if (!user) {
+                        alert('User not found');
+                        return;
+                    }
+                    
+                    // Create and show a modal with the user details
+                    const modalHTML = `
+                        <div id="userDetailsModal" class="modal" style="display: block; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7); backdrop-filter: blur(5px);">
+                            <div class="modal-content" style="background-color: #2a2f38; margin: 5% auto; padding: 20px; border-radius: 8px; width: 80%; max-width: 800px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); position: relative; animation: modalFadeIn 0.3s ease-out;">
+                                <span class="close" style="position: absolute; top: 15px; right: 20px; color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+                                <h2 style="color: #e0e0e0; border-bottom: 1px solid #444; padding-bottom: 15px; margin-top: 0;">User Details</h2>
+                                
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+                                    <div style="background-color: #1e2229; padding: 15px; border-radius: 8px;">
+                                        <h3 style="color: #00e676; margin-top: 0;">Basic Information</h3>
+                                        <p><strong>Member ID:</strong> ${user.member_id || 'N/A'}</p>
+                                        <p><strong>Full Name:</strong> ${user.full_name || 'N/A'}</p>
+                                        <p><strong>Username:</strong> ${user.username || 'N/A'}</p>
+                                        <p><strong>Email:</strong> ${user.email || 'N/A'}</p>
+                                        <p><strong>Phone:</strong> ${user.phone || 'N/A'}</p>
+                                        <p><strong>Date of Birth:</strong> ${user.date_of_birth ? formatDate(user.date_of_birth) : 'N/A'}</p>
+                                        <p><strong>Membership Status:</strong> <span class="status-${user.membership_status?.toLowerCase().replace(/_/g, '-')}" style="padding: 5px 10px; border-radius: 4px;">${user.membership_status || 'Unknown'}</span></p>
+                                        <p><strong>Role:</strong> ${user.role || 'N/A'}</p>
+                                        <p><strong>Joined:</strong> ${formatDate(user.created_at)}</p>
+                                        <p><strong>Last Updated:</strong> ${formatDate(user.updated_at)}</p>
+                                    </div>
+                                    
+                                    <div style="background-color: #1e2229; padding: 15px; border-radius: 8px;">
+                                        <h3 style="color: #00e676; margin-top: 0;">Additional Information</h3>
+                                        <p><strong>Tesla Models:</strong> ${Array.isArray(user.car_models) ? user.car_models.join(', ') : 'N/A'}</p>
+                                        <p><strong>Address:</strong> ${user.street ? `${user.street}, ${user.city}, ${user.province}, ${user.postal_code}` : 'N/A'}</p>
+                                        <p><strong>Events Attended:</strong> ${user.events_attended || '0'}</p>
+                                        <p><strong>Last Login:</strong> ${user.last_sign_in_at ? formatDate(user.last_sign_in_at) : 'N/A'}</p>
+                                    </div>
+                                </div>
+                                
+                                <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                                    <button id="editUserBtn" class="btn primary-btn" style="background-color: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer;">
+                                        <i class="fas fa-edit"></i> Edit User
+                                    </button>
+                                    <button id="closeModalBtn" class="btn secondary-btn" style="background-color: #6c757d; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer;">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Append modal to body
+                    document.body.insertAdjacentHTML('beforeend', modalHTML);
+                    
+                    // Add event listeners to modal buttons
+                    document.querySelector('#userDetailsModal .close').addEventListener('click', () => {
+                        document.getElementById('userDetailsModal').remove();
+                    });
+                    
+                    document.getElementById('closeModalBtn').addEventListener('click', () => {
+                        document.getElementById('userDetailsModal').remove();
+                    });
+                    
+                    document.getElementById('editUserBtn').addEventListener('click', () => {
+                        document.getElementById('userDetailsModal').remove();
+                        // Call the edit function with the user ID
+                        showEditUserModal(userId);
+                    });
+                    
+                    // Add animation style
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        @keyframes modalFadeIn {
+                            from { opacity: 0; transform: translateY(-20px); }
+                            to { opacity: 1; transform: translateY(0); }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                    
+                } catch (error) {
+                    console.error('Error displaying user details:', error);
+                    alert('Failed to display user details: ' + error.message);
+                }
             });
         }
     });
@@ -1588,7 +1682,7 @@ function addUserActionListeners() {
             btn.addEventListener('click', () => {
                 const userId = btn.getAttribute('data-user-id');
                 console.log('Edit user clicked for ID:', userId);
-                alert('Edit user functionality will be implemented soon. User ID: ' + userId);
+                showEditUserModal(userId);
             });
         }
     });
@@ -1629,7 +1723,217 @@ function addUserActionListeners() {
     console.log('User action listeners added successfully');
 }
 
-// Add the missing event registration action listeners
+// Function to show the edit user modal
+async function showEditUserModal(userId) {
+    console.log('Showing edit user modal for ID:', userId);
+    
+    try {
+        // Fetch user profile data
+        const { data: user, error } = await window.supabaseClient
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+        
+        if (error) {
+            console.error('Error fetching user details for edit:', error);
+            alert('Failed to load user details: ' + error.message);
+            return;
+        }
+        
+        if (!user) {
+            alert('User not found');
+            return;
+        }
+        
+        // Create and show a modal with the edit form
+        const modalHTML = `
+            <div id="editUserModal" class="modal" style="display: block; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7); backdrop-filter: blur(5px);">
+                <div class="modal-content" style="background-color: #2a2f38; margin: 2% auto; padding: 20px; border-radius: 8px; width: 90%; max-width: 900px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); position: relative; animation: modalFadeIn 0.3s ease-out; max-height: 90vh; overflow-y: auto;">
+                    <span class="close" style="position: absolute; top: 15px; right: 20px; color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+                    <h2 style="color: #e0e0e0; border-bottom: 1px solid #444; padding-bottom: 15px; margin-top: 0;">Edit User</h2>
+                    
+                    <form id="editUserForm" style="margin-top: 20px;">
+                        <input type="hidden" id="userId" value="${userId}">
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div style="background-color: #1e2229; padding: 15px; border-radius: 8px;">
+                                <h3 style="color: #00e676; margin-top: 0;">Basic Information</h3>
+                                
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; color: #e0e0e0;">Member ID:</label>
+                                    <input type="text" id="memberIdInput" value="${user.member_id || ''}" style="width: 100%; padding: 8px; border-radius: 4px; background-color: #333a45; border: 1px solid #444; color: #e0e0e0;">
+                                </div>
+                                
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; color: #e0e0e0;">Full Name:</label>
+                                    <input type="text" id="fullNameInput" value="${user.full_name || ''}" style="width: 100%; padding: 8px; border-radius: 4px; background-color: #333a45; border: 1px solid #444; color: #e0e0e0;">
+                                </div>
+                                
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; color: #e0e0e0;">Username:</label>
+                                    <input type="text" id="usernameInput" value="${user.username || ''}" style="width: 100%; padding: 8px; border-radius: 4px; background-color: #333a45; border: 1px solid #444; color: #e0e0e0;">
+                                </div>
+                                
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; color: #e0e0e0;">Email:</label>
+                                    <input type="email" id="emailInput" value="${user.email || ''}" style="width: 100%; padding: 8px; border-radius: 4px; background-color: #333a45; border: 1px solid #444; color: #e0e0e0;">
+                                </div>
+                                
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; color: #e0e0e0;">Phone:</label>
+                                    <input type="tel" id="phoneInput" value="${user.phone || ''}" style="width: 100%; padding: 8px; border-radius: 4px; background-color: #333a45; border: 1px solid #444; color: #e0e0e0;">
+                                </div>
+                                
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; color: #e0e0e0;">Date of Birth:</label>
+                                    <input type="date" id="dobInput" value="${user.date_of_birth || ''}" style="width: 100%; padding: 8px; border-radius: 4px; background-color: #333a45; border: 1px solid #444; color: #e0e0e0;">
+                                </div>
+                                
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; color: #e0e0e0;">Membership Status:</label>
+                                    <select id="membershipStatusInput" style="width: 100%; padding: 8px; border-radius: 4px; background-color: #333a45; border: 1px solid #444; color: #e0e0e0;">
+                                        <option value="active" ${user.membership_status === 'active' ? 'selected' : ''}>Active</option>
+                                        <option value="pending_verification" ${user.membership_status === 'pending_verification' ? 'selected' : ''}>Pending Verification</option>
+                                        <option value="pending_approval" ${user.membership_status === 'pending_approval' ? 'selected' : ''}>Pending Approval</option>
+                                        <option value="suspended" ${user.membership_status === 'suspended' ? 'selected' : ''}>Suspended</option>
+                                        <option value="inactive" ${user.membership_status === 'inactive' ? 'selected' : ''}>Inactive</option>
+                                    </select>
+                                </div>
+                                
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; color: #e0e0e0;">Role:</label>
+                                    <select id="roleInput" style="width: 100%; padding: 8px; border-radius: 4px; background-color: #333a45; border: 1px solid #444; color: #e0e0e0;">
+                                        <option value="member" ${user.role === 'member' ? 'selected' : ''}>Member</option>
+                                        <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div style="background-color: #1e2229; padding: 15px; border-radius: 8px;">
+                                <h3 style="color: #00e676; margin-top: 0;">Additional Information</h3>
+                                
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; color: #e0e0e0;">Tesla Models (comma-separated):</label>
+                                    <input type="text" id="carModelsInput" value="${Array.isArray(user.car_models) ? user.car_models.join(', ') : ''}" style="width: 100%; padding: 8px; border-radius: 4px; background-color: #333a45; border: 1px solid #444; color: #e0e0e0;">
+                                </div>
+                                
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; color: #e0e0e0;">Street Address:</label>
+                                    <input type="text" id="streetInput" value="${user.street || ''}" style="width: 100%; padding: 8px; border-radius: 4px; background-color: #333a45; border: 1px solid #444; color: #e0e0e0;">
+                                </div>
+                                
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; color: #e0e0e0;">City:</label>
+                                    <input type="text" id="cityInput" value="${user.city || ''}" style="width: 100%; padding: 8px; border-radius: 4px; background-color: #333a45; border: 1px solid #444; color: #e0e0e0;">
+                                </div>
+                                
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; color: #e0e0e0;">Province:</label>
+                                    <input type="text" id="provinceInput" value="${user.province || ''}" style="width: 100%; padding: 8px; border-radius: 4px; background-color: #333a45; border: 1px solid #444; color: #e0e0e0;">
+                                </div>
+                                
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; color: #e0e0e0;">Postal Code:</label>
+                                    <input type="text" id="postalCodeInput" value="${user.postal_code || ''}" style="width: 100%; padding: 8px; border-radius: 4px; background-color: #333a45; border: 1px solid #444; color: #e0e0e0;">
+                                </div>
+                                
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; color: #e0e0e0;">Events Attended:</label>
+                                    <input type="number" id="eventsAttendedInput" value="${user.events_attended || '0'}" style="width: 100%; padding: 8px; border-radius: 4px; background-color: #333a45; border: 1px solid #444; color: #e0e0e0;">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                            <button type="submit" class="btn primary-btn" style="background-color: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer;">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                            <button type="button" id="cancelEditBtn" class="btn secondary-btn" style="background-color: #6c757d; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer;">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        
+        // Append modal to body
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Add event listeners to modal buttons
+        document.querySelector('#editUserModal .close').addEventListener('click', () => {
+            document.getElementById('editUserModal').remove();
+        });
+        
+        document.getElementById('cancelEditBtn').addEventListener('click', () => {
+            document.getElementById('editUserModal').remove();
+        });
+        
+        // Add form submission handler
+        document.getElementById('editUserForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Get form values
+            const updatedUser = {
+                member_id: document.getElementById('memberIdInput').value,
+                full_name: document.getElementById('fullNameInput').value,
+                username: document.getElementById('usernameInput').value,
+                email: document.getElementById('emailInput').value,
+                phone: document.getElementById('phoneInput').value,
+                date_of_birth: document.getElementById('dobInput').value || null,
+                membership_status: document.getElementById('membershipStatusInput').value,
+                role: document.getElementById('roleInput').value,
+                car_models: document.getElementById('carModelsInput').value.split(',').map(model => model.trim()).filter(model => model),
+                street: document.getElementById('streetInput').value,
+                city: document.getElementById('cityInput').value,
+                province: document.getElementById('provinceInput').value,
+                postal_code: document.getElementById('postalCodeInput').value,
+                events_attended: parseInt(document.getElementById('eventsAttendedInput').value) || 0,
+                updated_at: new Date().toISOString()
+            };
+            
+            try {
+                // Update user in database
+                const { error } = await window.supabaseClient
+                    .from('profiles')
+                    .update(updatedUser)
+                    .eq('id', userId);
+                
+                if (error) {
+                    console.error('Error updating user:', error);
+                    alert('Failed to update user: ' + error.message);
+                    return;
+                }
+                
+                // Close modal and reload users table
+                document.getElementById('editUserModal').remove();
+                alert('User updated successfully');
+                loadUsersTable();
+                
+            } catch (error) {
+                console.error('Error in update user form submission:', error);
+                alert('Failed to update user: ' + error.message);
+            }
+        });
+        
+        // Add animation style
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes modalFadeIn {
+                from { opacity: 0; transform: translateY(-20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        `;
+        document.head.appendChild(style);
+        
+    } catch (error) {
+        console.error('Error showing edit user modal:', error);
+        alert('Failed to show edit user form: ' + error.message);
+    }
+}
+
+// Add the missing addEventRegistrationActionListeners function
 function addEventRegistrationActionListeners() {
     console.log('Adding event listeners to event registration action buttons');
     

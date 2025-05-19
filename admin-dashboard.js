@@ -99,159 +99,89 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Dashboard data loading is handled by loadDashboardData in initializeAdminDashboard
 });
 
+// Add these global variables to track sort state at the top of the file, after the existing variable declarations
+let userTableSortColumn = 'created_at';
+let userTableSortDirection = 'desc'; // 'desc' for descending, 'asc' for ascending
+let eventTableSortColumn = 'registered_at'; 
+let eventTableSortDirection = 'desc';
+
 async function initializeAdminDashboard() {
-    console.log('Starting initialization of admin dashboard...');
+    console.log('Initializing admin dashboard...');
     
-    // Check if Supabase client is available
-    let supabaseClient = window.supabaseClient;
-    
-    // If not available, try to initialize it
-    if (!supabaseClient) {
-        console.log('Supabase client not found in window object, attempting to initialize...');
-        try {
-            // Initialize Supabase client with your project credentials
-            const SUPABASE_URL = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
-            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
-            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            
-            if (supabaseClient) {
-                window.supabaseClient = supabaseClient; // Make it available globally
-                console.log('Successfully initialized Supabase client');
-            } else {
-                console.error('Failed to initialize Supabase client');
-                alert('Failed to initialize Supabase client. Please refresh the page and try again.');
-                return;
-            }
-        } catch (error) {
-            console.error('Error initializing Supabase client:', error);
-            alert('Error initializing Supabase client. Please refresh the page and try again.');
-            return;
-        }
-    } else {
-        console.log('Using existing Supabase client from window object');
-    }
-
     try {
-        // Verify session
-        console.log('Verifying user session...');
-        const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
-
-        if (sessionError) {
-            console.error('Error getting session:', sessionError.message);
+        // First check if the user is logged in
+        console.log('Checking user authentication...');
+        const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+        
+        if (authError) {
+            console.error('Error checking authentication:', authError);
+            alert('Error checking authentication status. Please try again or contact support.');
+            return;
+        }
+        
+        if (!user) {
+            console.warn('No authenticated user found');
+            alert('Access denied. Please log in with administrator credentials.');
             window.location.href = 'login.html';
             return;
         }
-
-        if (!session) {
-            console.log('No active session. Redirecting to login.');
-            window.location.href = 'login.html';
-            return;
-        }
         
-        // Get the user's IP address via a service (optional)
-        let ipAddress = 'unknown';
-        try {
-            console.log('Fetching user IP address...');
-            const ipResponse = await fetch('https://api.ipify.org?format=json');
-            if (!ipResponse.ok) {
-                throw new Error(`HTTP error! Status: ${ipResponse.status}`);
-            }
-            const ipData = await ipResponse.json();
-            ipAddress = ipData.ip;
-            console.log('User IP address:', ipAddress);
-        } catch (ipError) {
-            console.warn('Could not fetch IP address:', ipError);
-        }
-
-        // List of authorized admin user IDs
-        const authorizedAdminIds = [
-            '31f25dda-d747-412d-94c8-d49021f7bfc4',
-            '05d85f12-21ed-46ea-ba7f-89065a9cd570',
-            'd2b873f6-5f34-451e-9f8b-b9b4ea4ff819',
-            'f57ecbf3-5508-401c-a9b7-e69b6da9b1fd'
-        ];
-        
-        console.log('Checking admin authorization for user ID:', session.user.id);
-        
-        // Direct check for specified user IDs - these users always get admin access
-        if (authorizedAdminIds.includes(session.user.id)) {
-            console.log('Admin access granted based on authorized ID list');
-            
-            // Log successful access
-            await logAdminAccessAttempt(session.user.id, session.user.email, true, ipAddress);
-            
-            // Update profile to ensure user role is set to admin
-            try {
-                const { error: updateError } = await supabaseClient
-                    .from('profiles')
-                    .update({ role: 'admin' })
-                    .eq('id', session.user.id);
-                    
-                if (updateError) {
-                    console.error('Unable to update profile role:', updateError);
-                    // Continue with admin access even if update fails
-                } else {
-                    console.log('Updated user profile role to admin');
-                }
-            } catch (updateError) {
-                console.error('Exception when updating profile role:', updateError);
-                // Continue with admin access even if update fails
-            }
-            
-            console.log('Admin access granted. Loading dashboard data...');
-            await loadDashboardData();
-            return;
-        }
-
-        // If not in authorized list, check profile as fallback
-        console.log('User not in authorized admin ID list, checking profile...');
+        // Verify the user has admin role
+        console.log('Verifying admin access for user:', user.id);
         const { data: profile, error: profileError } = await supabaseClient
             .from('profiles')
-            .select('role, membership_status') // Assuming 'role' column exists for admin
-            .eq('id', session.user.id)
+            .select('role, full_name, email, id')
+            .eq('id', user.id)
             .single();
-
+        
         if (profileError) {
-            console.error('Error fetching user profile:', profileError.message);
-            // Log failed access attempt
-            await logAdminAccessAttempt(session.user.id, session.user.email, false, ipAddress);
-            alert('Error fetching your profile information. Redirecting to dashboard.');
-            window.location.href = 'dashboard.html'; // Or a generic error page
+            console.error('Error fetching user profile:', profileError);
+            alert('Error verifying administrator status. Please try again or contact support.');
             return;
         }
-
-        console.log('Profile data:', profile);
         
-        // Check if user is an admin and has an active membership
-        if (profile.role !== 'admin' || profile.membership_status !== 'active') {
-            console.warn(`Access denied: User is not an admin or membership is not active. Role: ${profile.role}, Status: ${profile.membership_status}`);
-            // Log failed access attempt
-            await logAdminAccessAttempt(session.user.id, session.user.email, false, ipAddress);
-            alert('Access Denied. You do not have permission to view this page.');
-            window.location.href = 'dashboard.html'; // Redirect to regular dashboard
+        if (!profile || profile.role !== 'admin') {
+            console.warn('Non-admin user attempted to access admin dashboard:', profile);
+            
+            // Log the access attempt
+            await logAdminAccessAttempt(
+                user.id,
+                profile?.email || user.email,
+                false
+            );
+            
+            alert('Access denied. Your account does not have administrator privileges.');
+            window.location.href = 'dashboard.html';
             return;
         }
-
-        // Log successful access
-        await logAdminAccessAttempt(session.user.id, session.user.email, true, ipAddress);
         
-        console.log('Admin access granted via profile check. Loading dashboard data...');
+        // User is authenticated and has admin role, log successful access
+        console.log('Admin access verified for user:', profile.full_name);
+        await logAdminAccessAttempt(
+            user.id,
+            profile.email,
+            true
+        );
+        
+        // Show the admin name in the dashboard
+        const adminNameElement = document.getElementById('adminName');
+        if (adminNameElement) {
+            adminNameElement.textContent = profile.full_name;
+        }
+        
+        // Load dashboard data
         await loadDashboardData();
-
-    } catch (error) {
-        console.error('Error during admin initialization:', error);
-        alert('Error initializing admin dashboard: ' + (error.message || 'Unknown error'));
         
-        // Try to log the error if possible
-        try {
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            if (user) {
-                await logAdminAccessAttempt(user.id, user.email, false, 'unknown');
-            }
-        } catch (logError) {
-            console.error('Error logging access attempt during error handling:', logError);
-        }
-        window.location.href = 'login.html';
+        // Initialize dashboard menu functionality
+        initializeDashboardMenus();
+        
+        // Initialize table sorting
+        initializeTableSorting();
+        
+        console.log('Admin dashboard initialized successfully');
+    } catch (error) {
+        console.error('Error initializing admin dashboard:', error);
+        alert('Something went wrong. Please reload the page or contact support.');
     }
 }
 
@@ -260,17 +190,41 @@ async function initializeAdminDashboard() {
  */
 async function loadDashboardData() {
     console.log('Starting to load dashboard data...');
-    
+
     try {
-        // Show the dashboard overview section by default
-        const dashboardSection = document.getElementById('dashboard-overview');
-        if (dashboardSection) {
-            // Make sure all other sections are hidden
-            document.querySelectorAll('.admin-section').forEach(section => {
+        // Initialize the dashboard menus first to ensure proper navigation
+        console.log('Initializing dashboard menus...');
+        initializeDashboardMenus();
+        
+        // Check if dashboard overview section exists and make it visible by default
+        const dashboardOverview = document.getElementById('dashboard-overview');
+        if (dashboardOverview) {
+            console.log('Setting dashboard overview as active section');
+            
+            // Make dashboard overview visible by default
+            document.querySelectorAll('.dashboard-content-section').forEach(section => {
+                section.style.display = 'none';
                 section.classList.remove('active');
             });
-            // Show the dashboard overview
-            dashboardSection.classList.add('active');
+            
+            dashboardOverview.style.display = 'block';
+            dashboardOverview.classList.add('active');
+            
+            // Add active class to both sidebar and top menu items for Overview
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            
+            // Activate both sidebar and top menu items for Overview
+            const sidebarMenuItem = document.querySelector('.sidebar-nav a[data-target="dashboard-overview"]');
+            const topMenuItem = document.querySelector('.admin-top-menu-items a[data-target="dashboard-overview"]');
+            
+            if (sidebarMenuItem) sidebarMenuItem.classList.add('active');
+            if (topMenuItem) topMenuItem.classList.add('active');
+        }
+        
+        // On mobile, ensure the admin container has the correct class
+        const adminContainer = document.querySelector('.admin-container');
+        if (adminContainer && window.innerWidth <= 768) {
+            adminContainer.classList.add('with-top-menu');
         }
         
         // Load dashboard overview stats
@@ -310,10 +264,6 @@ async function loadDashboardData() {
         console.log('Initializing event management controls...');
         initializeEventManagementControls();
         
-        // Initialize table sorting functionality
-        console.log('Initializing table sorting functionality...');
-        initializeTableSorting();
-        
         // Add action listeners to user and event tables after they are loaded
         console.log('Adding action listeners to user and event tables...');
         addUserActionListeners();
@@ -322,6 +272,7 @@ async function loadDashboardData() {
         console.log('Dashboard data loaded successfully');
     } catch (error) {
         console.error('Error loading dashboard data:', error);
+        alert('There was an error loading the dashboard data. Please try refreshing the page.');
     }
 }
 
@@ -1222,15 +1173,19 @@ function showCreateEventModal() {
     });
 }
 
-// Add the missing loadUsersTable function
-async function loadUsersTable(searchTerm = '', statusFilter = 'all') {
+// Modify the loadUsersTable function to accept sort parameters
+async function loadUsersTable(searchTerm = '', statusFilter = 'all', sortColumn = userTableSortColumn, sortDirection = userTableSortDirection) {
     const supabaseClient = window.supabaseClient;
     if (!supabaseClient) {
         console.error('Supabase client is not available');
         return;
     }
     
-    console.log('Loading users table with:', { searchTerm, statusFilter });
+    // Update the global sort state
+    userTableSortColumn = sortColumn;
+    userTableSortDirection = sortDirection;
+    
+    console.log('Loading users table with:', { searchTerm, statusFilter, sortColumn, sortDirection });
     
     const usersTableBody = document.getElementById('usersTableBody');
     if (!usersTableBody) {
@@ -1238,13 +1193,16 @@ async function loadUsersTable(searchTerm = '', statusFilter = 'all') {
         return;
     }
     
+    // Update sort indicators in the table headers
+    updateTableSortIndicators('usersTable', sortColumn, sortDirection);
+    
     usersTableBody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Loading users...</td></tr>';
 
     try {
         let query = supabaseClient
             .from('profiles')
             .select('member_id, full_name, email, phone, membership_status, role, created_at, id')
-            .order('created_at', { ascending: false });
+            .order(sortColumn, { ascending: sortDirection === 'asc' });
 
         if (searchTerm) {
             query = query.or(`full_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,member_id.ilike.%${searchTerm}%`);
@@ -1299,11 +1257,6 @@ async function loadUsersTable(searchTerm = '', statusFilter = 'all') {
 
         // Add event listeners for action buttons
         addUserActionListeners();
-        
-        // Reapply sorting if a column was previously sorted
-        if (window.reapplySorting) {
-            window.reapplySorting();
-        }
 
     } catch (error) {
         console.error('Failed to load users table:', error);
@@ -1311,21 +1264,28 @@ async function loadUsersTable(searchTerm = '', statusFilter = 'all') {
     }
 }
 
-// Add the missing loadEventRegistrationsTable function
-async function loadEventRegistrationsTable(searchTerm = '', eventFilter = 'all', registrationStatusFilter = 'active') {
+// Modify the loadEventRegistrationsTable function to accept sort parameters
+async function loadEventRegistrationsTable(searchTerm = '', eventFilter = 'all', registrationStatusFilter = 'active', sortColumn = eventTableSortColumn, sortDirection = eventTableSortDirection) {
     const supabaseClient = window.supabaseClient;
     if (!supabaseClient) {
         console.error('Supabase client is not available');
         return;
     }
     
-    console.log('Loading event registrations table with:', { searchTerm, eventFilter, registrationStatusFilter });
+    // Update the global sort state
+    eventTableSortColumn = sortColumn;
+    eventTableSortDirection = sortDirection;
+    
+    console.log('Loading event registrations table with:', { searchTerm, eventFilter, registrationStatusFilter, sortColumn, sortDirection });
     
     const registrationsTableBody = document.getElementById('eventRegistrationsTableBody');
     if (!registrationsTableBody) {
         console.error('Could not find eventRegistrationsTableBody element');
         return;
     }
+    
+    // Update sort indicators in the table headers
+    updateTableSortIndicators('eventRegistrationsTable', sortColumn, sortDirection);
     
     registrationsTableBody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Loading event registrations...</td></tr>';
 
@@ -1334,7 +1294,7 @@ async function loadEventRegistrationsTable(searchTerm = '', eventFilter = 'all',
         let query = supabaseClient
             .from('event_registrations')
             .select('id, event_id, user_id, vehicle_model, registered_at, cancelled_at')
-            .order('registered_at', { ascending: false });
+            .order(sortColumn, { ascending: sortDirection === 'asc' });
         
         // Apply registration status filter
         if (registrationStatusFilter === 'active') {
@@ -1494,11 +1454,6 @@ async function loadEventRegistrationsTable(searchTerm = '', eventFilter = 'all',
 
         // Add event listeners for action buttons
         addEventRegistrationActionListeners();
-        
-        // Reapply sorting if a column was previously sorted
-        if (window.reapplySorting) {
-            window.reapplySorting();
-        }
 
     } catch (error) {
         console.error('Failed to load event registrations table:', error);
@@ -2368,228 +2323,135 @@ function initializeDashboardMenus() {
     }
 }
 
-// Add the table sorting functionality
+// Add this function to initialize the sort functionality for both tables
 function initializeTableSorting() {
-    console.log('Initializing table sorting functionality');
+    console.log('Initializing table sorting...');
     
-    // Track sort state for each table
-    const sortState = {
-        users: {
-            column: null,
-            ascending: true
-        },
-        events: {
-            column: null,
-            ascending: true
-        }
-    };
-    
-    // Add click event listeners to table headers in the users table
-    const usersTableHeaders = document.querySelectorAll('#usersTable thead th');
-    usersTableHeaders.forEach((header, index) => {
-        // Skip the Actions column which should not be sortable
-        if (header.textContent.trim() !== 'Actions') {
-            header.classList.add('sortable');
-            header.innerHTML = `${header.textContent} <i class="fas fa-sort"></i>`;
-            header.addEventListener('click', () => {
-                const column = header.textContent.trim().replace(' ▲', '').replace(' ▼', '').replace(/ <i.*<\/i>$/, '');
-                sortUsersTable(column, index);
+    try {
+        // Set up user table column header sorting
+        const usersTable = document.getElementById('usersTable');
+        if (usersTable) {
+            const headers = usersTable.querySelectorAll('thead th');
+            
+            // Map the table headers to the corresponding database columns for sorting
+            const userColumnMap = {
+                0: 'member_id',       // Member ID column
+                1: 'full_name',       // Full Name column
+                2: 'email',           // Email column
+                3: 'phone',           // Phone column
+                4: 'membership_status', // Membership Status column
+                5: 'role',            // Role column
+                6: 'created_at'       // Joined (created_at) column
+            };
+            
+            headers.forEach((header, index) => {
+                // Skip the Actions column (last column)
+                if (index < headers.length - 1 && userColumnMap[index]) {
+                    header.style.cursor = 'pointer';
+                    header.setAttribute('data-column', userColumnMap[index]);
+                    
+                    // Add an information icon to indicate the column is sortable
+                    header.innerHTML = `${header.textContent} <i class="sort-icon"></i>`;
+                    
+                    header.addEventListener('click', function() {
+                        const column = this.getAttribute('data-column');
+                        
+                        // Toggle sort direction if clicking on the same column
+                        let direction = 'asc';
+                        if (column === userTableSortColumn) {
+                            direction = userTableSortDirection === 'asc' ? 'desc' : 'asc';
+                        }
+                        
+                        // Get current search and filter values
+                        const searchTerm = document.getElementById('userSearchInput').value;
+                        const statusFilter = document.getElementById('userStatusFilter').value;
+                        
+                        // Reload the table with the new sort parameters
+                        loadUsersTable(searchTerm, statusFilter, column, direction);
+                    });
+                }
             });
+        }
+        
+        // Set up event registrations table column header sorting
+        const eventTable = document.getElementById('eventRegistrationsTable');
+        if (eventTable) {
+            const headers = eventTable.querySelectorAll('thead th');
+            
+            // Map the event table headers to the corresponding database columns for sorting
+            const eventColumnMap = {
+                0: 'event_id',        // Event Name column (using event_id for sorting)
+                1: 'user_id',         // User column (using user_id for sorting) 
+                4: 'vehicle_model',   // Vehicle Model column
+                5: 'registered_at',   // Registered At column
+                6: 'cancelled_at'     // Status column (using cancelled_at for sorting)
+            };
+            
+            headers.forEach((header, index) => {
+                // Skip the Actions column (last column) and columns without direct mapping
+                if (index < headers.length - 1 && eventColumnMap[index]) {
+                    header.style.cursor = 'pointer';
+                    header.setAttribute('data-column', eventColumnMap[index]);
+                    
+                    // Add an information icon to indicate the column is sortable
+                    header.innerHTML = `${header.textContent} <i class="sort-icon"></i>`;
+                    
+                    header.addEventListener('click', function() {
+                        const column = this.getAttribute('data-column');
+                        
+                        // Toggle sort direction if clicking on the same column
+                        let direction = 'asc';
+                        if (column === eventTableSortColumn) {
+                            direction = eventTableSortDirection === 'asc' ? 'desc' : 'asc';
+                        }
+                        
+                        // Get current search and filter values
+                        const searchTerm = document.getElementById('eventSearchInput').value;
+                        const eventFilter = document.getElementById('eventFilter').value;
+                        const statusFilter = document.getElementById('registrationStatusFilter').value;
+                        
+                        // Reload the table with the new sort parameters
+                        loadEventRegistrationsTable(searchTerm, eventFilter, statusFilter, column, direction);
+                    });
+                }
+            });
+        }
+        
+        console.log('Table sorting initialized successfully');
+    } catch (error) {
+        console.error('Error initializing table sorting:', error);
+    }
+}
+
+// Update this function to also add the CSS variable for the active sort column
+function updateTableSortIndicators(tableId, sortColumn, sortDirection) {
+    const table = document.getElementById(tableId);
+    if (!table) return;
+    
+    const headers = table.querySelectorAll('thead th');
+    let sortColumnIndex = -1;
+    
+    headers.forEach((header, index) => {
+        const column = header.getAttribute('data-column');
+        const icon = header.querySelector('.sort-icon');
+        
+        if (!icon) return;
+        
+        if (column === sortColumn) {
+            icon.className = 'sort-icon fas fa-sort-' + (sortDirection === 'asc' ? 'up' : 'down');
+            icon.style.marginLeft = '5px';
+            icon.style.color = '#00e676';
+            sortColumnIndex = index + 1; // CSS nth-child is 1-based
+        } else {
+            icon.className = 'sort-icon fas fa-sort';
+            icon.style.marginLeft = '5px';
+            icon.style.color = '#aaa';
         }
     });
     
-    // Add click event listeners to table headers in the event registrations table
-    const eventTableHeaders = document.querySelectorAll('#eventRegistrationsTable thead th');
-    eventTableHeaders.forEach((header, index) => {
-        // Skip the Actions column which should not be sortable
-        if (header.textContent.trim() !== 'Actions') {
-            header.classList.add('sortable');
-            header.innerHTML = `${header.textContent} <i class="fas fa-sort"></i>`;
-            header.addEventListener('click', () => {
-                const column = header.textContent.trim().replace(' ▲', '').replace(' ▼', '').replace(/ <i.*<\/i>$/, '');
-                sortEventRegistrationsTable(column, index);
-            });
-        }
-    });
-    
-    // Function to sort the users table
-    function sortUsersTable(column, columnIndex) {
-        console.log(`Sorting users table by column: ${column}`);
-        
-        // Update sort state
-        if (sortState.users.column === column) {
-            // If clicking the same column, toggle sort direction
-            sortState.users.ascending = !sortState.users.ascending;
-        } else {
-            // If clicking a new column, set it as the sort column and default to ascending
-            sortState.users.column = column;
-            sortState.users.ascending = true;
-        }
-        
-        // Update header icons to show sort direction
-        usersTableHeaders.forEach(h => {
-            // Reset all headers
-            h.innerHTML = h.textContent.replace(' ▲', '').replace(' ▼', '').replace(/ <i.*<\/i>$/, '') + ' <i class="fas fa-sort"></i>';
-        });
-        
-        // Update the clicked header with the appropriate sort icon
-        const sortIcon = sortState.users.ascending ? '<i class="fas fa-sort-up"></i>' : '<i class="fas fa-sort-down"></i>';
-        usersTableHeaders[columnIndex].innerHTML = `${column} ${sortIcon}`;
-        
-        // Get all rows from the table body
-        const tbody = document.querySelector('#usersTableBody');
-        const rows = Array.from(tbody.querySelectorAll('tr'));
-        
-        // Sort the rows
-        rows.sort((a, b) => {
-            let aValue = a.cells[columnIndex].textContent.trim();
-            let bValue = b.cells[columnIndex].textContent.trim();
-            
-            // Special handling for dates
-            if (column === 'Joined') {
-                aValue = new Date(aValue);
-                bValue = new Date(bValue);
-                return sortState.users.ascending ? aValue - bValue : bValue - aValue;
-            }
-            
-            // Special handling for membership status
-            if (column === 'Membership Status') {
-                // Extract the status text, ignoring the HTML
-                aValue = a.cells[columnIndex].querySelector('span').textContent.trim();
-                bValue = b.cells[columnIndex].querySelector('span').textContent.trim();
-            }
-            
-            // Default string comparison
-            const comparison = aValue.localeCompare(bValue);
-            return sortState.users.ascending ? comparison : -comparison;
-        });
-        
-        // Remove existing rows
-        while (tbody.firstChild) {
-            tbody.removeChild(tbody.firstChild);
-        }
-        
-        // Add sorted rows
-        rows.forEach(row => tbody.appendChild(row));
-        
-        // Add highlight animation to rows
-        rows.forEach(row => {
-            row.classList.add('sort-highlight');
-            setTimeout(() => row.classList.remove('sort-highlight'), 1000);
-        });
+    // Set the CSS variable for highlighting the sorted column
+    if (sortColumnIndex > 0) {
+        table.style.setProperty('--sort-column-index', sortColumnIndex);
     }
-    
-    // Function to sort the event registrations table
-    function sortEventRegistrationsTable(column, columnIndex) {
-        console.log(`Sorting event registrations table by column: ${column}`);
-        
-        // Update sort state
-        if (sortState.events.column === column) {
-            // If clicking the same column, toggle sort direction
-            sortState.events.ascending = !sortState.events.ascending;
-        } else {
-            // If clicking a new column, set it as the sort column and default to ascending
-            sortState.events.column = column;
-            sortState.events.ascending = true;
-        }
-        
-        // Update header icons to show sort direction
-        eventTableHeaders.forEach(h => {
-            // Reset all headers
-            h.innerHTML = h.textContent.replace(' ▲', '').replace(' ▼', '').replace(/ <i.*<\/i>$/, '') + ' <i class="fas fa-sort"></i>';
-        });
-        
-        // Update the clicked header with the appropriate sort icon
-        const sortIcon = sortState.events.ascending ? '<i class="fas fa-sort-up"></i>' : '<i class="fas fa-sort-down"></i>';
-        eventTableHeaders[columnIndex].innerHTML = `${column} ${sortIcon}`;
-        
-        // Get all rows from the table body
-        const tbody = document.querySelector('#eventRegistrationsTableBody');
-        const rows = Array.from(tbody.querySelectorAll('tr'));
-        
-        // Sort the rows
-        rows.sort((a, b) => {
-            let aValue, bValue;
-            
-            // Special handling for Event Name column which has nested divs
-            if (column === 'Event Name') {
-                aValue = a.cells[columnIndex].querySelector('strong').textContent.trim();
-                bValue = b.cells[columnIndex].querySelector('strong').textContent.trim();
-            }
-            // Special handling for Contact column which has nested divs
-            else if (column === 'Contact') {
-                aValue = a.cells[columnIndex].querySelector('div').textContent.trim();
-                bValue = b.cells[columnIndex].querySelector('div').textContent.trim();
-            }
-            // Special handling for Status column
-            else if (column === 'Status') {
-                aValue = a.cells[columnIndex].querySelector('span').textContent.trim();
-                bValue = b.cells[columnIndex].querySelector('span').textContent.trim();
-            }
-            // Special handling for Registered At column which contains dates
-            else if (column === 'Registered At') {
-                aValue = new Date(a.cells[columnIndex].textContent.trim());
-                bValue = new Date(b.cells[columnIndex].textContent.trim());
-                return sortState.events.ascending ? aValue - bValue : bValue - aValue;
-            }
-            else {
-                aValue = a.cells[columnIndex].textContent.trim();
-                bValue = b.cells[columnIndex].textContent.trim();
-            }
-            
-            // Default string comparison
-            const comparison = aValue.localeCompare(bValue);
-            return sortState.events.ascending ? comparison : -comparison;
-        });
-        
-        // Remove existing rows
-        while (tbody.firstChild) {
-            tbody.removeChild(tbody.firstChild);
-        }
-        
-        // Add sorted rows
-        rows.forEach(row => tbody.appendChild(row));
-        
-        // Add highlight animation to rows
-        rows.forEach(row => {
-            row.classList.add('sort-highlight');
-            setTimeout(() => row.classList.remove('sort-highlight'), 1000);
-        });
-    }
-    
-    // Function to reapply the current sort after table data is refreshed
-    window.reapplySorting = function() {
-        // Reapply users table sorting if a column was previously sorted
-        if (sortState.users.column) {
-            // Find the column index
-            let columnIndex = -1;
-            usersTableHeaders.forEach((header, index) => {
-                if (header.textContent.includes(sortState.users.column)) {
-                    columnIndex = index;
-                }
-            });
-            
-            if (columnIndex !== -1) {
-                sortUsersTable(sortState.users.column, columnIndex);
-            }
-        }
-        
-        // Reapply event registrations table sorting if a column was previously sorted
-        if (sortState.events.column) {
-            // Find the column index
-            let columnIndex = -1;
-            eventTableHeaders.forEach((header, index) => {
-                if (header.textContent.includes(sortState.events.column)) {
-                    columnIndex = index;
-                }
-            });
-            
-            if (columnIndex !== -1) {
-                sortEventRegistrationsTable(sortState.events.column, columnIndex);
-            }
-        }
-    };
-    
-    console.log('Table sorting functionality initialized');
 }
     

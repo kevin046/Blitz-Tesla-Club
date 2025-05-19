@@ -931,50 +931,31 @@ table td .action-btn {
 }
 
 /* Add styles for sortable table headers */
-th.sortable {
+.admin-section table th[data-column] {
     cursor: pointer;
-    position: relative;
-    padding-right: 20px;
     user-select: none;
+    position: relative;
+    padding-right: 25px; /* Add space for the sort icon */
     transition: background-color 0.2s ease;
 }
 
-th.sortable:hover {
-    background-color: rgba(0, 230, 118, 0.1);
+.admin-section table th[data-column]:hover {
+    background-color: rgba(0, 230, 118, 0.05);
 }
 
-th.sortable i {
-    position: absolute;
-    right: 5px;
-    top: 50%;
-    transform: translateY(-50%);
-    opacity: 0.5;
+.admin-section table th .sort-icon {
     font-size: 0.8em;
+    margin-left: 5px;
+    color: #aaa;
+    vertical-align: middle;
 }
 
-th.sortable i.fa-sort-up,
-th.sortable i.fa-sort-down {
-    opacity: 1;
+.admin-section table th .sort-icon.fa-sort-up,
+.admin-section table th .sort-icon.fa-sort-down {
     color: #00e676;
 }
 
-/* Add a subtle animation for sorting */
-@keyframes highlightSort {
-    0% { background-color: rgba(0, 230, 118, 0.2); }
-    100% { background-color: transparent; }
-}
-
-tbody tr.sort-highlight {
-    animation: highlightSort 1s ease;
-}
-
-/* Make sure the table headers align properly with the new sort icons */
-table th {
-    position: relative;
-    padding: 12px 10px;
-    background-color: #f8f9fa;
-    color: #171a20;
-    font-weight: 600;
-    text-align: left;
-    border-bottom: 2px solid #e9ecef;
+/* Add a subtle background to the active sort column */
+.admin-section table tbody tr td:nth-child(var(--sort-column-index)) {
+    background-color: rgba(0, 230, 118, 0.02);
 } 

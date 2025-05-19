@@ -42,38 +42,65 @@
                 <h3>Admin Menu</h3>
             </div>
             <ul class="sidebar-nav">
-                <li><a href="#" class="active" data-target="dashboard-overview"><i class="fas fa-tachometer-alt"></i> Overview</a></li>
-                <li><a href="#" data-target="user-management"><i class="fas fa-users-cog"></i> User Management</a></li>
-                <li><a href="#" data-target="event-management"><i class="fas fa-calendar-alt"></i> Event Management</a></li>
-                <li><a href="#" data-target="content-management"><i class="fas fa-file-alt"></i> Content Management</a></li>
-                <li><a href="#" data-target="settings"><i class="fas fa-cogs"></i> Settings</a></li>
+                <li><a href="#" class="active nav-item" data-target="dashboard-overview"><i class="fas fa-tachometer-alt"></i> Overview</a></li>
+                <li><a href="#" class="nav-item" data-target="user-management"><i class="fas fa-users-cog"></i> User Management</a></li>
+                <li><a href="#" class="nav-item" data-target="event-management"><i class="fas fa-calendar-alt"></i> Event Management</a></li>
+                <li><a href="#" class="nav-item" data-target="content-management"><i class="fas fa-file-alt"></i> Content Management</a></li>
+                <li><a href="#" class="nav-item" data-target="settings"><i class="fas fa-cogs"></i> Settings</a></li>
             </ul>
         </aside>
 
         <main class="admin-content">
-            <section id="dashboard-overview" class="admin-section active">
+            <button id="sidebar-toggle" class="btn sidebar-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <section id="dashboard-overview" class="admin-section active dashboard-content-section">
                 <h2>Dashboard Overview</h2>
                 <!-- Overview content will go here -->
                 <div class="stats-grid">
                     <div class="stat-card">
                         <h4>Total Users</h4>
-                        <p id="totalUsersStat">Loading...</p>
+                        <p id="totalUsers">Loading...</p>
                         <i class="fas fa-users"></i>
                     </div>
                     <div class="stat-card">
                         <h4>Active Events</h4>
-                        <p id="activeEventsStat">Loading...</p>
+                        <p id="activeEvents">Loading...</p>
                         <i class="fas fa-calendar-check"></i>
                     </div>
                     <div class="stat-card">
                         <h4>Pending Verifications</h4>
-                        <p id="pendingVerificationsStat">Loading...</p>
+                        <p id="pendingVerifications">Loading...</p>
                         <i class="fas fa-user-clock"></i>
                     </div>
                     <div class="stat-card">
-                        <h4>Recent Registrations (24h)</h4>
-                        <p id="recentRegistrationsStat">Loading...</p>
+                        <h4>Recent Registrations (30d)</h4>
+                        <p id="recentRegistrations">Loading...</p>
                         <i class="fas fa-user-plus"></i>
+                    </div>
+                </div>
+                
+                <!-- User status breakdown -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>Active Users</h4>
+                        <p id="activeUsers">Loading...</p>
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Pending Users</h4>
+                        <p id="pendingUsers">Loading...</p>
+                        <i class="fas fa-user-clock"></i>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Suspended Users</h4>
+                        <p id="suspendedUsers">Loading...</p>
+                        <i class="fas fa-user-slash"></i>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Total Events</h4>
+                        <p id="totalEvents">Loading...</p>
+                        <i class="fas fa-calendar"></i>
                     </div>
                 </div>
                 
@@ -98,7 +125,7 @@
                 <!-- More detailed sections like recent activity, quick actions etc. -->
             </section>
 
-            <section id="user-management" class="admin-section">
+            <section id="user-management" class="admin-section dashboard-content-section">
                 <h2>User Management</h2>
                 <div class="table-controls">
                     <input type="text" id="userSearchInput" placeholder="Search users (Name, Email, Member ID)...">
@@ -136,7 +163,7 @@
                 </div>
             </section>
 
-            <section id="event-management" class="admin-section">
+            <section id="event-management" class="admin-section dashboard-content-section">
                 <h2>Event Management & Registrations</h2>
                 <div class="table-controls">
                     <input type="text" id="eventSearchInput" placeholder="Search registrations (Event, Name, Email, Member ID)...">
@@ -175,12 +202,12 @@
                 </div>
             </section>
 
-            <section id="content-management" class="admin-section">
+            <section id="content-management" class="admin-section dashboard-content-section">
                 <h2>Content Management</h2>
                 <!-- Tools for managing website content (e.g., news, gallery) will go here -->
             </section>
             
-            <section id="settings" class="admin-section">
+            <section id="settings" class="admin-section dashboard-content-section">
                 <h2>Settings</h2>
                 <!-- Admin settings will go here -->
             </section>

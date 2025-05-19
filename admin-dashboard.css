@@ -686,4 +686,54 @@ table td .action-btn {
     .activity-date {
         margin-top: 5px;
     }
+}
+
+.sidebar-toggle {
+    position: absolute;
+    top: 10px;
+    left: 15px;
+    background: #171a20;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 12px;
+    cursor: pointer;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+}
+
+.sidebar-toggle:hover {
+    background: #00e676;
+}
+
+.admin-sidebar.collapsed {
+    transform: translateX(-100%);
+}
+
+.admin-content.expanded {
+    margin-left: 0;
+}
+
+@media (max-width: 768px) {
+    .admin-sidebar {
+        transform: translateX(-100%);
+        position: fixed;
+        height: 100vh;
+        z-index: 999;
+        transition: transform 0.3s ease;
+    }
+    
+    .admin-sidebar.visible {
+        transform: translateX(0);
+    }
+    
+    .admin-content {
+        margin-left: 0;
+        width: 100%;
+        padding-left: 15px;
+    }
 } 

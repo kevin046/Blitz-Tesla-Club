@@ -1,3 +1,32 @@
+// Add a direct event listener to ensure initialization happens
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('Admin dashboard DOM loaded, initializing...');
+    
+    // Wait for Supabase client to be available
+    if (!window.supabaseClient) {
+        console.log('Waiting for Supabase client to be initialized...');
+        await new Promise(resolve => {
+            const checkSupabase = () => {
+                if (window.supabaseClient) {
+                    resolve();
+                } else {
+                    setTimeout(checkSupabase, 100);
+                }
+            };
+            checkSupabase();
+        });
+    }
+    
+    try {
+        // Initialize the admin dashboard
+        await initializeAdminDashboard();
+        console.log('Admin dashboard initialized successfully');
+    } catch (error) {
+        console.error('Error during dashboard initialization:', error);
+        alert('There was an error initializing the admin dashboard. Please try refreshing the page.');
+    }
+});
+
 document.addEventListener('DOMContentLoaded', async () => {
     // Wait for Supabase to be ready (event dispatched from HTML)
     document.addEventListener('supabase:ready', async () => {
@@ -227,68 +256,85 @@ async function initializeAdminDashboard() {
 }
 
 /**
- * Load dashboard data from Supabase
+ * Loads the dashboard data, initializes the dashboard UI,
+ * and sets up event listeners for dashboard functionality
  */
 async function loadDashboardData() {
     console.log('Starting to load dashboard data...');
-    
+
     try {
-        // Initialize dashboard menus and sidebar
-        console.log('Initializing dashboard menus and sidebar...');
+        // Initialize the dashboard menus first to ensure proper navigation
+        console.log('Initializing dashboard menus...');
         initializeDashboardMenus();
         
-        // Make sure the dashboard overview section is visible
+        // Check if dashboard overview section exists and make it visible by default
         const dashboardOverview = document.getElementById('dashboard-overview');
         if (dashboardOverview) {
-            console.log('Making dashboard overview visible...');
-            dashboardOverview.classList.add('active');
+            console.log('Setting dashboard overview as active section');
+            
+            // Make dashboard overview visible by default
+            document.querySelectorAll('.dashboard-content-section').forEach(section => {
+                section.style.display = 'none';
+                section.classList.remove('active');
+            });
+            
             dashboardOverview.style.display = 'block';
-        } else {
-            console.error('Dashboard overview section not found in DOM');
+            dashboardOverview.classList.add('active');
+            
+            // Add active class to menu item
+            const overviewMenuItem = document.querySelector('.nav-item[data-target="dashboard-overview"]');
+            if (overviewMenuItem) {
+                document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+                overviewMenuItem.classList.add('active');
+            }
         }
         
-        // Fetch and load overview statistics
-        console.log('Loading overview statistics...');
+        // Load dashboard overview stats
+        console.log('Fetching overview stats...');
         await fetchOverviewStats();
         
-        // Load recent activity section
+        // Load recent activity section with latest member and registration data
         console.log('Loading recent activity section...');
         await loadRecentActivitySection();
         
-        // Load users table (will be visible if user-management is active)
-        console.log('Loading users table...');
-        await loadUsersTable();
-        
-        // Set up the registration status filter to "active" by default
-        const registrationStatusFilter = document.getElementById('registration-status-filter');
-        if (registrationStatusFilter) {
-            console.log('Setting registration status filter to Active Registrations Only');
-            registrationStatusFilter.value = 'active';
-        } else {
-            console.warn('Registration status filter not found in DOM');
-        }
-        
-        // Load event registrations with active filter
-        console.log('Loading event registrations with active filter...');
-        await loadEventRegistrationsTable('active');
-        
-        // Populate the event filter dropdown
-        console.log('Populating event filter...');
-        await populateEventFilter();
-        
-        // Initialize control listeners
-        console.log('Initializing control listeners...');
-        initializeUserManagementControls();
-        initializeEventManagementControls();
-        
-        // Add event listeners for table search inputs
+        // Set up table search functionality and initialize the user management section
         console.log('Setting up table search functionality...');
         setupTableSearch();
         
-        console.log('Dashboard data loaded successfully!');
+        // Load users table
+        console.log('Loading users table...');
+        await loadUsersTable();
+        
+        // Load event registrations table with default filter for active registrations
+        console.log('Loading event registrations with active status filter...');
+        await loadEventRegistrationsTable('', 'all', 'active');
+        
+        // Set the registration status filter select to "active" to match the loaded data
+        const registrationStatusFilterElement = document.getElementById('registrationStatusFilter');
+        if (registrationStatusFilterElement) {
+            registrationStatusFilterElement.value = 'active';
+        }
+        
+        // Populate event filter dropdown
+        console.log('Populating event filter dropdown...');
+        await populateEventFilter();
+        
+        // Initialize user and event management controls
+        console.log('Initializing user management controls...');
+        initializeUserManagementControls();
+        
+        console.log('Initializing event management controls...');
+        initializeEventManagementControls();
+        
+        // Add action listeners to user and event tables after they are loaded
+        console.log('Adding action listeners to user and event tables...');
+        addUserActionListeners();
+        addEventRegistrationActionListeners();
+        
+        console.log('Dashboard data loaded successfully');
     } catch (error) {
         console.error('Error loading dashboard data:', error);
-        alert('There was an error loading the dashboard data. Please check the console for details.');
+        alert('There was an error loading the dashboard data. Please try refreshing the page.');
     }
 }
 
@@ -300,9 +346,9 @@ function setupTableSearch() {
     
     try {
         // Set up user table search
-        const userSearchInput = document.getElementById('user-search');
+        const userSearchInput = document.getElementById('userSearchInput');
         if (userSearchInput) {
-            console.log('Setting up user table search input...');
+            console.log('Setting up user search input...');
             userSearchInput.addEventListener('input', function() {
                 loadUsersTable(this.value);
             });
@@ -311,535 +357,503 @@ function setupTableSearch() {
         }
         
         // Set up event filter change event
-        const eventFilter = document.getElementById('event-filter');
+        const eventFilter = document.getElementById('eventFilter');
         if (eventFilter) {
             console.log('Setting up event filter dropdown...');
             eventFilter.addEventListener('change', function() {
-                const registrationStatusFilter = document.getElementById('registration-status-filter');
+                const registrationStatusFilter = document.getElementById('registrationStatusFilter');
                 const statusFilter = registrationStatusFilter ? registrationStatusFilter.value : 'active';
-                loadEventRegistrationsTable(statusFilter, this.value);
+                const searchTerm = document.getElementById('eventSearchInput') ? 
+                    document.getElementById('eventSearchInput').value : '';
+                loadEventRegistrationsTable(searchTerm, this.value, statusFilter);
             });
         } else {
             console.warn('Event filter dropdown not found in DOM');
         }
         
         // Set up registration status filter
-        const registrationStatusFilter = document.getElementById('registration-status-filter');
+        const registrationStatusFilter = document.getElementById('registrationStatusFilter');
         if (registrationStatusFilter) {
             console.log('Setting up registration status filter...');
             registrationStatusFilter.addEventListener('change', function() {
-                const eventFilter = document.getElementById('event-filter');
+                const eventFilter = document.getElementById('eventFilter');
                 const selectedEvent = eventFilter ? eventFilter.value : 'all';
-                loadEventRegistrationsTable(this.value, selectedEvent);
+                const searchTerm = document.getElementById('eventSearchInput') ? 
+                    document.getElementById('eventSearchInput').value : '';
+                loadEventRegistrationsTable(searchTerm, selectedEvent, this.value);
             });
         } else {
             console.warn('Registration status filter not found in DOM');
         }
         
-        // Set up registration search
-        const registrationSearchInput = document.getElementById('registration-search');
-        if (registrationSearchInput) {
-            console.log('Setting up registration search input...');
-            registrationSearchInput.addEventListener('input', function() {
-                const eventFilter = document.getElementById('event-filter');
-                const registrationStatusFilter = document.getElementById('registration-status-filter');
+        // Set up event registration search
+        const eventSearchInput = document.getElementById('eventSearchInput');
+        if (eventSearchInput) {
+            console.log('Setting up event search input...');
+            eventSearchInput.addEventListener('input', function() {
+                const eventFilter = document.getElementById('eventFilter');
+                const registrationStatusFilter = document.getElementById('registrationStatusFilter');
                 
                 const selectedEvent = eventFilter ? eventFilter.value : 'all';
                 const statusFilter = registrationStatusFilter ? registrationStatusFilter.value : 'active';
                 
-                loadEventRegistrationsTable(statusFilter, selectedEvent, this.value);
+                loadEventRegistrationsTable(this.value, selectedEvent, statusFilter);
             });
         } else {
-            console.warn('Registration search input not found in DOM');
+            console.warn('Event search input not found in DOM');
         }
         
-        console.log('Table search functionality setup complete!');
+        // Set up user status filter
+        const userStatusFilter = document.getElementById('userStatusFilter');
+        if (userStatusFilter) {
+            console.log('Setting up user status filter...');
+            userStatusFilter.addEventListener('change', function() {
+                const searchTerm = document.getElementById('userSearchInput') ? 
+                    document.getElementById('userSearchInput').value : '';
+                loadUsersTable(searchTerm, this.value);
+            });
+        } else {
+            console.warn('User status filter not found in DOM');
+        }
+        
+        console.log('Table search functionality setup complete');
     } catch (error) {
         console.error('Error setting up table search:', error);
     }
 }
 
+/**
+ * Fetches and displays key statistics for the admin dashboard overview
+ */
 async function fetchOverviewStats() {
-    console.log('Starting fetchOverviewStats function...');
-    const supabaseClient = window.supabaseClient;
-    if (!supabaseClient) {
-        console.error('Supabase client is not available');
-        document.getElementById('totalUsersStat').innerHTML = '<span class="error-text">Supabase client unavailable</span>';
-        document.getElementById('activeEventsStat').innerHTML = '<span class="error-text">Supabase client unavailable</span>';
-        document.getElementById('pendingVerificationsStat').innerHTML = '<span class="error-text">Supabase client unavailable</span>';
-        document.getElementById('recentRegistrationsStat').innerHTML = '<span class="error-text">Supabase client unavailable</span>';
-        return;
-    }
-
-    try {
-        // Ensure stats display "Loading..." while we fetch data
-        document.getElementById('totalUsersStat').innerHTML = 'Loading...';
-        document.getElementById('activeEventsStat').innerHTML = 'Loading...';
-        document.getElementById('pendingVerificationsStat').innerHTML = 'Loading...';
-        document.getElementById('recentRegistrationsStat').innerHTML = 'Loading...';
-
-        console.log('Fetching all user profiles to calculate member ID stats...');
-        // Fetch all profiles to get member IDs
-        const { data: allProfiles, error: profilesError } = await supabaseClient
-            .from('profiles')
-            .select('id, member_id, membership_status')
-            .order('created_at', { ascending: false });
-        
-        if (profilesError) {
-            console.error('Error fetching user profiles:', profilesError.message);
-            document.getElementById('totalUsersStat').innerHTML = '<span class="error-text">Error loading user data</span>';
-        } else if (!allProfiles || allProfiles.length === 0) {
-            console.log('No profiles found in database');
-            document.getElementById('totalUsersStat').innerHTML = '<span class="stat-number">0</span>';
+    console.log('Starting fetchOverviewStats...');
+    
+    // Helper function to update a statistic in the UI
+    function updateStat(id, value) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = value;
         } else {
-            console.log(`Fetched ${allProfiles.length} profiles from database`);
-            
-            // Calculate total users based on highest BTC number
-            let highestMemberNumber = 0;
-            let validMemberIdCount = 0;
-            
-            allProfiles.forEach(profile => {
-                if (profile.member_id && profile.member_id.startsWith('BTC')) {
-                    validMemberIdCount++;
-                    try {
-                        // Extract the numeric part of the member ID (e.g., "BTC0001" -> "0001" -> 1)
-                        const numberString = profile.member_id.replace('BTC', '');
-                        const numberPart = parseInt(numberString, 10);
-                        
-                        if (!isNaN(numberPart) && numberPart > highestMemberNumber) {
-                            highestMemberNumber = numberPart;
-                        }
-                    } catch (error) {
-                        console.warn(`Could not parse member ID: ${profile.member_id}`, error);
-                    }
-                }
-            });
-            
-            console.log(`Highest member number: ${highestMemberNumber}, Valid member IDs: ${validMemberIdCount}`);
-            
-            // For total users, use the highest member number
-            const totalUsers = highestMemberNumber > 0 ? highestMemberNumber : allProfiles.length;
-            
-            // Create a status counts object for membership status breakdown
-            const statusCounts = {
-                active: 0,
-                pending_verification: 0,
-                pending_approval: 0,
-                suspended: 0,
-                inactive: 0
-            };
-            
-            // Count status occurrences from the profiles we already fetched
-            allProfiles.forEach(profile => {
-                if (profile.membership_status && statusCounts.hasOwnProperty(profile.membership_status)) {
-                    statusCounts[profile.membership_status]++;
-                }
-            });
-            
-            console.log('User status counts:', statusCounts);
-            
-            // Update total users display with breakdown
-            document.getElementById('totalUsersStat').innerHTML = 
-                `<span class="stat-number">${totalUsers}</span>
-                 <div class="stat-breakdown">
-                    <div class="breakdown-item">
-                        <span class="status-active"></span> Active: ${statusCounts.active}
-                    </div>
-                    <div class="breakdown-item">
-                        <span class="status-pending-verification"></span> Pending Verification: ${statusCounts.pending_verification}
-                    </div>
-                    <div class="breakdown-item">
-                        <span class="status-pending-approval"></span> Pending Approval: ${statusCounts.pending_approval}
-                    </div>
-                 </div>`;
+            console.warn(`Element ${id} not found when updating stat`);
         }
-
-        // Fetch active events (upcoming events)
-        console.log('Fetching events data...');
-        const today = new Date().toISOString();
+    }
+    
+    // Helper function to handle errors and display an appropriate message
+    function handleStatError(id, error) {
+        console.error(`Error fetching stat for ${id}:`, error);
+        updateStat(id, 'Error');
+    }
+    
+    try {
+        // Check if supabaseClient is available
+        if (!window.supabaseClient) {
+            console.error('Supabase client not available for fetching stats');
+            updateStat('totalUsers', 'No DB Connection');
+            updateStat('activeUsers', 'No DB Connection');
+            updateStat('pendingUsers', 'No DB Connection');
+            updateStat('suspendedUsers', 'No DB Connection');
+            updateStat('activeEvents', 'No DB Connection');
+            updateStat('totalEvents', 'No DB Connection');
+            updateStat('pastEvents', 'No DB Connection');
+            return;
+        }
+        
+        // Get the Supabase client
+        const supabaseClient = window.supabaseClient;
+        
+        // 1. Get all profiles to find the highest member ID (which is our total user count)
         try {
-            const { data: eventData, error: eventDataError } = await supabaseClient
-                .from('events')
-                .select('id, title, date, location, status');
+            console.log('Fetching profiles to determine total users...');
+            const { data: profiles, error: profilesError } = await supabaseClient
+                .from('profiles')
+                .select('member_id')
+                .not('member_id', 'is', null);
                 
-            if (eventDataError) {
-                console.error('Error fetching event data:', eventDataError.message);
-                document.getElementById('activeEventsStat').innerHTML = '<span class="error-text">Error loading event data</span>';
-            } else if (!eventData || eventData.length === 0) {
-                console.log('No events found in database');
-                document.getElementById('activeEventsStat').innerHTML = '<span class="stat-number">0</span>';
+            if (profilesError) {
+                console.error('Error fetching profiles:', profilesError);
+                throw profilesError;
+            }
+            
+            if (!profiles || profiles.length === 0) {
+                updateStat('totalUsers', '0');
+                console.log('No profiles found with member IDs');
             } else {
-                console.log(`Fetched ${eventData.length} events from database`);
+                console.log(`Found ${profiles.length} profiles with member IDs`);
                 
-                // Count upcoming and past events
-                let upcomingEvents = 0;
-                let pastEvents = 0;
-                
-                const now = new Date();
-                eventData.forEach(event => {
-                    try {
-                        const eventDate = new Date(event.date);
-                        if (eventDate > now) {
-                            upcomingEvents++;
-                        } else {
-                            pastEvents++;
+                // Extract the highest member ID number
+                let highestMemberNumber = 0;
+                profiles.forEach(profile => {
+                    if (profile.member_id && profile.member_id.startsWith('BTC')) {
+                        const numberString = profile.member_id.replace('BTC', '');
+                        const memberNumber = parseInt(numberString, 10);
+                        if (!isNaN(memberNumber) && memberNumber > highestMemberNumber) {
+                            highestMemberNumber = memberNumber;
                         }
-                    } catch (error) {
-                        console.warn(`Could not parse event date: ${event.date}`, error);
-                        pastEvents++; // Assume it's past if we can't parse the date
                     }
                 });
                 
-                console.log(`Events breakdown: Upcoming: ${upcomingEvents}, Past: ${pastEvents}, Total: ${eventData.length}`);
-                
-                document.getElementById('activeEventsStat').innerHTML = 
-                    `<span class="stat-number">${upcomingEvents}</span>
-                     <div class="stat-breakdown">
-                        <div class="breakdown-item">
-                            <span class="event-upcoming"></span> Upcoming: ${upcomingEvents}
-                        </div>
-                        <div class="breakdown-item">
-                            <span class="event-past"></span> Past: ${pastEvents}
-                        </div>
-                        <div class="breakdown-item">
-                            <span class="event-total"></span> Total: ${(upcomingEvents + pastEvents)}
-                        </div>
-                     </div>`;
+                // Update total users to reflect the highest member ID number
+                updateStat('totalUsers', highestMemberNumber.toString());
+                console.log(`Highest member ID is BTC${highestMemberNumber}`);
             }
-        } catch (eventError) {
-            console.error('Error in events processing:', eventError);
-            document.getElementById('activeEventsStat').innerHTML = '<span class="error-text">Error processing events</span>';
+        } catch (error) {
+            handleStatError('totalUsers', error);
         }
 
-        // Fetch users with pending verification or approval
-        console.log('Calculating pending verifications...');
+        // 2. Get user status breakdown
         try {
-            // We already have the profile data, so we can calculate this from our existing data
-            const pendingVerifications = statusCounts.pending_verification || 0;
-            const pendingApprovals = statusCounts.pending_approval || 0;
-            const totalPending = pendingVerifications + pendingApprovals;
+            console.log('Fetching user status breakdown...');
+            const { data: statusCounts, error: statusError } = await supabaseClient
+                .from('profiles')
+                .select('membership_status')
+                .not('membership_status', 'is', null);
+                
+            if (statusError) {
+                throw statusError;
+            }
             
-            console.log(`Pending verifications: ${pendingVerifications}, Pending approvals: ${pendingApprovals}`);
+            // Count different status types
+            let activeCount = 0;
+            let pendingVerificationCount = 0;
+            let suspendedCount = 0;
             
-            document.getElementById('pendingVerificationsStat').innerHTML = 
-                `<span class="stat-number">${totalPending}</span>
-                 <div class="stat-breakdown">
-                    <div class="breakdown-item">
-                        <span class="status-pending-verification"></span> Verification: ${pendingVerifications}
-                    </div>
-                    <div class="breakdown-item">
-                        <span class="status-pending-approval"></span> Approval: ${pendingApprovals}
-                    </div>
-                 </div>`;
-        } catch (pendingError) {
-            console.error('Error calculating pending verifications:', pendingError);
-            document.getElementById('pendingVerificationsStat').innerHTML = '<span class="error-text">Error calculating pending verifications</span>';
+            statusCounts.forEach(profile => {
+                if (profile.membership_status === 'active') activeCount++;
+                else if (profile.membership_status === 'pending' || 
+                        profile.membership_status === 'pending_verification') pendingVerificationCount++;
+                else if (profile.membership_status === 'suspended') suspendedCount++;
+            });
+            
+            updateStat('activeUsers', activeCount.toString());
+            updateStat('pendingUsers', pendingVerificationCount.toString());
+            updateStat('suspendedUsers', suspendedCount.toString());
+            
+            console.log(`Status breakdown - Active: ${activeCount}, Pending: ${pendingVerificationCount}, Suspended: ${suspendedCount}`);
+        } catch (error) {
+            handleStatError('activeUsers', error);
+            handleStatError('pendingUsers', error);
+            handleStatError('suspendedUsers', error);
         }
         
-        // Fetch recent registrations (last 24 hours)
-        console.log('Fetching recent registrations...');
+        // 3. Get event data
         try {
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
-            const isoYesterday = yesterday.toISOString();
-
-            // Calculate recent members from profiles we already fetched
-            const recentProfiles = allProfiles.filter(profile => {
-                if (!profile.created_at) return false;
-                try {
-                    return new Date(profile.created_at) >= yesterday;
-                } catch (error) {
-                    return false;
+            console.log('Fetching event statistics...');
+            const now = new Date().toISOString();
+            
+            // Get all events
+            const { data: events, error: eventsError } = await supabaseClient
+                .from('events')
+                .select('id, date');
+                
+            if (eventsError) {
+                throw eventsError;
+            }
+            
+            // Sort events into upcoming and past
+            let upcomingEvents = 0;
+            let pastEvents = 0;
+            
+            events.forEach(event => {
+                if (new Date(event.date) > new Date()) {
+                    upcomingEvents++;
+                } else {
+                    pastEvents++;
                 }
             });
             
-            const recentRegistrations = recentProfiles.length;
-            console.log(`Recent profiles in last 24 hours: ${recentRegistrations}`);
+            updateStat('activeEvents', upcomingEvents.toString());
+            updateStat('totalEvents', events.length.toString());
+            updateStat('pastEvents', pastEvents.toString());
             
-            // Get recent event registrations in last 24 hours
-            const { data: recentEventRegs, error: recentEventError } = await supabaseClient
-                .from('event_registrations')
-                .select('id', { count: 'exact', head: true })
-                .gte('registered_at', isoYesterday)
-                .is('cancelled_at', null);
+            console.log(`Event stats - Upcoming: ${upcomingEvents}, Total: ${events.length}, Past: ${pastEvents}`);
+        } catch (error) {
+            handleStatError('activeEvents', error);
+            handleStatError('totalEvents', error);
+            handleStatError('pastEvents', error);
+        }
+        
+        // 4. Get users pending verification (more detailed stat than just counting statuses)
+        try {
+            console.log('Fetching users pending verification...');
+            const { data: pendingUsers, error: pendingError } = await supabaseClient
+                .from('profiles')
+                .select('id')
+                .in('membership_status', ['pending', 'pending_verification']);
                 
-            if (recentEventError) {
-                console.error('Error fetching recent event registrations:', recentEventError.message);
-                // Continue with just profile registrations
+            if (pendingError) {
+                throw pendingError;
             }
             
-            const recentEventCount = recentEventRegs || 0;
-            console.log(`Recent event registrations in last 24 hours: ${recentEventCount}`);
-            
-            document.getElementById('recentRegistrationsStat').innerHTML = 
-                `<span class="stat-number">${recentRegistrations}</span>
-                 <div class="stat-breakdown">
-                    <div class="breakdown-item">
-                        <span class="reg-users"></span> New Members: ${recentRegistrations}
-                    </div>
-                    <div class="breakdown-item">
-                        <span class="reg-events"></span> Event Signups: ${recentEventCount}
-                    </div>
-                 </div>`;
-        } catch (recentError) {
-            console.error('Error calculating recent registrations:', recentError);
-            document.getElementById('recentRegistrationsStat').innerHTML = '<span class="error-text">Error calculating recent registrations</span>';
+            // This might duplicate the status count above, but it's a separate stat
+            updateStat('pendingVerifications', pendingUsers.length.toString());
+            console.log(`Users pending verification: ${pendingUsers.length}`);
+        } catch (error) {
+            handleStatError('pendingVerifications', error);
         }
-
-        // Add a recent activity section
+        
+        // 5. Get recent registrations (last 30 days)
         try {
-            console.log('Loading recent activity section...');
-            await loadRecentActivitySection();
-            console.log('Recent activity section loaded successfully');
-        } catch (activityError) {
-            console.error('Error loading recent activity section:', activityError);
-            // Don't block the overall stats if this fails
+            console.log('Fetching recent registrations...');
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            
+            const { data: recentRegs, error: regsError } = await supabaseClient
+                .from('event_registrations')
+                .select('id')
+                .gt('registered_at', thirtyDaysAgo.toISOString())
+                .is('cancelled_at', null);
+                
+            if (regsError) {
+                throw regsError;
+            }
+            
+            updateStat('recentRegistrations', recentRegs.length.toString());
+            console.log(`Recent registrations (30 days): ${recentRegs.length}`);
+        } catch (error) {
+            handleStatError('recentRegistrations', error);
         }
-
-        console.log('fetchOverviewStats completed successfully');
+        
+        console.log('Finished fetching overview stats');
     } catch (error) {
-        console.error('Error fetching overview stats:', error);
-        // Update UI to show errors
-        document.getElementById('totalUsersStat').innerHTML = '<span class="error-text">Error loading statistics</span>';
-        document.getElementById('activeEventsStat').innerHTML = '<span class="error-text">Error loading statistics</span>';
-        document.getElementById('pendingVerificationsStat').innerHTML = '<span class="error-text">Error loading statistics</span>';
-        document.getElementById('recentRegistrationsStat').innerHTML = '<span class="error-text">Error loading statistics</span>';
+        console.error('Error in fetchOverviewStats:', error);
+        alert('Failed to load dashboard statistics. Please try refreshing the page.');
     }
 }
 
-// Function to load recent activity in the dashboard overview
+/**
+ * Loads the recent activity section in the dashboard overview 
+ * including new members and recent event registrations
+ */
 async function loadRecentActivitySection() {
-    console.log('Starting loadRecentActivitySection function...');
-    const dashboardOverview = document.getElementById('dashboard-overview');
-    if (!dashboardOverview) {
-        console.error('Dashboard overview section not found');
-        return;
-    }
-    
-    // Check if recent activity section already exists
-    let recentActivitySection = document.getElementById('recent-activity-section');
-    
-    if (!recentActivitySection) {
-        console.log('Creating new recent activity section...');
-        // Create the section if it doesn't exist
-        recentActivitySection = document.createElement('div');
-        recentActivitySection.id = 'recent-activity-section';
-        recentActivitySection.className = 'recent-activity-section';
-        recentActivitySection.innerHTML = `
-            <h3>Recent Activity</h3>
-            <div class="activity-container">
-                <div class="activity-column">
-                    <h4>New Members (Last 7 Days)</h4>
-                    <div id="recent-members-list" class="activity-list">
-                        <p class="loading-text">Loading recent members...</p>
-                    </div>
-                </div>
-                <div class="activity-column">
-                    <h4>Recent Event Registrations</h4>
-                    <div id="recent-registrations-list" class="activity-list">
-                        <p class="loading-text">Loading recent registrations...</p>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        // Insert after the quick actions section
-        const quickActionsSection = document.querySelector('.quick-actions');
-        if (quickActionsSection) {
-            console.log('Inserting after quick actions section');
-            quickActionsSection.after(recentActivitySection);
-        } else {
-            // Fallback to append at the end of dashboard overview
-            console.log('No quick actions section found, appending to dashboard overview');
-            dashboardOverview.appendChild(recentActivitySection);
-        }
-    } else {
-        console.log('Recent activity section already exists, updating content');
-    }
-    
-    // Get recent members (last 7 days)
-    const supabaseClient = window.supabaseClient;
-    if (!supabaseClient) {
-        console.error('Supabase client not available');
-        document.getElementById('recent-members-list').innerHTML = '<p class="error-text">Supabase client unavailable</p>';
-        document.getElementById('recent-registrations-list').innerHTML = '<p class="error-text">Supabase client unavailable</p>';
-        return;
-    }
+    console.log('Starting loadRecentActivitySection...');
     
     try {
-        // Set date to 7 days ago
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        const isoSevenDaysAgo = sevenDaysAgo.toISOString();
+        // Check if dashboard overview section exists
+        const dashboardOverview = document.getElementById('dashboard-overview');
+        if (!dashboardOverview) {
+            console.error('Dashboard overview section not found in DOM');
+            return;
+        }
         
-        // Fetch recent members
-        console.log('Fetching recent members from last 7 days...');
-        const { data: recentMembers, error: membersError } = await supabaseClient
-            .from('profiles')
-            .select('id, full_name, email, membership_status, member_id, created_at')
-            .gte('created_at', isoSevenDaysAgo)
-            .order('created_at', { ascending: false })
-            .limit(5);
-            
-        if (membersError) {
-            console.error('Error fetching recent members:', membersError.message);
-            document.getElementById('recent-members-list').innerHTML = '<p class="error-text">Failed to load recent members</p>';
-        } else if (!recentMembers || recentMembers.length === 0) {
-            console.log('No new members in the last 7 days');
-            document.getElementById('recent-members-list').innerHTML = '<p class="empty-text">No new members in the last 7 days</p>';
-        } else {
-            console.log(`Found ${recentMembers.length} recent members`);
-            let membersHTML = '';
-            recentMembers.forEach(member => {
-                try {
-                    const formattedDate = member.created_at ? formatDate(member.created_at) : 'Unknown date';
-                    const statusClass = member.membership_status ? 
-                        `status-${member.membership_status.toLowerCase().replace(/_/g, '-')}` : 
-                        'status-unknown';
-                    
-                    membersHTML += `
-                        <div class="activity-item">
-                            <div class="activity-header">
-                                <span class="activity-name">${member.full_name || 'Unknown Member'}</span>
-                                <span class="activity-date">${formattedDate}</span>
-                            </div>
-                            <div class="activity-details">
-                                <span class="activity-id">${member.member_id || 'No ID'}</span>
-                                <span class="activity-email">${member.email || 'No Email'}</span>
-                                <span class="${statusClass}">${member.membership_status || 'Unknown'}</span>
-                            </div>
+        // Find or create the recent activity section
+        let recentActivitySection = document.querySelector('.recent-activity-section');
+        if (!recentActivitySection) {
+            console.log('Creating new recent activity section');
+            recentActivitySection = document.createElement('div');
+            recentActivitySection.className = 'recent-activity-section';
+            recentActivitySection.innerHTML = `
+                <h3><i class="fas fa-chart-line"></i> Recent Activity</h3>
+                <div class="activity-container">
+                    <div class="activity-column">
+                        <h4><i class="fas fa-user-plus"></i> New Members (Last 7 days)</h4>
+                        <div class="activity-list" id="recentMembersList">
+                            <div class="loading-text">Loading recent members...</div>
                         </div>
-                    `;
-                } catch (memberError) {
-                    console.error('Error processing member for display:', memberError, member);
-                    // Skip this member if there's an error
-                }
-            });
-            
-            if (membersHTML) {
-                document.getElementById('recent-members-list').innerHTML = membersHTML;
-            } else {
-                document.getElementById('recent-members-list').innerHTML = '<p class="error-text">Error processing member data</p>';
-            }
+                    </div>
+                    <div class="activity-column">
+                        <h4><i class="fas fa-calendar-check"></i> Recent Event Registrations</h4>
+                        <div class="activity-list" id="recentRegistrationsList">
+                            <div class="loading-text">Loading recent registrations...</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            dashboardOverview.appendChild(recentActivitySection);
+        } else {
+            console.log('Updating existing recent activity section');
         }
         
-        // Fetch recent event registrations
-        console.log('Fetching recent event registrations...');
-        const { data: recentRegistrations, error: registrationsError } = await supabaseClient
-            .from('event_registrations')
-            .select('id, event_id, user_id, vehicle_model, registered_at')
-            .is('cancelled_at', null)
-            .order('registered_at', { ascending: false })
-            .limit(5);
-            
-        if (registrationsError) {
-            console.error('Error fetching recent registrations:', registrationsError.message);
-            document.getElementById('recent-registrations-list').innerHTML = '<p class="error-text">Failed to load recent registrations</p>';
+        // Get references to the lists we'll populate
+        const recentMembersList = document.getElementById('recentMembersList');
+        const recentRegistrationsList = document.getElementById('recentRegistrationsList');
+        
+        // Make sure we have the supabase client
+        const supabaseClient = window.supabaseClient;
+        if (!supabaseClient) {
+            console.error('Supabase client not available for loading recent activity');
+            if (recentMembersList) recentMembersList.innerHTML = '<div class="error-text">Database connection unavailable</div>';
+            if (recentRegistrationsList) recentRegistrationsList.innerHTML = '<div class="error-text">Database connection unavailable</div>';
             return;
         }
         
-        if (!recentRegistrations || recentRegistrations.length === 0) {
-            console.log('No recent event registrations found');
-            document.getElementById('recent-registrations-list').innerHTML = '<p class="empty-text">No recent event registrations</p>';
-            return;
-        }
-        
-        console.log(`Found ${recentRegistrations.length} recent event registrations`);
-        
-        // Get event details for the registrations
-        const eventIds = [...new Set(recentRegistrations.map(reg => reg.event_id))];
-        console.log('Fetching event details for IDs:', eventIds);
-        
-        // Initialize as empty array in case the fetch fails
-        let events = [];
+        // Get recent members (last 7 days)
         try {
-            const { data: fetchedEvents, error: eventsError } = await supabaseClient
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            const isoSevenDaysAgo = sevenDaysAgo.toISOString();
+            
+            console.log(`Fetching members created after ${isoSevenDaysAgo}`);
+            
+            const { data: recentMembers, error: membersError } = await supabaseClient
+                .from('profiles')
+                .select('id, full_name, email, member_id, created_at')
+                .gte('created_at', isoSevenDaysAgo)
+                .order('created_at', { ascending: false })
+                .limit(5);
+                
+            if (membersError) {
+                console.error('Error fetching recent members:', membersError);
+                recentMembersList.innerHTML = '<div class="error-text">Error loading recent members</div>';
+            } else if (!recentMembers || recentMembers.length === 0) {
+                console.log('No recent members found');
+                recentMembersList.innerHTML = '<div class="empty-text">No new members in the last 7 days</div>';
+            } else {
+                console.log(`Found ${recentMembers.length} recent members`);
+                
+                // Build HTML for recent members
+                let membersHTML = '';
+                
+                for (const member of recentMembers) {
+                    try {
+                        // Handle case where created_at might be missing
+                        let createdDate = 'Unknown date';
+                        if (member.created_at) {
+                            createdDate = formatDate(member.created_at);
+                        }
+                        
+                        membersHTML += `
+                            <div class="activity-item">
+                                <div class="activity-header">
+                                    <span class="activity-name">${member.full_name || 'Unnamed Member'}</span>
+                                    <span class="activity-date">${createdDate}</span>
+                                </div>
+                                <div class="activity-details">
+                                    <span class="activity-email"><i class="fas fa-envelope"></i> ${member.email || 'No email'}</span>
+                                    <span class="activity-id"><i class="fas fa-id-card"></i> ${member.member_id || 'No ID'}</span>
+                                </div>
+                            </div>
+                        `;
+                    } catch (memberError) {
+                        console.error('Error processing member:', memberError, member);
+                        // Skip this member but continue with others
+                    }
+                }
+                
+                recentMembersList.innerHTML = membersHTML || '<div class="empty-text">No valid members to display</div>';
+            }
+        } catch (recentMembersError) {
+            console.error('Exception in recent members processing:', recentMembersError);
+            recentMembersList.innerHTML = '<div class="error-text">Error processing member data</div>';
+        }
+        
+        // Get recent event registrations
+        try {
+            const threeDaysAgo = new Date();
+            threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+            const isoThreeDaysAgo = threeDaysAgo.toISOString();
+            
+            console.log(`Fetching registrations created after ${isoThreeDaysAgo}`);
+            
+            // First get the registrations
+            const { data: recentRegistrations, error: registrationsError } = await supabaseClient
+                .from('event_registrations')
+                .select('id, user_id, event_id, vehicle_model, registered_at')
+                .gte('registered_at', isoThreeDaysAgo)
+                .is('cancelled_at', null)
+                .order('registered_at', { ascending: false })
+                .limit(5);
+                
+            if (registrationsError) {
+                console.error('Error fetching recent registrations:', registrationsError);
+                recentRegistrationsList.innerHTML = '<div class="error-text">Error loading recent registrations</div>';
+                return;
+            }
+            
+            if (!recentRegistrations || recentRegistrations.length === 0) {
+                console.log('No recent registrations found');
+                recentRegistrationsList.innerHTML = '<div class="empty-text">No new registrations in the last 3 days</div>';
+                return;
+            }
+            
+            console.log(`Found ${recentRegistrations.length} recent registrations`);
+            
+            // Get events data for the event titles
+            const eventIds = [...new Set(recentRegistrations.map(reg => reg.event_id))];
+            const { data: eventsData, error: eventsError } = await supabaseClient
                 .from('events')
-                .select('id, title, date')
+                .select('id, title')
                 .in('id', eventIds);
                 
             if (eventsError) {
-                console.error('Error fetching event details:', eventsError.message);
-            } else if (fetchedEvents) {
-                events = fetchedEvents;
-                console.log(`Fetched ${events.length} events`);
+                console.error('Error fetching event data:', eventsError);
+                // Continue with user data, we'll just show "Unknown Event" for event titles
             }
-        } catch (eventFetchError) {
-            console.error('Failed to fetch event details:', eventFetchError);
-        }
-        
-        // Create a map of events
-        const eventMap = {};
-        events.forEach(event => {
-            eventMap[event.id] = event;
-        });
-        
-        // Get user details for the registrations
-        const userIds = [...new Set(recentRegistrations.map(reg => reg.user_id))];
-        console.log('Fetching user details for IDs:', userIds);
-        
-        // Initialize as empty array in case the fetch fails
-        let users = [];
-        try {
-            const { data: fetchedUsers, error: usersError } = await supabaseClient
+            
+            // Create a map of event IDs to titles for quick lookup
+            const eventMap = {};
+            if (eventsData) {
+                eventsData.forEach(event => {
+                    eventMap[event.id] = event.title;
+                });
+            }
+            
+            // Get user data for names
+            const userIds = [...new Set(recentRegistrations.map(reg => reg.user_id))];
+            const { data: usersData, error: usersError } = await supabaseClient
                 .from('profiles')
-                .select('id, full_name, member_id')
+                .select('id, full_name, email, member_id')
                 .in('id', userIds);
                 
             if (usersError) {
-                console.error('Error fetching user details:', usersError.message);
-            } else if (fetchedUsers) {
-                users = fetchedUsers;
-                console.log(`Fetched ${users.length} users`);
+                console.error('Error fetching user data:', usersError);
+                // Continue, we'll just show user IDs for names
             }
-        } catch (userFetchError) {
-            console.error('Failed to fetch user details:', userFetchError);
+            
+            // Create a map of user IDs to names for quick lookup
+            const userMap = {};
+            if (usersData) {
+                usersData.forEach(user => {
+                    userMap[user.id] = {
+                        name: user.full_name,
+                        email: user.email,
+                        member_id: user.member_id
+                    };
+                });
+            }
+            
+            // Now build the HTML for the registrations
+            let registrationsHTML = '';
+            
+            for (const registration of recentRegistrations) {
+                try {
+                    const eventTitle = eventMap[registration.event_id] || 'Unknown Event';
+                    const userData = userMap[registration.user_id] || { 
+                        name: 'Unknown User', 
+                        email: 'No email', 
+                        member_id: 'No ID' 
+                    };
+                    
+                    const registeredDate = registration.registered_at ? formatDate(registration.registered_at) : 'Unknown date';
+                    
+                    registrationsHTML += `
+                        <div class="activity-item">
+                            <div class="activity-header">
+                                <span class="activity-name">${userData.name}</span>
+                                <span class="activity-date">${registeredDate}</span>
+                            </div>
+                            <div class="activity-details">
+                                <span class="activity-event"><i class="fas fa-calendar-day"></i> ${eventTitle}</span>
+                                <span class="activity-model"><i class="fas fa-car"></i> ${registration.vehicle_model || 'Unknown model'}</span>
+                                <span class="activity-id"><i class="fas fa-id-card"></i> ${userData.member_id || 'No ID'}</span>
+                            </div>
+                        </div>
+                    `;
+                } catch (regError) {
+                    console.error('Error processing registration:', regError, registration);
+                    // Skip this registration but continue with others
+                }
+            }
+            
+            recentRegistrationsList.innerHTML = registrationsHTML || '<div class="empty-text">No valid registrations to display</div>';
+            
+        } catch (recentRegistrationsError) {
+            console.error('Exception in recent registrations processing:', recentRegistrationsError);
+            recentRegistrationsList.innerHTML = '<div class="error-text">Error processing registration data</div>';
         }
         
-        // Create a map of users
-        const userMap = {};
-        users.forEach(user => {
-            userMap[user.id] = user;
-        });
-        
-        // Generate the HTML for recent registrations
-        let registrationsHTML = '';
-        recentRegistrations.forEach(reg => {
-            try {
-                const event = eventMap[reg.event_id] || { title: 'Unknown Event', date: null };
-                const user = userMap[reg.user_id] || { full_name: 'Unknown User', member_id: 'Unknown' };
-                const formattedDate = formatDate(reg.registered_at);
-                
-                registrationsHTML += `
-                    <div class="activity-item">
-                        <div class="activity-header">
-                            <span class="activity-name">${event.title}</span>
-                            <span class="activity-date">${formattedDate}</span>
-                        </div>
-                        <div class="activity-details">
-                            <span class="activity-user">${user.full_name}</span>
-                            <span class="activity-id">${user.member_id || 'No ID'}</span>
-                            <span class="activity-model">${reg.vehicle_model || 'No Vehicle Info'}</span>
-                        </div>
-                    </div>
-                `;
-            } catch (regError) {
-                console.error('Error processing registration for display:', regError, reg);
-                // Skip this registration if there's an error
-            }
-        });
-        
-        if (registrationsHTML) {
-            document.getElementById('recent-registrations-list').innerHTML = registrationsHTML;
-        } else {
-            document.getElementById('recent-registrations-list').innerHTML = '<p class="error-text">Error processing registration data</p>';
-        }
-        
-        console.log('Successfully updated recent activity section');
+        console.log('Recent activity section loaded successfully');
     } catch (error) {
         console.error('Error in loadRecentActivitySection:', error);
-        document.getElementById('recent-members-list').innerHTML = '<p class="error-text">Failed to load recent activity</p>';
-        document.getElementById('recent-registrations-list').innerHTML = '<p class="error-text">Failed to load recent activity</p>';
     }
 }
 
@@ -1911,9 +1925,13 @@ function initializeDashboardMenus() {
     console.log('Initializing dashboard menus and sidebar...');
     
     try {
-        // Get all menu items and content sections
-        const menuItems = document.querySelectorAll('.nav-item');
+        // Get all menu items (both from sidebar and any other nav-items)
+        const menuItems = document.querySelectorAll('.nav-item, .sidebar-nav a');
+        console.log(`Found ${menuItems.length} menu items`);
+        
+        // Get all content sections
         const contentSections = document.querySelectorAll('.dashboard-content-section');
+        console.log(`Found ${contentSections.length} content sections`);
         
         if (!menuItems || menuItems.length === 0) {
             console.error('No menu items found in the DOM');
@@ -1925,18 +1943,19 @@ function initializeDashboardMenus() {
             return;
         }
         
-        console.log(`Found ${menuItems.length} menu items and ${contentSections.length} content sections`);
-        
         // Initialize sidebar toggle button
         const sidebarToggle = document.querySelector('#sidebar-toggle');
-        const sidebar = document.querySelector('.sidebar');
+        const sidebar = document.querySelector('.admin-sidebar');
+        const adminContent = document.querySelector('.admin-content');
         
         if (sidebarToggle && sidebar) {
             console.log('Initializing sidebar toggle');
             sidebarToggle.addEventListener('click', function() {
                 console.log('Sidebar toggle clicked');
                 sidebar.classList.toggle('collapsed');
-                document.querySelector('.main-content').classList.toggle('expanded');
+                if (adminContent) {
+                    adminContent.classList.toggle('expanded');
+                }
             });
         } else {
             console.warn('Sidebar toggle or sidebar element not found');
@@ -1977,7 +1996,7 @@ function initializeDashboardMenus() {
                     // If we switched to event management, refresh the data
                     if (targetId === 'event-management') {
                         console.log('Switched to event management, refreshing data...');
-                        loadEventRegistrationsTable();
+                        loadEventRegistrationsTable('', 'all', 'active');
                         populateEventFilter();
                     }
                     
@@ -1986,41 +2005,37 @@ function initializeDashboardMenus() {
                         console.log('Switched to user management, refreshing data...');
                         loadUsersTable();
                     }
+                    
+                    // On mobile, auto-collapse the sidebar after selection
+                    if (window.innerWidth <= 768 && sidebar) {
+                        sidebar.classList.add('collapsed');
+                        if (adminContent) {
+                            adminContent.classList.add('expanded');
+                        }
+                    }
                 } else {
                     console.error(`Target section not found: ${targetId}`);
                 }
             });
         });
         
-        // Activate dashboard overview by default
-        const defaultSection = document.querySelector('.nav-item[data-target="dashboard-overview"]');
-        if (defaultSection) {
-            console.log('Activating default section: dashboard-overview');
-            defaultSection.classList.add('active');
-            const overviewSection = document.getElementById('dashboard-overview');
-            if (overviewSection) {
-                overviewSection.classList.add('active');
-                overviewSection.style.display = 'block';
+        // Activate dashboard overview by default if nothing else is active
+        const activeSections = document.querySelectorAll('.admin-section.active');
+        if (activeSections.length === 0) {
+            const defaultSection = document.querySelector('.nav-item[data-target="dashboard-overview"], .sidebar-nav a[data-target="dashboard-overview"]');
+            if (defaultSection) {
+                console.log('No active section found, activating dashboard overview');
+                defaultSection.click();
             } else {
-                console.error('Dashboard overview section not found in DOM');
-            }
-        } else {
-            console.warn('Default dashboard overview menu item not found');
-            // Fallback: activate the first menu item
-            if (menuItems.length > 0) {
-                const firstItem = menuItems[0];
-                firstItem.classList.add('active');
-                const firstTargetId = firstItem.getAttribute('data-target');
-                
-                if (firstTargetId) {
-                    const firstTarget = document.getElementById(firstTargetId);
-                    if (firstTarget) {
-                        firstTarget.classList.add('active');
-                        firstTarget.style.display = 'block';
-                        console.log(`Activated first available section: ${firstTargetId}`);
-                    }
+                console.error('Default dashboard overview menu item not found');
+                // Fallback: activate the first menu item
+                if (menuItems.length > 0) {
+                    console.log('Activating first available menu item');
+                    menuItems[0].click();
                 }
             }
+        } else {
+            console.log(`Found ${activeSections.length} already active section(s)`);
         }
         
         console.log('Dashboard menus and sidebar initialized successfully');

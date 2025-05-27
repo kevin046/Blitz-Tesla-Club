@@ -227,7 +227,7 @@ async function initializeNavigation() {
             { href: 'gallery.html', icon: 'fas fa-images', text: 'Gallery' },
             { href: 'news.html', icon: 'fas fa-newspaper', text: 'News' },
             { href: 'contact.html', icon: 'fas fa-envelope', text: 'Contact' },
-            { href: 'crypto.html', icon: 'fas fa-dollar-sign', text: '$BLITZTCLUB' },
+            { href: 'about.html', icon: 'fas fa-info-circle', text: 'About Us' },
             { href: '#', icon: 'fas fa-sign-out-alt', text: 'Logout', id: 'logoutBtn' }
         ] : [
             // Navigation items for non-logged-in users
@@ -236,7 +236,7 @@ async function initializeNavigation() {
             { href: 'gallery.html', icon: 'fas fa-images', text: 'Gallery' },
             { href: 'news.html', icon: 'fas fa-newspaper', text: 'News' },
             { href: 'contact.html', icon: 'fas fa-envelope', text: 'Contact' },
-            { href: 'crypto.html', icon: 'fas fa-dollar-sign', text: '$BLITZTCLUB' },
+            { href: 'about.html', icon: 'fas fa-info-circle', text: 'About Us' },
             { href: 'register.html', icon: 'fas fa-user-plus', text: 'Join Us' },
             { href: 'login.html', icon: 'fas fa-sign-in-alt', text: 'Login' }
         ];
@@ -320,4 +320,4 @@ const loadNavigation = initializeNavigation;
 
 // Export for global access
 window.initializeNavigation = initializeNavigation;
-window.setupMobileMenu = setupMobileMenu; 
+window.setupMobileMenu = setupMobileMenu;

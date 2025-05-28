@@ -51,6 +51,20 @@
                 // Pass the token and type to the verify-email page
                 window.location.href = `verify-email.html?token=${token}&type=${type}`;
             }
+
+            // --- START: Password Recovery Redirect Logic ---
+            const typeFromHash = hashParams.get('type');
+            const accessTokenFromHash = hashParams.get('access_token'); // Check for access_token specifically
+
+            if (typeFromHash === 'recovery' && accessTokenFromHash) {
+                console.log('Password recovery link detected on index page. Redirecting to set-new-password.html');
+                const recoveryFragment = window.location.hash; // Keep the full fragment
+                // It's important to clear the hash from the current URL before redirecting 
+                // to prevent potential issues if the user navigates back or if the script runs again.
+                history.replaceState(null, null, window.location.pathname + window.location.search);
+                window.location.href = `set-new-password.html${recoveryFragment}`;
+            }
+            // --- END: Password Recovery Redirect Logic ---
         });
     </script>
     <style>

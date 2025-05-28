@@ -18,6 +18,16 @@
       "continue": true
     },
     {
+      "src": "/api/create-profile",
+      "methods": ["POST", "OPTIONS"],
+      "dest": "/api/create-profile.js"
+    },
+    {
+      "src": "/api/health-check",
+      "methods": ["GET", "OPTIONS"],
+      "dest": "/api/health-check.js"
+    },
+    {
       "src": "/styles.css",
       "headers": {
         "Cache-Control": "public, max-age=31536000, immutable",

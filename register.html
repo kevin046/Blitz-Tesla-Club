@@ -610,7 +610,7 @@
             }
         }
 
-        // Initialize Supabase client
+        // Initialize Supabase client with public anon key only
         const supabaseClient = supabase.createClient(
             'https://qhkcrrphsjpytdfqfamq.supabase.co',
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI',
@@ -839,7 +839,8 @@
                         isLocalDev = true;
                         apiUrl = 'http://localhost:3000/api/create-profile';
                     } else {
-                        apiUrl = `${window.location.origin}/api/create-profile`;
+                        // For production, use the full URL
+                        apiUrl = 'https://www.blitztclub.com/api/create-profile';
                     }
 
                     console.log('Current protocol:', window.location.protocol);
@@ -886,7 +887,8 @@
                         city: cityValue,
                         province: provinceValue,
                         postal_code: postalCodeValue,
-                        member_id: memberId
+                        member_id: memberId,
+                        full_address: fullAddress // Add the full address
                     };
 
                     console.log('Profile data being sent:', profileData);
@@ -906,7 +908,11 @@
                         try {
                             const errorData = await response.json();
                             console.error('Profile creation failed:', errorData);
-                            errorMessage = errorData.details || errorData.error || 'Failed to create profile';
+                            if (errorData.error && typeof errorData.error === 'object') {
+                                errorMessage = errorData.error.message || JSON.stringify(errorData.error);
+                            } else {
+                                errorMessage = errorData.details || errorData.error || 'Failed to create profile';
+                            }
                         } catch (e) {
                             errorMessage = `Server error (${response.status}): ${response.statusText}`;
                         }
@@ -917,6 +923,7 @@
                     console.log('Profile creation response:', responseData);
 
                     if (!responseData || !responseData.profile) {
+                        console.error('Invalid profile response:', responseData);
                         throw new Error('Invalid response data from profile creation');
                     }
 
@@ -926,7 +933,10 @@
 
                 } catch (profileError) {
                     console.error('Profile creation error:', profileError);
-                    alert(`Registration error: ${profileError.message}`);
+                    const errorMessage = profileError.message && profileError.message !== '[object Object]' 
+                        ? profileError.message 
+                        : 'Failed to create profile. Please try again or contact support.';
+                    alert(`Registration error: ${errorMessage}`);
                     throw profileError;
                 }
 

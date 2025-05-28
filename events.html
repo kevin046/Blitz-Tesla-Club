@@ -1677,13 +1677,103 @@
         const supabaseClient = window.supabaseClient;
         
         // Get actual UUID from your database
-        const EVENT_ID = 'fdee67a0-1234-5678-9abc-1d39527f8a7e'; // REAL UUID HERE
+        const EVENT_ID = 'fdee67a0-1234-5678-9abc-1d39527f8a7e'; 
+        let eventDetailsFromDB = null; // To store event details including deadline
 
         // Add null check for safety
         if (!supabaseClient?.from) {
             console.error('Supabase client not properly initialized');
             return;
         }
+
+        async function fetchEventDetails() {
+            const { data, error } = await supabaseClient
+                .from('events')
+                .select('id, title, registration_ends_at') // Select the deadline column
+                .eq('id', EVENT_ID)
+                .single();
+
+            if (error) {
+                console.error('Error fetching event details for deadline check:', error);
+                // Display a general error or disable registration if event details can't be fetched
+                const eventRegisterBtn = document.getElementById('eventRegisterBtn');
+                if (eventRegisterBtn) {
+                    eventRegisterBtn.disabled = true;
+                    eventRegisterBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error Loading Event Info';
+                }
+                return null;
+            }
+            return data;
+        }
+
+        async function applyRegistrationDeadlineLogic() {
+            eventDetailsFromDB = await fetchEventDetails();
+            const eventRegisterBtn = document.getElementById('eventRegisterBtn');
+            const checkStatusBtn = document.getElementById('checkStatusBtn');
+
+            if (eventDetailsFromDB && eventDetailsFromDB.registration_ends_at) {
+                const registrationDeadline = new Date(eventDetailsFromDB.registration_ends_at);
+                const now = new Date();
+                const registrationClosedMessageId = 'registrationClosedMessage';
+
+                // Remove any existing message first
+                const existingMsg = document.getElementById(registrationClosedMessageId);
+                if (existingMsg) existingMsg.remove();
+
+                if (now >= registrationDeadline) {
+                    // Deadline has passed
+                    if (eventRegisterBtn) {
+                        eventRegisterBtn.disabled = true;
+                        eventRegisterBtn.innerHTML = '<i class="fas fa-times-circle"></i> Registration Closed';
+                        eventRegisterBtn.style.backgroundColor = '#aaa'; 
+                        eventRegisterBtn.style.cursor = 'not-allowed';
+                        eventRegisterBtn.title = 'Registration for this event has ended.';
+                    }
+                    
+                    const actionsContainer = document.querySelector('.event-actions');
+                    if (actionsContainer) {
+                        const closedMessage = document.createElement('p');
+                        closedMessage.id = registrationClosedMessageId;
+                        closedMessage.textContent = 'Registration for this event has ended.';
+                        closedMessage.style.color = '#cc0000';
+                        closedMessage.style.fontWeight = 'bold';
+                        closedMessage.style.marginTop = '10px';
+                        closedMessage.style.textAlign = 'center';
+                        // Insert the message before the button container or at a prominent place
+                        if (eventRegisterBtn) {
+                           actionsContainer.insertBefore(closedMessage, eventRegisterBtn);
+                        } else {
+                           actionsContainer.appendChild(closedMessage);
+                        }
+                    }
+                } else {
+                    // Registration is open
+                    if (eventRegisterBtn) {
+                        eventRegisterBtn.disabled = false;
+                        eventRegisterBtn.innerHTML = '<i class="fas fa-car"></i> Register Your Tesla';
+                        eventRegisterBtn.style.backgroundColor = ''; // Reset style
+                        eventRegisterBtn.style.cursor = 'pointer';
+                        eventRegisterBtn.title = '';
+                    }
+                }
+            } else {
+                console.warn('Event registration deadline not found or event details fetch failed.');
+                // If no deadline is set, or fetch failed, assume registration is open unless specified otherwise
+                // However, if eventDetailsFromDB is null (fetch failed), button should be disabled by fetchEventDetails itself.
+                 if (eventRegisterBtn && !eventDetailsFromDB) { // Explicitly disable if fetch truly failed
+                    eventRegisterBtn.disabled = true;
+                    eventRegisterBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Event Info Unavailable';
+                }
+            }
+
+            // Ensure 'Check My Registration' button is always enabled if it exists
+            if (checkStatusBtn) {
+                checkStatusBtn.disabled = false;
+            }
+        }
+
+        // Apply deadline logic on page load
+        await applyRegistrationDeadlineLogic();
 
         // Modified registration count display
         const updateRegistrationCount = async () => {
@@ -1857,6 +1947,39 @@
         // Modified registration handler
         document.getElementById('registrationForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            // --- START: DEADLINE CHECK ---
+            if (eventDetailsFromDB && eventDetailsFromDB.registration_ends_at) {
+                const registrationDeadline = new Date(eventDetailsFromDB.registration_ends_at);
+                const now = new Date();
+                if (now >= registrationDeadline) {
+                    alert('Registration for this event has closed.');
+                    document.getElementById('registrationModal').style.display = 'none';
+                    // Ensure button state is updated if somehow it was still enabled
+                    const eventRegisterBtn = document.getElementById('eventRegisterBtn');
+                    if (eventRegisterBtn) {
+                        eventRegisterBtn.disabled = true;
+                        eventRegisterBtn.innerHTML = '<i class="fas fa-times-circle"></i> Registration Closed';
+                        eventRegisterBtn.style.backgroundColor = '#aaa';
+                        eventRegisterBtn.style.cursor = 'not-allowed';
+                    }
+                    return; // Prevent registration
+                }
+            } else {
+                // This case means either the deadline wasn't fetched or isn't set for the event.
+                // If eventDetailsFromDB is null, it means fetching event details failed.
+                if (!eventDetailsFromDB) {
+                    alert('Could not verify event registration window as event details are unavailable. Please try refreshing the page.');
+                    document.getElementById('registrationModal').style.display = 'none';
+                    return;
+                }
+                // If eventDetailsFromDB is valid but registration_ends_at is null/undefined,
+                // it implies the event is open for registration (no explicit deadline set).
+                // You might want to log this or handle as a specific case if all events *should* have a deadline.
+                console.warn('Registration deadline not explicitly set for this event. Proceeding with registration.');
+            }
+            // --- END: DEADLINE CHECK ---
+
             const model = document.getElementById('teslaModel').value;
             
             if (!model) return alert('Please select a Tesla model');

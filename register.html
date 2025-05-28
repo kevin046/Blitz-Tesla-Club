@@ -913,14 +913,15 @@
                             } else {
                                 errorMessage = errorData.details || errorData.error || 'Failed to create profile';
                             }
+                            throw new Error(errorMessage);
                         } catch (e) {
-                            errorMessage = `Server error (${response.status}): ${response.statusText}`;
+                            console.error('Error parsing response:', e);
+                            throw new Error(`Server error (${response.status}): ${response.statusText}`);
                         }
-                        throw new Error(errorMessage);
                     }
 
                     const responseData = await response.json();
-                    console.log('Profile creation response:', responseData);
+                    console.log('Profile creation successful:', responseData);
 
                     if (!responseData || !responseData.profile) {
                         console.error('Invalid profile response:', responseData);
@@ -928,8 +929,9 @@
                     }
 
                     // Store email for verification page
-                    localStorage.setItem('pendingVerificationEmail', document.getElementById('email').value.trim());
-                    window.location.href = `verification-sent.html?email=${encodeURIComponent(document.getElementById('email').value.trim())}`;
+                    localStorage.setItem('pendingVerificationEmail', emailValue);
+                    console.log('Redirecting to verification page...');
+                    window.location.href = `verification-sent.html?email=${encodeURIComponent(emailValue)}`;
 
                 } catch (profileError) {
                     console.error('Profile creation error:', profileError);

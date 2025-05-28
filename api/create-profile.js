@@ -104,7 +104,7 @@ export default async function handler(req, res) {
             });
         }
 
-        // Prepare the profile data
+        // Prepare the profile data with only the essential fields we know exist
         const profileData = {
             id: user_id,
             email,
@@ -121,9 +121,6 @@ export default async function handler(req, res) {
             postal_code,
             full_address,
             member_id,
-            verification_status: 'pending',
-            role: 'member',
-            created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
         };
 

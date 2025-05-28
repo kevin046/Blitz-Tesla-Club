@@ -2017,16 +2017,73 @@ function addEventRegistrationActionListeners() {
     
     // Cancel registration
     document.querySelectorAll('#eventRegistrationsTableBody .action-btn.delete-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
             const regId = btn.getAttribute('data-reg-id');
             console.log('Cancel registration clicked for ID:', regId);
             if (confirm('Are you sure you want to cancel this registration?')) {
-                cancelRegistration(regId);
+                await cancelRegistration(regId);
             }
         });
     });
     
     console.log('Event registration action listeners added successfully');
+}
+
+async function cancelRegistration(regId) {
+    const supabaseClient = window.supabaseClient;
+    if (!supabaseClient || !regId) {
+        console.error('Cannot cancel registration: Supabase client not available or registration ID not provided');
+        alert('Error: Cannot cancel registration at this time');
+        return;
+    }
+    
+    let rpcErrorForCatch = null; // Variable to track if rpcError was already handled
+
+    try {
+        console.log('(admin-dashboard.js) Attempting to cancel registration via RPC with ID:', regId);
+        
+        const now = new Date().toISOString();
+
+        // Call the RPC function
+        const { data: rpcData, error: rpcError } = await supabaseClient.rpc('cancel_registration', {
+            registration_id: regId,
+            cancel_time: now
+        });
+        
+        rpcErrorForCatch = rpcError; // Store rpcError to check in catch block
+
+        if (rpcError) {
+            console.error('(admin-dashboard.js) Error calling cancel_registration RPC:', rpcError);
+            // Check for specific error messages from the SQL function if available
+            if (rpcError.message && rpcError.message.includes('Registration not found or already cancelled')) {
+                alert('Registration not found or it was already cancelled.');
+            } else {
+                alert('Failed to cancel registration: ' + (rpcError.message || 'Unknown RPC error from admin-dashboard.js'));
+            }
+            throw rpcError; // Re-throw to be caught by the outer catch block
+        }
+
+        console.log('(admin-dashboard.js) RPC call successful. Registration cancelled:', rpcData); 
+        alert('Registration cancelled successfully');
+        
+        // Reload the registrations table to reflect the changes
+        const searchTerm = document.getElementById('eventSearchInput')?.value || '';
+        const eventFilter = document.getElementById('eventFilter')?.value || 'all';
+        const registrationStatusFilter = document.getElementById('registrationStatusFilter')?.value || 'active';
+        // Ensure loadEventRegistrationsTable is available in this scope or called correctly
+        if (typeof loadEventRegistrationsTable === 'function') {
+            await loadEventRegistrationsTable(searchTerm, eventFilter, registrationStatusFilter);
+        } else {
+            console.error('loadEventRegistrationsTable function is not defined in admin-dashboard.js scope');
+            alert('Cancellation successful, but could not refresh table.');
+        }
+        
+    } catch (error) {
+        console.error('(admin-dashboard.js) Error in cancelRegistration function:', error);
+        if (rpcErrorForCatch !== error) { 
+           alert('An unexpected error occurred (admin-dashboard.js): ' + (error.message || 'Unknown error'));
+        }
+    }
 }
 
 // Add basic implementations for action functions
@@ -2112,65 +2169,6 @@ async function deleteUser(userId) {
     } catch (error) {
         console.error('Error deleting user:', error);
         alert('Failed to delete user: ' + error.message);
-    }
-}
-
-async function cancelRegistration(regId) {
-    const supabaseClient = window.supabaseClient;
-    if (!supabaseClient || !regId) {
-        console.error('Cannot cancel registration: Supabase client not available or registration ID not provided');
-        alert('Error: Cannot cancel registration at this time');
-        return;
-    }
-    
-    try {
-        console.log('Attempting to cancel registration with ID:', regId);
-        
-        // First check if the registration exists and is not already cancelled
-        const { data: checkReg, error: checkError } = await supabaseClient
-            .from('event_registrations')
-            .select('id, cancelled_at')
-            .eq('id', regId)
-            .single();
-            
-        if (checkError) {
-            console.error('Error checking registration status:', checkError);
-            throw checkError;
-        }
-        
-        if (!checkReg) {
-            throw new Error('Registration not found');
-        }
-        
-        if (checkReg.cancelled_at) {
-            alert('This registration is already cancelled.');
-            return;
-        }
-        
-        // Proceed with cancellation
-        const { error } = await supabaseClient
-            .from('event_registrations')
-            .update({
-                cancelled_at: new Date().toISOString()
-            })
-            .eq('id', regId);
-        
-        if (error) {
-            console.error('Error cancelling registration:', error);
-            throw error;
-        }
-        
-        console.log('Registration cancelled successfully');
-        alert('Registration cancelled successfully');
-        
-        // Reload the registrations table to reflect the changes
-        const searchTerm = document.getElementById('eventSearchInput')?.value || '';
-        const eventFilter = document.getElementById('eventFilter')?.value || 'all';
-        await loadEventRegistrationsTable(searchTerm, eventFilter);
-        
-    } catch (error) {
-        console.error('Error in cancelRegistration:', error);
-        alert('Failed to cancel registration: ' + (error.message || 'Unknown error'));
     }
 }
 

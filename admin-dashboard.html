@@ -280,6 +280,60 @@ DOCTYPE html>
 
         // Note: We don't need this sidebar navigation logic anymore as it's handled in admin-dashboard.js
         // Keeping only the Supabase initialization
+
+        async function cancelRegistration(regId) {
+            const supabaseClient = window.supabaseClient;
+            if (!supabaseClient || !regId) {
+                console.error('Cannot cancel registration: Supabase client not available or registration ID not provided');
+                alert('Error: Cannot cancel registration at this time');
+                return;
+            }
+            
+            let rpcErrorForCatch = null; // Variable to track if rpcError was already handled
+
+            try {
+                console.log('Attempting to cancel registration via RPC with ID:', regId);
+                
+                const now = new Date().toISOString();
+
+                // Call the RPC function
+                const { data: rpcData, error: rpcError } = await supabaseClient.rpc('cancel_registration', {
+                    registration_id: regId,
+                    cancel_time: now
+                });
+                
+                rpcErrorForCatch = rpcError; // Store rpcError to check in catch block
+
+                if (rpcError) {
+                    console.error('Error calling cancel_registration RPC:', rpcError);
+                    // Check for specific error messages from the SQL function if available
+                    if (rpcError.message && rpcError.message.includes('Registration not found or already cancelled')) {
+                        alert('Registration not found or it was already cancelled.');
+                    } else {
+                        alert('Failed to cancel registration: ' + (rpcError.message || 'Unknown RPC error'));
+                    }
+                    throw rpcError; // Re-throw to be caught by the outer catch block
+                }
+
+                console.log('RPC call successful. Registration cancelled:', rpcData); // rpcData will contain the returned JSON from the function
+                alert('Registration cancelled successfully');
+                
+                // Reload the registrations table to reflect the changes
+                const searchTerm = document.getElementById('eventSearchInput')?.value || '';
+                const eventFilter = document.getElementById('eventFilter')?.value || 'all';
+                const registrationStatusFilter = document.getElementById('registrationStatusFilter')?.value || 'active';
+                await loadEventRegistrationsTable(searchTerm, eventFilter, registrationStatusFilter);
+                
+            } catch (error) {
+                // This will catch errors from the RPC call itself or any subsequent logic
+                console.error('Error in cancelRegistration function:', error);
+                // Alert is already handled in the rpcError block for RPC specific errors, 
+                // but this provides a fallback for other unexpected errors.
+                if (rpcErrorForCatch !== error) { // Avoid double alerting if the error is the same as rpcError
+                   alert('An unexpected error occurred while cancelling registration: ' + (error.message || 'Unknown error'));
+                }
+            }
+        }
     </script>
 </body>
 </html> 

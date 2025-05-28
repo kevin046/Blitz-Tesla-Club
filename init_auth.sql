@@ -125,6 +125,11 @@ CREATE POLICY "Users can update their own data" ON auth.users
     TO authenticated
     USING (id = auth.uid());
 
+CREATE POLICY "Allow anonymous sign up" ON auth.users
+    FOR INSERT
+    TO anon
+    WITH CHECK (true);
+
 CREATE POLICY "Users can view their own sessions" ON auth.sessions
     FOR SELECT
     TO authenticated

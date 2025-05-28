@@ -800,124 +800,137 @@
                 const fullAddress = `${streetValue}, ${cityValue}, ${provinceValue}, ${postalCodeValue}`;
 
                 // Registration data for Supabase auth
-                    const { data, error } = await supabaseClient.auth.signUp({
+                const { data, error } = await supabaseClient.auth.signUp({
                     email: document.getElementById('email').value.trim(),
                     password: document.getElementById('password').value,
                     options: {
+                        emailRedirectTo: 'https://www.blitztclub.com/verify-email.html',
                         data: {
-                            full_name: fullNameValue,
-                            username: username,
-                        },
-                        emailRedirectTo: 'https://www.blitztclub.com/verify-email.html'
+                            full_name: fullNameValue
+                        }
                     }
                 });
 
-                // 2. Immediately refresh session
-                await supabaseClient.auth.refreshSession();
+                if (error) {
+                    console.error('Auth signup error:', error);
+                    throw new Error(`Authentication failed: ${error.message}`);
+                }
 
-                // 3. Check for confirmation email
+                if (!data?.user) {
+                    throw new Error('No user data received from signup');
+                }
+
+                // Check for confirmation email
                 if (!data.user?.confirmation_sent_at) {
                     throw new Error('Email confirmation not initiated');
                 }
 
-                // 4. Only create profile if it does not already exist
-                const { data: existingProfile, error: fetchProfileError } = await supabaseClient
-                    .from('profiles')
-                    .select('id')
-                    .eq('id', data.user.id)
-                    .single();
+                // Generate member ID
+                const memberId = await generateSequentialMemberId();
+                console.log('Generated member ID for new user:', memberId);
 
-                if (fetchProfileError && fetchProfileError.code !== 'PGRST116') {
-                    // Only ignore 'No rows found' error
-                    throw fetchProfileError;
-                }
+                // Create profile using our API endpoint
+                try {
+                    // Determine the API URL based on the current environment
+                    let apiUrl;
+                    let isLocalDev = false;
 
-                if (!existingProfile) {
-                    // Generate a sequential member ID
-                    const memberId = await generateSequentialMemberId();
-                    console.log('Generated member ID for new user:', memberId);
-                    
-                    // Only upsert if profile does not exist
-                            const { error: profileError } = await supabaseClient
-                                .from('profiles')
-                        .upsert({
-                                        id: data.user.id,
-                            email: data.user.email,
-                            username: username,
-                            full_name: fullNameValue,
-                            first_name: firstName,
-                            last_name: lastName,
-                            phone: document.getElementById('phoneNumber').value,
-                            date_of_birth: dateOfBirthValue,
-                            car_models: selectedCarModels,
-                            full_address: fullAddress,
-                            street: streetValue,
-                            city: cityValue,
-                            province: provinceValue,
-                            postal_code: postalCodeValue,
-                            status: 'pending_verification',
-                            membership_status: 'pending',
-                            role: 'member',
-                            member_id: memberId,
-                            created_at: new Date().toISOString(),
-                            updated_at: new Date().toISOString()
-                        }, { onConflict: 'id' });
-                    if (profileError) {
-                        console.error('Profile upsert error:', profileError);
-                        throw profileError;
+                    if (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                        isLocalDev = true;
+                        apiUrl = 'http://localhost:3000/api/create-profile';
+                    } else {
+                        apiUrl = `${window.location.origin}/api/create-profile`;
                     }
-                } else {
-                    // For existing profiles, only update if member_id is not set
-                    let updateData = {
+
+                    console.log('Current protocol:', window.location.protocol);
+                    console.log('Current hostname:', window.location.hostname);
+                    console.log('Attempting to create profile at:', apiUrl);
+
+                    // Check if local server is running when in development
+                    if (isLocalDev) {
+                        try {
+                            const serverCheck = await fetch('http://localhost:3000/api/health-check', {
+                                method: 'GET',
+                                headers: { 'Accept': 'application/json' }
+                            });
+                            
+                            if (!serverCheck.ok) {
+                                throw new Error('Development server is not responding properly');
+                            }
+                        } catch (serverError) {
+                            console.error('Development server check failed:', serverError);
+                            alert(
+                                'Local development server is not running!\n\n' +
+                                'Please make sure to:\n' +
+                                '1. Open a terminal/command prompt\n' +
+                                '2. Navigate to your project directory\n' +
+                                '3. Run the development server with:\n' +
+                                '   npm run dev\n\n' +
+                                'After starting the server, try registering again.'
+                            );
+                            throw new Error('Development server is not running. Please start the server and try again.');
+                        }
+                    }
+                    
+                    const profileData = {
+                        user_id: data.user.id,
+                        email: data.user.email,
+                        username,
                         full_name: fullNameValue,
                         first_name: firstName,
                         last_name: lastName,
-                        username: username,
                         phone: document.getElementById('phoneNumber').value,
                         date_of_birth: dateOfBirthValue,
                         car_models: selectedCarModels,
-                        full_address: fullAddress,
                         street: streetValue,
                         city: cityValue,
                         province: provinceValue,
                         postal_code: postalCodeValue,
-                        status: 'pending_verification',
-                        membership_status: 'pending',
-                        role: 'member',
-                        updated_at: new Date().toISOString()
+                        member_id: memberId
                     };
+
+                    console.log('Profile data being sent:', profileData);
                     
-                    // Check if the existing profile already has a member_id
-                    const { data: profileData, error: profileFetchError } = await supabaseClient
-                        .from('profiles')
-                        .select('member_id')
-                        .eq('id', data.user.id)
-                        .single();
-                        
-                    if (!profileFetchError && (!profileData.member_id || profileData.member_id === '')) {
-                        // Only generate a new member_id if one doesn't exist
-                        const memberId = await generateSequentialMemberId();
-                        console.log('Generated member ID for existing user without ID:', memberId);
-                        updateData.member_id = memberId;
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        credentials: isLocalDev ? 'omit' : 'include',
+                        body: JSON.stringify(profileData)
+                    });
+
+                    if (!response.ok) {
+                        let errorMessage;
+                        try {
+                            const errorData = await response.json();
+                            console.error('Profile creation failed:', errorData);
+                            errorMessage = errorData.details || errorData.error || 'Failed to create profile';
+                        } catch (e) {
+                            errorMessage = `Server error (${response.status}): ${response.statusText}`;
+                        }
+                        throw new Error(errorMessage);
                     }
-                    
-                    const { error: profileUpdateError } = await supabaseClient
-                        .from('profiles')
-                        .update(updateData)
-                        .eq('id', data.user.id);
-                    
-                    if (profileUpdateError) {
-                        console.error('Profile update error:', profileUpdateError);
-                        throw profileUpdateError;
+
+                    const responseData = await response.json();
+                    console.log('Profile creation response:', responseData);
+
+                    if (!responseData || !responseData.profile) {
+                        throw new Error('Invalid response data from profile creation');
                     }
-                    console.log('Profile updated for user:', data.user.id);
+
+                    // Store email for verification page
+                    localStorage.setItem('pendingVerificationEmail', document.getElementById('email').value.trim());
+                    window.location.href = `verification-sent.html?email=${encodeURIComponent(document.getElementById('email').value.trim())}`;
+
+                } catch (profileError) {
+                    console.error('Profile creation error:', profileError);
+                    alert(`Registration error: ${profileError.message}`);
+                    throw profileError;
                 }
 
-                // 5. Redirect only after both operations succeed
-                localStorage.setItem('pendingVerificationEmail', document.getElementById('email').value.trim());
-                window.location.href = `verification-sent.html?email=${encodeURIComponent(document.getElementById('email').value.trim())}`;
-
-                } catch (error) {
+            } catch (error) {
                 console.error('Registration failed:', error);
                 alert(`Registration error: ${error.message}`);
             } finally {

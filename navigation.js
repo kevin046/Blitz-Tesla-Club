@@ -1,5 +1,5 @@
 // Add proper Supabase initialization at the top
-const initializeSupabase = () => {
+window.initializeSupabase = () => {
     if (!window.supabaseClient && typeof supabase !== 'undefined') {
         try {
             window.supabaseClient = supabase.createClient(
@@ -17,7 +17,7 @@ const initializeSupabase = () => {
 // Update the auth state listener with error handling
 const setupAuthStateListener = () => {
     try {
-        const supabase = initializeSupabase();
+        const supabase = window.initializeSupabase();
         if (!supabase) {
             console.warn('Supabase client not available for auth state listener');
             return;
@@ -176,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM content loaded, initializing navigation');
     try {
         // Initialize Supabase if available
-        initializeSupabase();
+        window.initializeSupabase();
         
         // Set up auth state change listener
         setupAuthStateListener();

@@ -104,7 +104,7 @@ export default async function handler(req, res) {
             });
         }
 
-        // Prepare the profile data with only the essential fields we know exist
+        // Prepare the profile data
         const profileData = {
             id: user_id,
             email,
@@ -126,16 +126,24 @@ export default async function handler(req, res) {
 
         console.log('Attempting to create profile with data:', profileData);
 
-        // First try to insert the profile
-        const { data: insertedProfile, error: insertError } = await supabaseAdmin
+        // Check if profile exists
+        const { data: existingProfile, error: fetchError } = await supabaseAdmin
             .from('profiles')
-            .insert(profileData)
-            .select()
+            .select('id')
+            .eq('id', user_id)
             .single();
 
-        if (insertError) {
-            console.log('Insert failed, attempting update:', insertError.message);
-            // If insert fails, try to update
+        if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 is "not found" error
+            console.error('Error checking existing profile:', fetchError);
+            return res.status(500).json({
+                error: 'Database error',
+                details: fetchError.message
+            });
+        }
+
+        let result;
+        if (existingProfile) {
+            // Update existing profile
             const { data: updatedProfile, error: updateError } = await supabaseAdmin
                 .from('profiles')
                 .update(profileData)
@@ -144,25 +152,33 @@ export default async function handler(req, res) {
                 .single();
 
             if (updateError) {
-                console.error('Profile update error:', updateError.message);
+                console.error('Profile update error:', updateError);
                 return res.status(500).json({
-                    error: 'Failed to create or update profile',
+                    error: 'Failed to update profile',
                     details: updateError.message
                 });
             }
+            result = { profile: updatedProfile, message: 'Profile updated successfully' };
+        } else {
+            // Insert new profile
+            const { data: insertedProfile, error: insertError } = await supabaseAdmin
+                .from('profiles')
+                .insert(profileData)
+                .select()
+                .single();
 
-            console.log('Profile updated successfully:', updatedProfile);
-            return res.status(200).json({
-                message: 'Profile updated successfully',
-                profile: updatedProfile
-            });
+            if (insertError) {
+                console.error('Profile creation error:', insertError);
+                return res.status(500).json({
+                    error: 'Failed to create profile',
+                    details: insertError.message
+                });
+            }
+            result = { profile: insertedProfile, message: 'Profile created successfully' };
         }
 
-        console.log('Profile created successfully:', insertedProfile);
-        return res.status(201).json({
-            message: 'Profile created successfully',
-            profile: insertedProfile
-        });
+        console.log('Operation successful:', result);
+        return res.status(200).json(result);
 
     } catch (error) {
         console.error('Unexpected error in /api/create-profile:', error);

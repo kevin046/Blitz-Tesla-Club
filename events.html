@@ -2211,7 +2211,7 @@ I HAVE READ THIS WAIVER, UNDERSTAND ITS TERMS, AND SIGN IT VOLUNTARILY. I AM AT 
                 const { data: existingRegs, error: fetchErr } = await supabaseClient
                     .from('event_registrations')
                     .select('id', { count: 'exact' })
-                    .eq('user_id', user.id)
+                    .eq('user_id', user_id)
                     .eq('event_id', EVENT_ID)
                     .is('cancelled_at', null);
 

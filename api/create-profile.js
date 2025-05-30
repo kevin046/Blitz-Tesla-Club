@@ -121,6 +121,7 @@ export default async function handler(req, res) {
             postal_code,
             full_address,
             member_id,
+            role: req.body.role || 'member',
             updated_at: new Date().toISOString()
         };
 

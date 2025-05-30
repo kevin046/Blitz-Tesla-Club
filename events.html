@@ -1300,9 +1300,11 @@
                 flex-grow: 1; /* Allow text display to take available space */
                 height: auto; /* Remove fixed height, let flexbox manage it */
                 min-height: 150px; /* Ensure a minimum scrollable area */
+                max-height: 45vh; /* ADDED: Max height to encourage internal scroll */
                 font-size: 0.8em; /* Slightly smaller font for mobile */
                 padding: 10px;
                 -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+                overflow-y: auto; /* Ensure vertical scrollbar appears if content overflows */
             }
 
             #waiverForm {

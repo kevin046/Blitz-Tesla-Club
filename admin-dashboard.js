@@ -1284,19 +1284,23 @@ async function loadEventRegistrationsTable(searchTerm = '', eventFilter = 'all',
         return;
     }
     
-    // Update sort indicators in the table headers
     updateTableSortIndicators('eventRegistrationsTable', sortColumn, sortDirection);
     
-    // Adjusted colspan for the new waiver column
     registrationsTableBody.innerHTML = '<tr><td colspan="9" style="text-align:center;">Loading event registrations...</td></tr>';
 
     try {
-        // Start with a simpler query for basic event registration data
         let query = supabaseClient
             .from('event_registrations')
-            // Select all necessary fields from event_registrations, including user_id and event_id for waiver check
-            .select('id, event_id, user_id, vehicle_model, registered_at, cancelled_at') 
-            .order(sortColumn, { ascending: sortDirection === 'asc' });
+            .select('id, event_id, user_id, vehicle_model, registered_at, cancelled_at');
+
+        // If sorting by waiver_signed, we sort client-side later.
+        // Otherwise, sort by the specified column in the database.
+        if (sortColumn !== 'waiver_signed') {
+            query = query.order(sortColumn, { ascending: sortDirection === 'asc' });
+        } else {
+            // Default sort for database query when client-side sort on waiver_signed is intended
+            query = query.order('registered_at', { ascending: false }); 
+        }
         
         // Apply registration status filter
         if (registrationStatusFilter === 'active') {
@@ -1420,15 +1424,18 @@ async function loadEventRegistrationsTable(searchTerm = '', eventFilter = 'all',
             };
         });
         
-        // If sorting by waiver_signed, we need to do it client-side after fetching waiver data
+        // If sorting by waiver_signed, perform client-side sort now
         if (sortColumn === 'waiver_signed') {
             completeRegistrations.sort((a, b) => {
                 const valA = a.waiver_signed ? 1 : 0;
                 const valB = b.waiver_signed ? 1 : 0;
+                // For boolean, true (1) usually comes after false (0) in ascending
+                // So, if ascending, false then true. If descending, true then false.
                 if (sortDirection === 'asc') {
-                    return valA - valB;
+                    return valA - valB; // false (0) before true (1)
+                } else {
+                    return valB - valA; // true (1) before false (0)
                 }
-                return valB - valA;
             });
         }
         

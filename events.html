@@ -1275,6 +1275,107 @@
                 width: 100%;
             }
         }
+
+        /* Waiver Modal Mobile Optimizations */
+        @media (max-width: 768px) {
+            #waiverModal .modal-content {
+                width: 95%;
+                max-width: 100%;
+                height: 90vh; /* Adjust height for mobile */
+                max-height: 90vh;
+                padding: 1rem;
+                top: 50%; /* Keep centered */
+                left: 50%;
+                transform: translate(-50%, -50%);
+                display: flex; /* Use flexbox for better layout control */
+                flex-direction: column;
+            }
+
+            #waiverModal h2 {
+                font-size: 1.3rem; /* Smaller heading for mobile */
+                margin-bottom: 0.8rem;
+            }
+
+            #waiverTextDisplay {
+                flex-grow: 1; /* Allow text display to take available space */
+                height: auto; /* Remove fixed height, let flexbox manage it */
+                min-height: 150px; /* Ensure a minimum scrollable area */
+                font-size: 0.8em; /* Slightly smaller font for mobile */
+                padding: 10px;
+                -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+            }
+
+            #waiverForm {
+                overflow-y: auto; /* Allow form to scroll if content overflows */
+                padding-bottom: 60px; /* Space for sticky button if implemented */
+            }
+
+            #waiverForm .form-group {
+                margin-bottom: 0.8rem; /* Reduce margin for form groups */
+            }
+
+            #waiverForm label {
+                font-size: 0.9rem; /* Smaller labels */
+            }
+
+            #waiverForm input[type="text"],
+            #waiverForm input[type="checkbox"] {
+                padding: 0.8rem; /* More touch-friendly padding */
+                font-size: 1rem; /* Ensure readable font size */
+            }
+            
+            #waiverForm input[type="checkbox"] {
+                width: 24px; /* Larger checkbox */
+                height: 24px;
+                margin-right: 12px;
+            }
+
+            #waiverForm .terms-checkbox label {
+                font-size: 0.85rem; /* Adjust checkbox label size */
+                line-height: 1.4;
+            }
+
+            #submitWaiverBtn {
+                padding: 0.9rem; /* Larger submit button */
+                font-size: 1rem;
+                width: 100%; /* Full width button */
+                /* For sticky button (optional, enable if desired)
+                position: fixed;
+                bottom: 10px;
+                left: 2.5%;
+                width: 95%;
+                z-index: 1001;
+                */
+            }
+        }
+
+        /* Styles for Waiver Button States */
+        .btn.waiver-btn-pending {
+            background-color: #007bff; /* Example: Blue for pending action */
+            color: white;
+            border-color: #007bff;
+        }
+        .btn.waiver-btn-pending:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+        .btn.waiver-btn-signed {
+            background-color: #28a745 !important; /* Green for signed */
+            color: white !important;
+            border-color: #28a745 !important;
+            cursor: default !important;
+        }
+
+        .btn.waiver-btn-login-required,
+        .btn.waiver-btn-error {
+            background-color: #6c757d !important; /* Grey for disabled/error */
+            color: #ccc !important;
+            border-color: #6c757d !important;
+            cursor: not-allowed !important;
+            opacity: 0.65 !important;
+        }
+
     </style>
 </head>
 <body class="events-page">
@@ -1371,6 +1472,9 @@
                 </button>
                 <button class="btn primary-btn" id="checkStatusBtn">
                     <i class="fas fa-clipboard-check"></i> Check My Registration
+                </button>
+                <button class="btn secondary-btn" id="signWaiverBtn">
+                    <i class="fas fa-file-signature"></i> Sign Event Waiver
                 </button>
                 <div class="registration-count">
                     <div class="registration-icon">
@@ -1650,7 +1754,62 @@
         </div>
     </div>
 
+    <!-- Waiver Modal -->
+    <div id="waiverModal" class="modal">
+        <div class="modal-content" style="max-width: 700px; max-height: 85vh; overflow-y: auto;">
+            <span class="close waiver-close">&times;</span>
+            <h2><i class="fas fa-file-signature"></i> Event Liability Waiver</h2>
+            <div id="waiverTextDisplay" style="height: 250px; overflow-y: auto; border: 1px solid #eee; padding: 15px; margin-bottom: 15px; background: #f9f9f9; border-radius: 8px; white-space: pre-wrap; font-family: monospace; font-size: 0.9em;">
+                Loading waiver text...
+            </div>
+            <form id="waiverForm">
+                <div class="form-group">
+                    <label for="waiverParticipantName">Participant Name (Printed)</label>
+                    <input type="text" id="waiverParticipantName" required style="background: #fff; color: #333; border: 1px solid #ccc;">
+                </div>
+                <div class="form-group">
+                    <label for="waiverSignature">Your Signature (Type your full name)</label>
+                    <input type="text" id="waiverSignature" required style="background: #fff; color: #333; border: 1px solid #ccc;">
+                </div>
+                <div class="form-group">
+                    <label for="waiverVehicleModelYear">Vehicle Model / Year</label>
+                    <input type="text" id="waiverVehicleModelYear" placeholder="e.g., Tesla Model Y / 2023" style="background: #fff; color: #333; border: 1px solid #ccc;">
+                </div>
+                <div class="form-group">
+                    <label for="waiverLicensePlate">License Plate #</label>
+                    <input type="text" id="waiverLicensePlate" placeholder="e.g., ABCD 123" style="background: #fff; color: #333; border: 1px solid #ccc;">
+                </div>
+                <div class="form-group terms-checkbox" style="background: transparent; padding: 0;">
+                    <label for="waiverConfirmCheckbox" style="display: flex; align-items: center; color: #333 !important;">
+                        <input type="checkbox" id="waiverConfirmCheckbox" required style="width: auto; height: auto; margin-right: 10px; accent-color: #00e676;">
+                        I HAVE READ THIS WAIVER, UNDERSTAND ITS TERMS, AND SIGN IT VOLUNTARILY. I AM AT LEAST 18 YEARS OF AGE OR HAVE OBTAINED LEGAL GUARDIAN CONSENT IF UNDER 18.
+                    </label>
+                </div>
+                <button type="submit" class="btn primary-btn" id="submitWaiverBtn" style="margin-top: 15px;">
+                    <i class="fas fa-check-circle"></i> Submit Waiver
+                </button>
+            </form>
+        </div>
+    </div>
+
     <script>
+    // WAIVER TEXT (Can be moved to a separate config if needed)
+    const WAIVER_TEXT_TEMPLATE = `TESLA LIGHT SHOW EVENT LIABILITY WAIVER & RELEASE AGREEMENT
+Event Details:                                                          Date: May 30, 2025                                                  Time: 7:30 PM – 9:00 PM  
+Location: Golf It Up Parking Lot (West Side), 2910 Steeles Ave E, Thornhill, ON L3T 7X1  
+
+PARTICIPANT ACKNOWLEDGMENT AND WAIVER
+
+By signing below, I, {participantName}, acknowledge and agree to the following terms regarding my voluntary participation in the Tesla Light Show event (the "Event") hosted by Blitz T Club Corporation and Golf It Up:  
+1. Assumption of Risk: I understand that participation in the Event, including any use of my Tesla vehicle or attendance as a spectator, involves inherent risks, including but not limited to accidents, property damage, or personal injury. I accept all risks voluntarily.  
+2. Release of Liability: I hereby release, discharge, and hold harmless Blitz T Club Corporation, Golf It Up, Shops On Steeles & 404, their owners, employees, affiliates, and property management (collectively, the "Released Parties") from any and all claims, liabilities, damages, or expenses (including legal fees) arising from my participation in the Event, whether caused by negligence, acts of others, or otherwise.  
+3. Responsibility for Actions: I am solely responsible for my own conduct, the conduct of my passengers, and the operation of my vehicle during the Event. I agree to comply with all applicable laws and regulations.  
+4. No Warranty or Supervision: I acknowledge that the Released Parties are not responsible for supervising the Event, providing safety instructions, or ensuring the functionality of any vehicle or equipment.  
+5. Media Release: I grant permission to the Released Parties to use any photographs, videos, or recordings of me/my vehicle taken during the Event for promotional purposes without compensation.  
+6. Governing Law: This Waiver shall be governed by the laws of Ontario, Canada. If any provision is deemed unenforceable, the remainder shall remain valid.  
+Participant Certification:  
+I HAVE READ THIS WAIVER, UNDERSTAND ITS TERMS, AND SIGN IT VOLUNTARILY. I AM AT LEAST 18 YEARS OF AGE OR HAVE OBTAINED LEGAL GUARDIAN CONSENT IF UNDER 18.`;
+
     document.addEventListener('DOMContentLoaded', async () => {
         // Set viewport height for mobile browsers
         function setViewportHeight() {
@@ -2260,6 +2419,176 @@
                 window.location.href = 'dashboard.html'; // Redirect after clicking outside
             }
         });
+
+        const signWaiverBtn = document.getElementById('signWaiverBtn');
+        const waiverModal = document.getElementById('waiverModal');
+        const waiverForm = document.getElementById('waiverForm');
+        const waiverTextDisplay = document.getElementById('waiverTextDisplay');
+        const waiverParticipantNameInput = document.getElementById('waiverParticipantName');
+        const waiverCloseBtn = document.querySelector('.waiver-close');
+
+        // Function to check if waiver is signed and update button
+        async function checkAndUpdateWaiverStatus() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            
+            // Reset classes first
+            signWaiverBtn.classList.remove('waiver-btn-pending', 'waiver-btn-signed', 'waiver-btn-login-required', 'waiver-btn-error');
+
+            if (!user) {
+                signWaiverBtn.innerHTML = '<i class="fas fa-lock"></i> Login to Sign Waiver';
+                signWaiverBtn.title = "Please login to sign the event waiver.";
+                signWaiverBtn.disabled = true;
+                signWaiverBtn.classList.add('waiver-btn-login-required');
+                return;
+            }
+
+            const { data: existingWaiver, error } = await supabaseClient
+                .from('event_waivers')
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('event_id', EVENT_ID) // EVENT_ID should be defined from earlier script
+                .maybeSingle();
+
+            if (error) {
+                console.error('Error checking waiver status:', error);
+                signWaiverBtn.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error Checking Waiver';
+                signWaiverBtn.disabled = true;
+                signWaiverBtn.classList.add('waiver-btn-error');
+                return;
+            }
+
+            if (existingWaiver) {
+                signWaiverBtn.innerHTML = '<i class="fas fa-check-circle"></i> Waiver Signed';
+                signWaiverBtn.disabled = true;
+                signWaiverBtn.title = "You have already signed the waiver for this event.";
+                signWaiverBtn.classList.add('waiver-btn-signed');
+            } else {
+                signWaiverBtn.innerHTML = '<i class="fas fa-file-signature"></i> Sign Event Waiver';
+                signWaiverBtn.disabled = false;
+                signWaiverBtn.title = "Sign the event waiver to participate.";
+                signWaiverBtn.classList.add('waiver-btn-pending');
+            }
+        }
+        
+        // Call on page load after other initializations
+        if (signWaiverBtn) { // ensure button exists
+            await checkAndUpdateWaiverStatus();
+        }
+
+
+        if (signWaiverBtn && waiverModal && waiverForm && waiverTextDisplay && waiverParticipantNameInput && waiverCloseBtn) {
+            signWaiverBtn.addEventListener('click', async () => {
+                const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+                if (userError || !user) {
+                    alert('Please login to sign the waiver.');
+                    return;
+                }
+
+                // Pre-fill name
+                const { data: profile, error: profileError } = await supabaseClient
+                    .from('profiles')
+                    .select('full_name')
+                    .eq('id', user.id)
+                    .single();
+
+                let participantName = '';
+                if (profile && profile.full_name) {
+                    participantName = profile.full_name;
+                    waiverParticipantNameInput.value = participantName;
+                }
+                
+                // Populate waiver text
+                const populatedWaiverText = WAIVER_TEXT_TEMPLATE.replace('{participantName}', participantName || '_________________________');
+                waiverTextDisplay.textContent = populatedWaiverText;
+                
+                waiverModal.style.display = 'block';
+                waiverModal.classList.add('fade-in');
+            });
+
+            waiverCloseBtn.addEventListener('click', () => {
+                waiverModal.style.display = 'none';
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target === waiverModal) {
+                    waiverModal.style.display = 'none';
+                }
+            });
+
+            waiverForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const submitWaiverBtn = document.getElementById('submitWaiverBtn');
+                submitWaiverBtn.disabled = true;
+                submitWaiverBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                if (!user) {
+                    alert('Session expired. Please login again.');
+                    submitWaiverBtn.disabled = false;
+                    submitWaiverBtn.innerHTML = '<i class="fas fa-check-circle"></i> Submit Waiver';
+                    return;
+                }
+
+                const participantName = document.getElementById('waiverParticipantName').value.trim();
+                const signatureText = document.getElementById('waiverSignature').value.trim();
+                const vehicleModelYear = document.getElementById('waiverVehicleModelYear').value.trim();
+                const licensePlate = document.getElementById('waiverLicensePlate').value.trim();
+                const confirmed = document.getElementById('waiverConfirmCheckbox').checked;
+
+                if (!participantName || !signatureText) {
+                    alert('Please fill in your name and signature.');
+                    submitWaiverBtn.disabled = false;
+                    submitWaiverBtn.innerHTML = '<i class="fas fa-check-circle"></i> Submit Waiver';
+                    return;
+                }
+                if (!confirmed) {
+                    alert('Please confirm you have read and agree to the waiver.');
+                    submitWaiverBtn.disabled = false;
+                    submitWaiverBtn.innerHTML = '<i class="fas fa-check-circle"></i> Submit Waiver';
+                    return;
+                }
+                
+                // Use the actual text displayed to the user for storage
+                const signedWaiverText = waiverTextDisplay.textContent;
+
+
+                try {
+                    const { error: insertError } = await supabaseClient
+                        .from('event_waivers')
+                        .insert({
+                            user_id: user.id,
+                            event_id: EVENT_ID, // EVENT_ID from earlier in the script
+                            participant_name: participantName,
+                            signature_text: signatureText,
+                            vehicle_model_year: vehicleModelYear,
+                            license_plate: licensePlate,
+                            waiver_text: signedWaiverText, // Store the dynamically populated text
+                            signed_at: new Date().toISOString()
+                        });
+
+                    if (insertError) {
+                        if (insertError.code === '23505') { // Unique constraint violation
+                             alert('You have already signed the waiver for this event.');
+                        } else {
+                            throw insertError;
+                        }
+                    } else {
+                        alert('Waiver submitted successfully!');
+                    }
+                    
+                    waiverModal.style.display = 'none';
+                    waiverForm.reset();
+                    await checkAndUpdateWaiverStatus(); // Update button state
+
+                } catch (error) {
+                    console.error('Error submitting waiver:', error);
+                    alert('Failed to submit waiver: ' + error.message);
+                } finally {
+                    submitWaiverBtn.disabled = false;
+                    submitWaiverBtn.innerHTML = '<i class="fas fa-check-circle"></i> Submit Waiver';
+                }
+            });
+        }
     });
 
     document.addEventListener('DOMContentLoaded', () => {

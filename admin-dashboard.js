@@ -1287,13 +1287,15 @@ async function loadEventRegistrationsTable(searchTerm = '', eventFilter = 'all',
     // Update sort indicators in the table headers
     updateTableSortIndicators('eventRegistrationsTable', sortColumn, sortDirection);
     
-    registrationsTableBody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Loading event registrations...</td></tr>';
+    // Adjusted colspan for the new waiver column
+    registrationsTableBody.innerHTML = '<tr><td colspan="9" style="text-align:center;">Loading event registrations...</td></tr>';
 
     try {
         // Start with a simpler query for basic event registration data
         let query = supabaseClient
             .from('event_registrations')
-            .select('id, event_id, user_id, vehicle_model, registered_at, cancelled_at')
+            // Select all necessary fields from event_registrations, including user_id and event_id for waiver check
+            .select('id, event_id, user_id, vehicle_model, registered_at, cancelled_at') 
             .order(sortColumn, { ascending: sortDirection === 'asc' });
         
         // Apply registration status filter
@@ -1315,12 +1317,14 @@ async function loadEventRegistrationsTable(searchTerm = '', eventFilter = 'all',
         if (regError) {
             console.error('Error fetching event registrations:', regError);
             console.error('Details:', JSON.stringify(regError));
-            registrationsTableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Error loading event registrations: ${regError.message || 'Unknown error'}</td></tr>`;
+            // Adjusted colspan for the new waiver column
+            registrationsTableBody.innerHTML = `<tr><td colspan="9" style="text-align:center;">Error loading event registrations: ${regError.message || 'Unknown error'}</td></tr>`;
             return;
         }
         
         if (!basicRegistrations || basicRegistrations.length === 0) {
-            registrationsTableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;">No ${registrationStatusFilter === 'active' ? 'active' : registrationStatusFilter === 'cancelled' ? 'cancelled' : ''} event registrations found.</td></tr>`;
+            // Adjusted colspan for the new waiver column
+            registrationsTableBody.innerHTML = `<tr><td colspan="9" style="text-align:center;">No ${registrationStatusFilter === 'active' ? 'active' : registrationStatusFilter === 'cancelled' ? 'cancelled' : ''} event registrations found.</td></tr>`;
             return;
         }
         
@@ -1366,6 +1370,25 @@ async function loadEventRegistrationsTable(searchTerm = '', eventFilter = 'all',
             });
         }
         
+        // Fetch waiver data for all relevant user_ids and event_ids
+        let waiverMap = {};
+        if (userIds.length > 0 && eventIds.length > 0) {
+            const { data: waivers, error: waiverError } = await supabaseClient
+                .from('event_waivers')
+                .select('user_id, event_id, signed_at')
+                .in('user_id', userIds)
+                .in('event_id', eventIds); // Assuming waivers are specific to events
+
+            if (waiverError) {
+                console.error('Error fetching event waivers:', waiverError);
+            } else if (waivers) {
+                waivers.forEach(waiver => {
+                    // Create a composite key for easy lookup
+                    waiverMap[`${waiver.user_id}-${waiver.event_id}`] = waiver;
+                });
+            }
+        }
+        
         // Filter results if search term is provided
         let filteredRegistrations = basicRegistrations;
         if (searchTerm && searchTerm.trim() !== '') {
@@ -1391,9 +1414,23 @@ async function loadEventRegistrationsTable(searchTerm = '', eventFilter = 'all',
             return {
                 ...reg,
                 events: eventsMap[reg.event_id] || {},
-                profiles: profilesMap[reg.user_id] || {}
+                profiles: profilesMap[reg.user_id] || {},
+                waiver_signed: !!waiverMap[`${reg.user_id}-${reg.event_id}`],
+                waiver_details: waiverMap[`${reg.user_id}-${reg.event_id}`] || null
             };
         });
+        
+        // If sorting by waiver_signed, we need to do it client-side after fetching waiver data
+        if (sortColumn === 'waiver_signed') {
+            completeRegistrations.sort((a, b) => {
+                const valA = a.waiver_signed ? 1 : 0;
+                const valB = b.waiver_signed ? 1 : 0;
+                if (sortDirection === 'asc') {
+                    return valA - valB;
+                }
+                return valB - valA;
+            });
+        }
         
         // Build the table HTML
         const tableHtml = completeRegistrations.map(reg => {
@@ -1435,6 +1472,13 @@ async function loadEventRegistrationsTable(searchTerm = '', eventFilter = 'all',
                         }
                     </td>
                     <td>
+                        ${reg.waiver_signed 
+                            ? `<span class="status-signed" title="Signed on: ${formatDate(reg.waiver_details?.signed_at)}"><i class="fas fa-check-circle"></i> Signed</span>` 
+                            : '<span class="status-not-signed"><i class="fas fa-times-circle"></i> Not Signed</span>'}
+                        ${reg.waiver_signed ? 
+                            `<button class="view-waiver-btn" data-reg-id="${reg.id}" title="View Signed Waiver"><i class="fas fa-file-alt"></i> View</button>` : ''}
+                    </td>
+                    <td>
                         <button class="action-btn view-btn" title="View Registration" data-reg-id="${reg.id}" data-user-id="${reg.user_id}"><i class="fas fa-eye"></i></button>
                         ${!reg.cancelled_at ? 
                             `<button class="action-btn delete-btn" title="Cancel Registration" data-reg-id="${reg.id}"><i class="fas fa-calendar-times"></i></button>` : 
@@ -1448,7 +1492,8 @@ async function loadEventRegistrationsTable(searchTerm = '', eventFilter = 'all',
         // Update the table content
         registrationsTableBody.innerHTML = tableHtml.length > 0 ? 
             tableHtml : 
-            `<tr><td colspan="8" style="text-align:center;">No matching ${registrationStatusFilter === 'active' ? 'active' : registrationStatusFilter === 'cancelled' ? 'cancelled' : ''} registrations found.</td></tr>`;
+            // Adjusted colspan for the new waiver column
+            `<tr><td colspan="9" style="text-align:center;">No matching ${registrationStatusFilter === 'active' ? 'active' : registrationStatusFilter === 'cancelled' ? 'cancelled' : ''} registrations found.</td></tr>`;
             
         console.log('Event registrations table HTML updated successfully');
 
@@ -1457,7 +1502,8 @@ async function loadEventRegistrationsTable(searchTerm = '', eventFilter = 'all',
 
     } catch (error) {
         console.error('Failed to load event registrations table:', error);
-        registrationsTableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Failed to load event registrations: ${error.message || 'Unknown error'}</td></tr>`;
+        // Adjusted colspan for the new waiver column
+        registrationsTableBody.innerHTML = `<tr><td colspan="9" style="text-align:center;">Failed to load event registrations: ${error.message || 'Unknown error'}</td></tr>`;
     }
 }
 
@@ -2027,6 +2073,40 @@ function addEventRegistrationActionListeners() {
     });
     
     console.log('Event registration action listeners added successfully');
+
+    // Add listeners for new View Waiver buttons
+    document.querySelectorAll('#eventRegistrationsTableBody .view-waiver-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const regId = btn.getAttribute('data-reg-id');
+            // We need user_id and event_id to fetch the correct waiver text
+            // Let's find the corresponding registration from the loaded data (if possible) or re-fetch minimal details
+            // For simplicity here, we assume regId is enough to identify waiver or we might need to adjust data fetching
+            console.log('View waiver clicked for registration ID:', regId);
+            
+            // Find the registration details (user_id, event_id) to fetch the waiver text
+            // This requires the `completeRegistrations` array to be accessible or to re-fetch data.
+            // For now, let's assume we can get user_id and event_id from the row or re-fetch the registration.
+            const registrationRow = btn.closest('tr');
+            // This is a simplification; in a real scenario, you'd have user_id and event_id readily available
+            // or fetch the specific registration again to get these IDs.
+            // For the demo, let's try to get it from a related element if possible, or show a placeholder
+
+            // Fetch the registration again to get user_id and event_id
+            const { data: regDetails, error: regErr } = await window.supabaseClient
+                .from('event_registrations')
+                .select('user_id, event_id')
+                .eq('id', regId)
+                .single();
+
+            if (regErr || !regDetails) {
+                console.error('Could not fetch registration details to get waiver:', regErr);
+                alert('Could not load waiver details.');
+                return;
+            }
+
+            showWaiverDetailsModal(regDetails.user_id, regDetails.event_id);
+        });
+    });
 }
 
 async function cancelRegistration(regId) {
@@ -2382,7 +2462,8 @@ function initializeTableSorting() {
                 1: 'user_id',         // User column (using user_id for sorting) 
                 4: 'vehicle_model',   // Vehicle Model column
                 5: 'registered_at',   // Registered At column
-                6: 'cancelled_at'     // Status column (using cancelled_at for sorting)
+                6: 'cancelled_at',     // Status column (using cancelled_at for sorting)
+                7: 'waiver_signed'    // Waiver Signed? column (client-side sort)
             };
             
             headers.forEach((header, index) => {
@@ -2450,6 +2531,156 @@ function updateTableSortIndicators(tableId, sortColumn, sortDirection) {
     // Set the CSS variable for highlighting the sorted column
     if (sortColumnIndex > 0) {
         table.style.setProperty('--sort-column-index', sortColumnIndex);
+    }
+}
+
+async function showWaiverDetailsModal(userId, eventId) {
+    console.log(`Showing waiver details for User ID: ${userId}, Event ID: ${eventId}`);
+    
+    try {
+        const { data: waiverData, error } = await window.supabaseClient
+            .from('event_waivers')
+            .select('waiver_text, signed_at, participant_name, vehicle_model_year, license_plate, signature_text') // Added new fields
+            .eq('user_id', userId)
+            .eq('event_id', eventId)
+            .single(); // Assuming one waiver per user per event
+
+        if (error || !waiverData) {
+            console.error('Error fetching waiver text:', error);
+            alert('Could not load waiver text. Has it been signed?');
+            return;
+        }
+
+        const modalHTML = `
+            <div id="viewWaiverModal" class="modal waiver-details-modal" style="display: block;"> 
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>Signed Event Waiver</h2>
+                    
+                    <div class="waiver-info-grid">
+                        <div class="info-section">
+                            <h4>Participant Details</h4>
+                            <p><strong>Name:</strong> ${waiverData.participant_name || 'N/A'}</p>
+                            <p><strong>Signature (Digital):</strong> ${waiverData.signature_text || 'N/A'}</p>
+                            <p><strong>Signed At:</strong> ${formatDate(waiverData.signed_at)}</p>
+                        </div>
+                        <div class="info-section">
+                            <h4>Vehicle Details</h4>
+                            <p><strong>Model / Year:</strong> ${waiverData.vehicle_model_year || 'N/A'}</p>
+                            <p><strong>License Plate:</strong> ${waiverData.license_plate || 'N/A'}</p>
+                        </div>
+                    </div>
+
+                    <h4>Full Waiver Text</h4>
+                    <div class="waiver-full-text-container">
+                        <pre class="waiver-full-text">${waiverData.waiver_text || 'Waiver text not available.'}</pre>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button id="downloadWaiverBtn" class="btn secondary-btn"><i class="fas fa-download"></i> Download PDF</button> <!-- Changed to PDF -->
+                        <button id="closeWaiverViewBtn" class="btn primary-btn">Close</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        const modalElement = document.getElementById('viewWaiverModal');
+
+        modalElement.querySelector('.close').addEventListener('click', () => {
+            modalElement.remove();
+        });
+        document.getElementById('closeWaiverViewBtn').addEventListener('click', () => {
+            modalElement.remove();
+        });
+
+        document.getElementById('downloadWaiverBtn').addEventListener('click', () => {
+            // PDF generation will be implemented here in Phase 2
+            // alert('PDF download functionality will be added soon! For now, you can copy the text.');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const participantName = waiverData.participant_name || 'N/A';
+            const signatureText = waiverData.signature_text || 'N/A';
+            const signedAt = formatDate(waiverData.signed_at);
+            const vehicleModelYear = waiverData.vehicle_model_year || 'N/A';
+            const licensePlate = waiverData.license_plate || 'N/A';
+            const fullWaiverText = waiverData.waiver_text || 'Waiver text not available.';
+
+            // --- PDF Content ---
+            const pageMargin = 10;
+            const pageHeight = doc.internal.pageSize.height;
+            const pageWidth = doc.internal.pageSize.width;
+            const usableWidth = pageWidth - 2 * pageMargin;
+            let currentY = pageMargin + 8;
+
+            // Ensured Main Title Section - Rendered Once
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(15);
+            const mainTitle = 'TESLA LIGHT SHOW EVENT LIABILITY WAIVER & RELEASE AGREEMENT';
+            const titleLines = doc.splitTextToSize(mainTitle, usableWidth - 20);
+            doc.text(titleLines, pageWidth / 2, currentY, { align: 'center' });
+            currentY += (titleLines.length * 7); // Adjust Y based on number of title lines
+            doc.setFont(undefined, 'normal');
+            currentY += 8; // Space after the main title
+
+            // Full Waiver Text Content - Font size increased
+            doc.setFontSize(9.5); // Increased from 8.5pt for better readability
+            const waiverTextLineHeight = 5.5; // Adjusted for 9.5pt font (was 5 for 8.5pt)
+            
+            const lines = doc.splitTextToSize(fullWaiverText, usableWidth);
+
+            lines.forEach(line => {
+                if (currentY < pageHeight - pageMargin) { 
+                    doc.text(line, pageMargin, currentY);
+                    currentY += waiverTextLineHeight;
+                } else if (currentY >= pageHeight - pageMargin && lines[lines.length -1] === line) {
+                    doc.text(line, pageMargin, currentY);
+                    currentY += waiverTextLineHeight; 
+                }
+            });
+
+            currentY += 8; // Space after waiver text block
+
+            // Participant Details Heading
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(11);
+            if (currentY < pageHeight - pageMargin) {
+                doc.text('Participant Details', pageMargin, currentY);
+                currentY += 6;
+            }
+            doc.setFont(undefined, 'normal');
+
+            // Participant Details Content
+            doc.setFontSize(9);
+            const detailLineHeight = 5;
+            if (currentY < pageHeight - pageMargin) { doc.text(`Name: ${participantName}`, pageMargin, currentY); currentY += detailLineHeight; }
+            if (currentY < pageHeight - pageMargin) { doc.text(`Digital Signature: ${signatureText}`, pageMargin, currentY); currentY += detailLineHeight; }
+            if (currentY < pageHeight - pageMargin) { doc.text(`Signed At: ${signedAt}`, pageMargin, currentY); currentY += detailLineHeight; }
+            currentY += 10; // Space before next section
+
+            // Vehicle Details Heading
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(11);
+            if (currentY < pageHeight - pageMargin) {
+                doc.text('Vehicle Details', pageMargin, currentY);
+                currentY += 6;
+            }
+            doc.setFont(undefined, 'normal');
+            
+            // Vehicle Details Content
+            doc.setFontSize(9);
+            if (currentY < pageHeight - pageMargin) { doc.text(`Model / Year: ${vehicleModelYear}`, pageMargin, currentY); currentY += detailLineHeight; }
+            if (currentY < pageHeight - pageMargin) { doc.text(`License Plate: ${licensePlate}`, pageMargin, currentY); currentY += detailLineHeight; }
+
+            // --- End PDF Content ---
+
+            doc.save(`EventWaiver-${participantName.replace(/\s+/g, '_')}-${eventId}.pdf`);
+        });
+
+    } catch (error) {
+        console.error('Error displaying waiver details modal:', error);
+        alert('Could not display waiver details.');
     }
 }
     

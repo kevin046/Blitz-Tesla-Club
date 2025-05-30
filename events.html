@@ -2448,7 +2448,7 @@ I HAVE READ THIS WAIVER, UNDERSTAND ITS TERMS, AND SIGN IT VOLUNTARILY. I AM AT 
 
             const { data: existingWaiver, error } = await supabaseClient
                 .from('event_waivers')
-                .select('id')
+                .select('user_id') // Changed from 'id' to 'user_id'
                 .eq('user_id', user.id)
                 .eq('event_id', EVENT_ID) // EVENT_ID should be defined from earlier script
                 .maybeSingle();

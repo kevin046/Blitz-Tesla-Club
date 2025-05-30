@@ -1344,8 +1344,18 @@ async function loadEventRegistrationsTable(searchTerm = '', eventFilter = 'all',
         console.log(`Retrieved ${basicRegistrations.length} registrations from database with status filter: ${registrationStatusFilter}`);
         
         // Get unique event IDs and user IDs for additional queries
-        const eventIds = [...new Set(basicRegistrations.map(reg => reg.event_id))];
-        const userIds = [...new Set(basicRegistrations.map(reg => reg.user_id))];
+        const eventIdsRaw = basicRegistrations.map(reg => String(reg.event_id || '').trim());
+        const userIdsRaw = basicRegistrations.map(reg => String(reg.user_id || '').trim());
+
+        const eventIds = [...new Set(eventIdsRaw.filter(id => id))]; // Filter out empty strings
+        const userIds = [...new Set(userIdsRaw.filter(id => id))];   // Filter out empty strings
+        
+        console.log('Fetching related data for (cleaned and unique IDs):', {
+            uniqueEventIdsCount: eventIds.length,
+            uniqueUserIdsCount: userIds.length,
+            sampleEventIds: eventIds.slice(0, 5),
+            sampleUserIds: userIds.slice(0, 5)
+        });
         
         // Fetch events data
         const { data: events, error: eventsError } = await supabaseClient
@@ -1383,25 +1393,6 @@ async function loadEventRegistrationsTable(searchTerm = '', eventFilter = 'all',
             });
         }
         
-        // Fetch waiver data for all relevant user_ids and event_ids
-        let waiverMap = {};
-        if (userIds.length > 0 && eventIds.length > 0) {
-            const { data: waivers, error: waiverError } = await supabaseClient
-                .from('event_waivers')
-                .select('user_id, event_id, signed_at')
-                .in('user_id', userIds)
-                .in('event_id', eventIds); // Assuming waivers are specific to events
-
-            if (waiverError) {
-                console.error('Error fetching event waivers:', waiverError);
-            } else if (waivers) {
-                waivers.forEach(waiver => {
-                    // Create a composite key for easy lookup
-                    waiverMap[`${waiver.user_id}-${waiver.event_id}`] = waiver;
-                });
-            }
-        }
-        
         // Filter results if search term is provided
         let filteredRegistrations = basicRegistrations;
         if (searchTerm && searchTerm.trim() !== '') {
@@ -1422,16 +1413,55 @@ async function loadEventRegistrationsTable(searchTerm = '', eventFilter = 'all',
         
         console.log(`After filtering, displaying ${filteredRegistrations.length} registrations`);
         
-        // Build complete registration data objects
-        const completeRegistrations = filteredRegistrations.map(reg => {
+        // Build complete registration data objects with enhanced debug logging
+        console.log('Building complete registration objects with individual waiver status checks...');
+        // [MODIFIED] The mapping now becomes asynchronous due to individual waiver fetches
+        const completeRegistrationsPromises = filteredRegistrations.map(async reg => {
+            // Explicit normalization for lookup keys from registration data
+            const normalizedRegUserId = String(reg.user_id || '').trim();
+            const normalizedRegEventId = String(reg.event_id || '').trim();
+            
+            console.log(`[REG_DEBUG] Processing Reg ID: ${reg.id}, User ID: '${normalizedRegUserId}', Event ID: '${normalizedRegEventId}'`);
+
+            // [NEW] Fetch waiver details for this specific registration
+            let waiver_signed = false;
+            let waiver_details = null;
+            if (normalizedRegUserId && normalizedRegEventId) {
+                try {
+                    const { data: fetchedWaiver, error: waiverFetchError } = await supabaseClient
+                        .from('event_waivers')
+                        .select('user_id, event_id, signed_at, participant_name, vehicle_model_year, license_plate, signature_text') // Removed 'id'
+                        .eq('user_id', normalizedRegUserId)
+                        .eq('event_id', normalizedRegEventId)
+                        .maybeSingle(); // Expect at most one waiver
+
+                    if (waiverFetchError) {
+                        console.error(`[WAIVER_FETCH_ERROR] User: ${normalizedRegUserId}, Event: ${normalizedRegEventId}`, waiverFetchError);
+                    } else if (fetchedWaiver && fetchedWaiver.signed_at) {
+                        waiver_signed = true;
+                        waiver_details = fetchedWaiver;
+                        console.log(`[WAIVER_FOUND] User: ${normalizedRegUserId}, Event: ${normalizedRegEventId}, Signed: ${fetchedWaiver.signed_at}`);
+                    } else {
+                         console.log(`[WAIVER_NOT_FOUND_OR_NOT_SIGNED] User: ${normalizedRegUserId}, Event: ${normalizedRegEventId}`);
+                    }
+                } catch (e) {
+                    console.error(`[UNEXPECTED_WAIVER_FETCH_ERROR] User: ${normalizedRegUserId}, Event: ${normalizedRegEventId}`, e);
+                }
+            } else {
+                console.warn(`[WAIVER_FETCH_SKIP] Invalid User/Event ID for Reg ID: ${reg.id}. User: '${normalizedRegUserId}', Event: '${normalizedRegEventId}'`);
+            }
+            
             return {
                 ...reg,
                 events: eventsMap[reg.event_id] || {},
                 profiles: profilesMap[reg.user_id] || {},
-                waiver_signed: !!waiverMap[`${reg.user_id}-${reg.event_id}`],
-                waiver_details: waiverMap[`${reg.user_id}-${reg.event_id}`] || null
+                waiver_signed: waiver_signed, 
+                waiver_details: waiver_details,
+                debug_waiver_lookup_key: `direct_lookup_for_user_${normalizedRegUserId}_event_${normalizedRegEventId}` // Updated debug info
             };
         });
+        
+        const completeRegistrations = await Promise.all(completeRegistrationsPromises);
         
         // If sorting by waiver_signed, perform client-side sort now
         if (sortColumn === 'waiver_signed') {
@@ -1490,9 +1520,12 @@ async function loadEventRegistrationsTable(searchTerm = '', eventFilter = 'all',
                     <td>
                         ${reg.waiver_signed 
                             ? `<span class="status-signed" title="Signed on: ${formatDate(reg.waiver_details?.signed_at)}"><i class="fas fa-check-circle"></i> Signed</span>` 
-                            : '<span class="status-not-signed"><i class="fas fa-times-circle"></i> Not Signed</span>'}
-                        ${reg.waiver_signed ? 
-                            `<button class="view-waiver-btn" data-reg-id="${reg.id}" title="View Signed Waiver"><i class="fas fa-file-alt"></i> View</button>` : ''}
+                            : `<span class="status-not-signed"><i class="fas fa-times-circle"></i> Not Signed</span>`}
+                        ${reg.waiver_signed && reg.waiver_details ? // Ensure waiver_details exists before trying to access its properties
+                            `<button class="view-waiver-btn" 
+                                     data-user-id="${reg.waiver_details.user_id}" 
+                                     data-event-id="${reg.waiver_details.event_id}" 
+                                     title="View Signed Waiver"><i class="fas fa-file-alt"></i> View</button>` : ''}
                     </td>
                     <td>
                         <button class="action-btn view-btn" title="View Registration" data-reg-id="${reg.id}" data-user-id="${reg.user_id}"><i class="fas fa-eye"></i></button>
@@ -2093,34 +2126,18 @@ function addEventRegistrationActionListeners() {
     // Add listeners for new View Waiver buttons
     document.querySelectorAll('#eventRegistrationsTableBody .view-waiver-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
-            const regId = btn.getAttribute('data-reg-id');
-            // We need user_id and event_id to fetch the correct waiver text
-            // Let's find the corresponding registration from the loaded data (if possible) or re-fetch minimal details
-            // For simplicity here, we assume regId is enough to identify waiver or we might need to adjust data fetching
-            console.log('View waiver clicked for registration ID:', regId);
+            // Get user_id and event_id directly from the button's data attributes
+            const userId = btn.getAttribute('data-user-id');
+            const eventId = btn.getAttribute('data-event-id');
             
-            // Find the registration details (user_id, event_id) to fetch the waiver text
-            // This requires the `completeRegistrations` array to be accessible or to re-fetch data.
-            // For now, let's assume we can get user_id and event_id from the row or re-fetch the registration.
-            const registrationRow = btn.closest('tr');
-            // This is a simplification; in a real scenario, you'd have user_id and event_id readily available
-            // or fetch the specific registration again to get these IDs.
-            // For the demo, let's try to get it from a related element if possible, or show a placeholder
+            console.log('View waiver clicked. User ID:', userId, 'Event ID:', eventId);
 
-            // Fetch the registration again to get user_id and event_id
-            const { data: regDetails, error: regErr } = await window.supabaseClient
-                .from('event_registrations')
-                .select('user_id, event_id')
-                .eq('id', regId)
-                .single();
-
-            if (regErr || !regDetails) {
-                console.error('Could not fetch registration details to get waiver:', regErr);
-                alert('Could not load waiver details.');
+            if (!userId || !eventId) {
+                console.error('View waiver button is missing user-id or event-id.');
+                alert('Could not load waiver details. Required identifiers are missing.');
                 return;
             }
-
-            showWaiverDetailsModal(regDetails.user_id, regDetails.event_id);
+            showWaiverDetailsModal(userId, eventId);
         });
     });
 }

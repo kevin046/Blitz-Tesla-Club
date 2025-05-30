@@ -2028,15 +2028,17 @@ I HAVE READ THIS WAIVER, UNDERSTAND ITS TERMS, AND SIGN IT VOLUNTARILY. I AM AT 
                 // Update registration details
                 document.getElementById('userRegisteredModel').textContent = details.vehicle_model;
                 
-                // Format the registration date nicely
+                // Format the registration date nicely in EST/EDT
                 const registeredDate = new Date(details.registered_at);
-                const formattedDate = registeredDate.toLocaleDateString('en-US', { 
+                const options = { 
                     year: 'numeric', 
                     month: 'long', 
                     day: 'numeric',
                     hour: '2-digit',
-                    minute: '2-digit'
-                });
+                    minute: '2-digit',
+                    timeZone: 'America/New_York' // Added timezone
+                };
+                const formattedDate = registeredDate.toLocaleString('en-US', options); // Use toLocaleString
                 document.getElementById('userRegisteredDate').textContent = formattedDate;
             } else {
                 // Show not registered content

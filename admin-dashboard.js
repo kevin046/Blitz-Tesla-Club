@@ -799,9 +799,18 @@ async function loadRecentActivitySection() {
 function formatDate(dateString) {
     if (!dateString) return 'N/A';
     try {
-        const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-        return new Date(dateString).toLocaleDateString(undefined, options);
+        const options = {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'America/New_York' // Explicitly set to Eastern Time
+        };
+        // Use toLocaleString to include time, formatted to ET
+        return new Date(dateString).toLocaleString('en-US', options);
     } catch (e) {
+        console.error("Error formatting date:", dateString, e); // Added console error for debugging
         return dateString; // Return original if formatting fails
     }
 }

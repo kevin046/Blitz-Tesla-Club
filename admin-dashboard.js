@@ -2749,7 +2749,7 @@ function showMemberQrModal(userId) {
     `;
     document.body.insertAdjacentHTML('beforeend', modalHTML);
     // Generate QR code
-    const qrUrl = `https://yourdomain.com/verify-member.html?member_id=${userId}`;
+    const qrUrl = `verify-member.html?member_id=${userId}`;
     new window.QRCode(document.getElementById('memberQrCode'), {
         text: qrUrl,
         width: 220,

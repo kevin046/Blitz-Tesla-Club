@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>EE Auto Group Deal Tracking - Blitz T Club</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --eeauto-green: #00e676;
+            --eeauto-dark: #222;
+            --blitz-blue: #1a237e;
+            --danger: #ff4444;
+            --light-bg: #f7f8fa;
+            --card-bg: #fff;
+        }
+        body { font-family: 'Montserrat', Arial, sans-serif; background: var(--light-bg); margin: 0; padding: 0; }
+        .sticky-header {
+            position: sticky; top: 0; z-index: 100; background: var(--card-bg); box-shadow: 0 2px 8px rgba(0,0,0,0.04); padding: 0 0 0 0; margin-bottom: 0; }
+        .header-bar {
+            display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 18px 8px 18px;
+        }
+        .header-bar img { width: 48px; border-radius: 10px; }
+        .header-title { font-size: 1.3em; font-weight: 700; color: var(--blitz-blue); letter-spacing: 0.5px; }
+        .ee-auto-logo { width: 48px; border-radius: 10px; background: var(--eeauto-dark); padding: 6px; }
+        .nav-tabs { display: flex; gap: 0; border-bottom: 2px solid #eee; margin: 0 18px; }
+        .nav-tab { flex: 1; text-align: center; padding: 12px 0 10px 0; font-weight: 600; color: #888; background: none; border: none; font-size: 1em; cursor: pointer; border-bottom: 3px solid transparent; transition: color 0.2s, border 0.2s; }
+        .nav-tab.active { color: var(--eeauto-green); border-bottom: 3px solid var(--eeauto-green); background: #f8f9fa; }
+        .container { max-width: 900px; margin: 0 auto; background: var(--card-bg); border-radius: 14px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); padding: 24px 18px 32px; margin-top: 24px; }
+        .card { background: #f8f9fa; border-radius: 10px; padding: 18px 16px; margin-bottom: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+        .member-info { display: flex; flex-direction: column; gap: 6px; }
+        .member-info .verified { color: var(--eeauto-green); font-weight: 600; }
+        .member-info .not-verified { color: var(--danger); font-weight: 600; }
+        .deal-form-section { margin-bottom: 18px; }
+        .deal-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+        .deal-option { display: flex; align-items: center; gap: 10px; background: #fff; border-radius: 6px; padding: 8px 10px; border: 1px solid #eee; }
+        .deal-option input[type=checkbox] { accent-color: var(--eeauto-green); width: 18px; height: 18px; }
+        .deal-option .desc { flex: 1; font-size: 1em; }
+        .deal-option .price { font-weight: 600; color: var(--blitz-blue); }
+        .add-custom-btn { background: var(--eeauto-green); color: #fff; border: none; border-radius: 6px; padding: 7px 16px; font-weight: 600; cursor: pointer; margin-top: 8px; margin-bottom: 8px; }
+        .custom-items { margin-bottom: 8px; }
+        .custom-item-row { display: flex; gap: 8px; margin-bottom: 6px; }
+        .custom-desc { flex: 2; padding: 6px; border-radius: 5px; border: 1px solid #ccc; }
+        .custom-price { width: 80px; padding: 6px; border-radius: 5px; border: 1px solid #ccc; }
+        .remove-btn { background: var(--danger); color: #fff; border: none; border-radius: 5px; padding: 0 10px; font-size: 1.1em; cursor: pointer; }
+        .deal-summary { font-size: 1.1em; font-weight: 600; margin: 10px 0; color: var(--blitz-blue); }
+        .submit-btn { background: var(--eeauto-green); color: #fff; border: none; border-radius: 6px; padding: 10px 24px; font-weight: 700; font-size: 1.1em; cursor: pointer; margin-top: 8px; }
+        .confirmation-modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.18); align-items: center; justify-content: center; }
+        .confirmation-modal.active { display: flex; }
+        .confirmation-content { background: #fff; border-radius: 12px; padding: 32px 24px; text-align: center; box-shadow: 0 4px 24px rgba(0,0,0,0.12); }
+        .confirmation-content .fa-check-circle { color: var(--eeauto-green); font-size: 2.5em; margin-bottom: 10px; }
+        .filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; align-items: center; }
+        .filters input, .filters select { padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; }
+        .export-btn { background: var(--eeauto-green); color: #fff; border: none; border-radius: 6px; padding: 8px 18px; font-weight: 600; cursor: pointer; }
+        .deals-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .deals-table th, .deals-table td { padding: 10px 6px; border-bottom: 1px solid #eee; text-align: left; font-size: 0.98em; }
+        .deals-table th { background: #f8f9fa; font-weight: 600; }
+        .deals-table tr:last-child td { border-bottom: none; }
+        .deal-details-list, .custom-items-list { margin: 0; padding: 0; list-style: none; }
+        .deal-details-list li, .custom-items-list li { margin-bottom: 2px; }
+        .no-results { text-align: center; color: #888; margin: 24px 0; }
+        .loading-spinner { display: flex; align-items: center; justify-content: center; margin: 32px 0; }
+        .loading-spinner .fa-spinner { font-size: 2em; color: var(--eeauto-green); animation: spin 1.2s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @media (max-width: 600px) {
+            .container { margin-top: 10px; padding: 8px 2px 18px; }
+            .header-bar { flex-direction: column; gap: 8px; }
+            .header-title { font-size: 1.1em; }
+            .nav-tabs { margin: 0 2px; }
+            .deals-table th, .deals-table td { font-size: 0.92em; padding: 7px 3px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="sticky-header">
+        <div class="header-bar">
+            <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz T Club Logo">
+            <span class="header-title">EE Auto Group Deal Tracking</span>
+            <div style="display:flex;flex-direction:column;align-items:flex-start;justify-content:center;min-width:120px;margin-left:18px;">
+                <span style="font-size:2.1rem;font-weight:900;letter-spacing:2.5px;font-family:'Montserrat',Arial,sans-serif;line-height:1.1;">
+                    <span style="color:#FF5722;">EE</span><span style="color:#222;"> Auto</span>
+                </span>
+            </div>
+        </div>
+        <div class="nav-tabs">
+            <button class="nav-tab" id="tab-log" type="button">Log a Deal</button>
+            <button class="nav-tab" id="tab-view" type="button">View All Deals</button>
+        </div>
+    </div>
+    <div class="container">
+        <div id="tabLogContent" style="display:none;">
+            <div id="memberInfoSection"></div>
+            <form id="dealForm" class="deal-form-section" style="display:none;">
+                <div class="card">
+                    <strong>EE Auto Group Price List</strong>
+                    <ul style="margin:8px 0 0 18px; padding:0; font-size:0.98em; color:#333;">
+                        <li>Driver & Passenger Side Windows (Regular): <strong>$100</strong></li>
+                        <li>Driver & Passenger Side Windows (IR Ceramic): <strong>$150</strong></li>
+                        <li>Windshield (Regular): <strong>$130</strong></li>
+                        <li>All Except Windshield/Sunroof (Regular): <strong>$200</strong></li>
+                        <li>All Except Windshield/Sunroof (IR Ceramic): <strong>$270</strong></li>
+                        <li>Best Film Package (IR Ceramic, All Except Sunroof): <strong>$400</strong></li>
+                    </ul>
+                </div>
+                <label style="font-weight:500;">Add Sale for This Member</label>
+                <div class="deal-options" id="dealOptions"></div>
+                <label style="margin-top:10px;">Add Custom Item(s)</label>
+                <div class="custom-items" id="customItems"></div>
+                <button type="button" class="add-custom-btn" id="addCustomBtn"><i class="fas fa-plus"></i> Add Custom Item</button>
+                <div class="deal-summary" id="dealSummary">Total: <strong>$0</strong></div>
+                <button type="submit" class="submit-btn" id="submitDealBtn">Submit Sale</button>
+            </form>
+            <div id="previousSalesCard" style="display:none;margin-top:18px;"></div>
+        </div>
+        <div id="tabViewContent" style="display:none;">
+            <div class="filters">
+                <input type="text" id="searchInput" placeholder="Search by member name or ID...">
+                <input type="date" id="startDate">
+                <input type="date" id="endDate">
+                <select id="dealTypeFilter">
+                    <option value="">All Deal Types</option>
+                    <option value="window_tint">Window Tint</option>
+                </select>
+                <button class="export-btn" id="exportBtn"><i class="fas fa-file-export"></i> Export CSV</button>
+            </div>
+            <div id="dealsTableContainer"></div>
+        </div>
+    </div>
+    <div class="confirmation-modal" id="confirmationModal">
+        <div class="confirmation-content">
+            <i class="fas fa-check-circle"></i>
+            <div id="confirmationMsg"></div>
+            <button class="submit-btn" id="confirmationCloseBtn">OK</button>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- CONFIG ---
+        const SUPABASE_URL = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
+        const VENDOR_ID = 'ee-auto-uuid';
+        const VENDOR_NAME = 'EE Auto';
+        const supabase = window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // --- TABS LOGIC ---
+        const tabLog = document.getElementById('tab-log');
+        const tabView = document.getElementById('tab-view');
+        const tabLogContent = document.getElementById('tabLogContent');
+        const tabViewContent = document.getElementById('tabViewContent');
+        function showTab(tab) {
+            if (tab === 'log') {
+                tabLog.classList.add('active');
+                tabView.classList.remove('active');
+                tabLogContent.style.display = '';
+                tabViewContent.style.display = 'none';
+            } else {
+                tabLog.classList.remove('active');
+                tabView.classList.add('active');
+                tabLogContent.style.display = 'none';
+                tabViewContent.style.display = '';
+            }
+        }
+        tabLog.onclick = () => showTab('log');
+        tabView.onclick = () => showTab('view');
+
+        // --- MEMBER PREFILL ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const memberId = urlParams.get('member_id');
+        if (memberId) {
+            showTab('log');
+            fetchMemberInfo(memberId);
+            document.getElementById('dealForm').style.display = '';
+        } else {
+            showTab('view');
+        }
+
+        async function fetchMemberInfo(memberId) {
+            document.getElementById('memberInfoSection').innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner"></i> Loading member info...</div>';
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('full_name, member_id, phone, email, membership_status')
+                .eq('id', memberId)
+                .single();
+            if (error || !data) {
+                document.getElementById('memberInfoSection').innerHTML = '<div style="color:var(--danger);">Member not found.</div>';
+                document.getElementById('dealForm').style.display = 'none';
+                document.getElementById('previousSalesCard').style.display = 'none';
+                return;
+            }
+            document.getElementById('memberInfoSection').innerHTML = `
+                <div class="card member-info">
+                    <div><b>Name:</b> ${data.full_name || '-'}</div>
+                    <div><b>Member ID:</b> ${data.member_id || '-'}</div>
+                    <div><b>Phone:</b> ${data.phone || '-'}</div>
+                    <div><b>Email:</b> ${data.email || '-'}</div>
+                    <div><b>Status:</b> <span class="${data.membership_status==='active'?'verified':'not-verified'}">${data.membership_status==='active'?'Verified':'Not Verified'}</span></div>
+                </div>
+            `;
+            await fetchPreviousSales(memberId);
+        }
+        async function fetchPreviousSales(memberId) {
+            const card = document.getElementById('previousSalesCard');
+            card.style.display = 'block';
+            card.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner"></i> Loading previous sales...</div>';
+            const { data, error } = await supabase
+                .from('vendor_deals')
+                .select('*')
+                .eq('member_id', memberId)
+                .eq('vendor_id', VENDOR_ID)
+                .order('created_at', { ascending: false });
+            if (error || !data || data.length === 0) {
+                card.innerHTML = '<div class="card" style="background:#f8f9fa;color:#888;font-size:1.05em;">No previous sales for this member.</div>';
+                return;
+            }
+            card.innerHTML = `<div class="card" style="background:#f8f9fa;">
+                <div style="font-weight:700;font-size:1.1em;margin-bottom:8px;color:#00e676;"><i class="fas fa-history"></i> Previous Sales</div>
+                <div style="max-height:220px;overflow-y:auto;">
+                    ${data.map(deal => `
+                        <div style="border-bottom:1px solid #eee;padding:8px 0 8px 0;">
+                            <div style="font-size:0.98em;color:#333;"><b>Date:</b> ${new Date(deal.created_at).toLocaleString()}</div>
+                            <div style="font-size:0.97em;color:#444;"><b>Details:</b> <ul style='margin:2px 0 2px 18px;padding:0;'>${(deal.deal_details||[]).map(d=>`<li>${d.label}: $${d.price}</li>`).join('')}</ul></div>
+                            ${(deal.custom_items||[]).length > 0 ? `<div style='font-size:0.97em;color:#444;'><b>Custom:</b> <ul style='margin:2px 0 2px 18px;padding:0;'>${deal.custom_items.map(c=>`<li>${c.desc}: $${c.price}</li>`).join('')}</ul></div>` : ''}
+                            <div style="font-size:1em;color:#00b894;"><b>Total:</b> $${deal.total_price}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+        }
+
+        // --- DEAL FORM LOGIC ---
+        const dealOptionsList = [
+            { type: 'driver_regular', label: 'Driver & Passenger (Regular)', price: 100 },
+            { type: 'driver_ceramic', label: 'Driver & Passenger (IR Ceramic)', price: 150 },
+            { type: 'windshield_regular', label: 'Windshield (Regular)', price: 130 },
+            { type: 'all_regular', label: 'All Except Windshield/Sunroof (Regular)', price: 200 },
+            { type: 'all_ceramic', label: 'All Except Windshield/Sunroof (IR Ceramic)', price: 270 },
+            { type: 'best_package', label: 'Best Film Package (IR Ceramic, All Except Sunroof)', price: 400 }
+        ];
+        function renderDealOptions() {
+            document.getElementById('dealOptions').innerHTML = dealOptionsList.map(opt => `
+                <div class="deal-option"><input type="checkbox" data-type="${opt.type}" data-label="${opt.label}" data-price="${opt.price}"><span class="desc">${opt.label}</span><span class="price">$${opt.price}</span></div>
+            `).join('');
+        }
+        renderDealOptions();
+        let selectedDeals = [];
+        let customItems = [];
+        function updateDealSummary() {
+            let total = 0;
+            selectedDeals = [];
+            document.querySelectorAll('.deal-option input[type=checkbox]').forEach((cb, idx) => {
+                if (cb.checked) {
+                    const opt = dealOptionsList[idx];
+                    selectedDeals.push(opt);
+                    total += opt.price;
+                }
+            });
+            customItems = [];
+            document.querySelectorAll('.custom-item-row').forEach(row => {
+                const desc = row.querySelector('.custom-desc').value.trim();
+                const price = parseFloat(row.querySelector('.custom-price').value);
+                if (desc && !isNaN(price)) {
+                    customItems.push({ desc, price });
+                    total += price;
+                }
+            });
+            document.getElementById('dealSummary').innerHTML = `Total: <strong>$${total}</strong>`;
+            return total;
+        }
+        document.getElementById('dealOptions').addEventListener('change', updateDealSummary);
+        document.getElementById('customItems').addEventListener('input', updateDealSummary);
+        document.getElementById('customItems').addEventListener('change', updateDealSummary);
+        document.getElementById('addCustomBtn').onclick = function() {
+            const row = document.createElement('div');
+            row.className = 'custom-item-row';
+            row.innerHTML = `<input class="custom-desc" placeholder="Description" type="text"><input class="custom-price" placeholder="Price" type="number" min="0" step="0.01"><button type="button" class="remove-btn">&times;</button>`;
+            row.querySelector('.remove-btn').onclick = function() { row.remove(); updateDealSummary(); };
+            document.getElementById('customItems').appendChild(row);
+        };
+        document.getElementById('dealForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const total = updateDealSummary();
+            if (selectedDeals.length === 0 && customItems.length === 0) {
+                alert('Please select at least one deal or add a custom item.');
+                return;
+            }
+            document.getElementById('submitDealBtn').disabled = true;
+            const dealDetails = selectedDeals.map(d => ({ type: d.type, label: d.label, price: d.price }));
+            const { error } = await supabase
+                .from('vendor_deals')
+                .insert({
+                    member_id: memberId,
+                    vendor_id: VENDOR_ID,
+                    vendor_name: VENDOR_NAME,
+                    deal_type: 'window_tint',
+                    deal_details: dealDetails,
+                    total_price: total,
+                    custom_items: customItems,
+                    created_at: new Date().toISOString(),
+                    created_by: VENDOR_ID
+                });
+            if (error) {
+                alert('Failed to log deal: ' + error.message);
+                document.getElementById('submitDealBtn').disabled = false;
+                return;
+            }
+            document.getElementById('dealForm').style.display = 'none';
+            document.getElementById('confirmationModal').classList.add('active');
+            document.getElementById('confirmationMsg').textContent = 'Sale logged for this member! Thank you, EE Auto.';
+            await fetchPreviousSales(memberId);
+            fetchDeals(); // Refresh table
+        };
+        document.getElementById('confirmationCloseBtn').onclick = function() {
+            document.getElementById('confirmationModal').classList.remove('active');
+            document.getElementById('dealForm').style.display = '';
+        };
+
+        // --- FETCH & RENDER DEALS ---
+        let allDeals = [];
+        async function fetchDeals() {
+            document.getElementById('dealsTableContainer').innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner"></i> Loading deals...</div>';
+            const { data, error } = await supabase
+                .from('vendor_deals')
+                .select('*, profiles(full_name, member_id)')
+                .eq('vendor_id', VENDOR_ID)
+                .order('created_at', { ascending: false });
+            if (error) {
+                document.getElementById('dealsTableContainer').innerHTML = '<div class="no-results">Failed to load deals.</div>';
+                return;
+            }
+            allDeals = data || [];
+            renderDealsTable();
+        }
+        function renderDealsTable() {
+            const search = document.getElementById('searchInput')?.value.trim().toLowerCase() || '';
+            const startDate = document.getElementById('startDate')?.value;
+            const endDate = document.getElementById('endDate')?.value;
+            const dealType = document.getElementById('dealTypeFilter')?.value;
+            let filtered = allDeals.filter(deal => {
+                let match = true;
+                if (search) {
+                    const name = (deal.profiles?.full_name || '').toLowerCase();
+                    const mid = (deal.profiles?.member_id || '').toLowerCase();
+                    match = name.includes(search) || mid.includes(search);
+                }
+                if (match && startDate) {
+                    match = new Date(deal.created_at) >= new Date(startDate);
+                }
+                if (match && endDate) {
+                    match = new Date(deal.created_at) <= new Date(endDate + 'T23:59:59');
+                }
+                if (match && dealType) {
+                    match = deal.deal_type === dealType;
+                }
+                return match;
+            });
+            let html = '';
+            if (filtered.length === 0) {
+                html = '<div class="no-results">No deals found for the selected filters.</div>';
+            } else {
+                html = `<table class="deals-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Member Name</th>
+                            <th>Member ID</th>
+                            <th>Deal Details</th>
+                            <th>Custom Items</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filtered.map(deal => `
+                            <tr>
+                                <td>${new Date(deal.created_at).toLocaleString()}</td>
+                                <td>${deal.profiles?.full_name || '-'}</td>
+                                <td>${deal.profiles?.member_id || '-'}</td>
+                                <td><ul class="deal-details-list">${(deal.deal_details || []).map(d => `<li>${d.label}: $${d.price}</li>`).join('')}</ul></td>
+                                <td><ul class="custom-items-list">${(deal.custom_items || []).map(c => `<li>${c.desc}: $${c.price}</li>`).join('')}</ul></td>
+                                <td><strong>$${deal.total_price}</strong></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>`;
+            }
+            document.getElementById('dealsTableContainer').innerHTML = html;
+        }
+        document.getElementById('searchInput')?.addEventListener('input', renderDealsTable);
+        document.getElementById('startDate')?.addEventListener('change', renderDealsTable);
+        document.getElementById('endDate')?.addEventListener('change', renderDealsTable);
+        document.getElementById('dealTypeFilter')?.addEventListener('change', renderDealsTable);
+        document.getElementById('exportBtn')?.addEventListener('click', function() {
+            let csv = 'Date,Member Name,Member ID,Deal Details,Custom Items,Total\n';
+            const search = document.getElementById('searchInput')?.value.trim().toLowerCase() || '';
+            const startDate = document.getElementById('startDate')?.value;
+            const endDate = document.getElementById('endDate')?.value;
+            const dealType = document.getElementById('dealTypeFilter')?.value;
+            let filtered = allDeals.filter(deal => {
+                let match = true;
+                if (search) {
+                    const name = (deal.profiles?.full_name || '').toLowerCase();
+                    const mid = (deal.profiles?.member_id || '').toLowerCase();
+                    match = name.includes(search) || mid.includes(search);
+                }
+                if (match && startDate) {
+                    match = new Date(deal.created_at) >= new Date(startDate);
+                }
+                if (match && endDate) {
+                    match = new Date(deal.created_at) <= new Date(endDate + 'T23:59:59');
+                }
+                if (match && dealType) {
+                    match = deal.deal_type === dealType;
+                }
+                return match;
+            });
+            filtered.forEach(deal => {
+                const date = new Date(deal.created_at).toLocaleString();
+                const name = deal.profiles?.full_name || '';
+                const mid = deal.profiles?.member_id || '';
+                const details = (deal.deal_details || []).map(d => `${d.label}: $${d.price}`).join('; ');
+                const customs = (deal.custom_items || []).map(c => `${c.desc}: $${c.price}`).join('; ');
+                const total = deal.total_price;
+                csv += `"${date}","${name}","${mid}","${details}","${customs}","${total}"
+`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `ee-auto-deals-${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+        fetchDeals();
+    });
+    </script>
+</body>
+</html> 

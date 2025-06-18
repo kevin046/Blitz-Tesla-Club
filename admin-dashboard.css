@@ -958,4 +958,36 @@ table td .action-btn {
 /* Add a subtle background to the active sort column */
 .admin-section table tbody tr td:nth-child(var(--sort-column-index)) {
     background-color: rgba(0, 230, 118, 0.02);
+}
+
+/* Vendor Deals Section Card Enhancement */
+.vendor-deals-section .stat-card {
+    transition: box-shadow 0.25s cubic-bezier(0.4,0,0.2,1), transform 0.18s cubic-bezier(0.4,0,0.2,1), border-color 0.2s;
+    border: 1.5px solid #232a35;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    background: linear-gradient(135deg, #232a35 80%, #00e67622 100%);
+    position: relative;
+    overflow: hidden;
+}
+.vendor-deals-section .stat-card:hover {
+    box-shadow: 0 8px 24px rgba(0,230,118,0.18), 0 2px 8px rgba(0,0,0,0.18);
+    transform: translateY(-6px) scale(1.025);
+    border-color: #00e676;
+    background: linear-gradient(135deg, #232a35 60%, #00e67633 100%);
+}
+.vendor-deals-section .stat-card h4 {
+    color: #00e676;
+    letter-spacing: 0.5px;
+}
+.vendor-deals-section .stat-card .btn.primary-btn {
+    background: #00e676;
+    color: #fff;
+    border-radius: 6px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0,230,118,0.08);
+    transition: background 0.2s, box-shadow 0.2s;
+}
+.vendor-deals-section .stat-card .btn.primary-btn:hover {
+    background: #00c060;
+    box-shadow: 0 4px 16px rgba(0,230,118,0.18);
 } 

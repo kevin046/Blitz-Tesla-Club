@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Blitz T Club Member Verification</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Montserrat', Arial, sans-serif; background: #f7f8fa; margin: 0; padding: 0; }
+        .container { max-width: 480px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); padding: 24px 18px 32px; margin-top: 32px; }
+        .member-header { text-align: center; margin-bottom: 18px; }
+        .member-badge { display: inline-block; background: #00e676; color: #fff; font-weight: 600; border-radius: 20px; padding: 6px 18px; margin-top: 8px; font-size: 1em; }
+        .member-id { color: #888; font-size: 0.95em; margin-top: 2px; }
+        .vendor-login-section { margin: 18px 0 24px; text-align: center; }
+        .vendor-login-section input { padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; margin-right: 8px; }
+        .vendor-login-section button { padding: 10px 18px; border-radius: 6px; background: #007bff; color: #fff; border: none; font-weight: 600; cursor: pointer; }
+        .vendor-login-section button:disabled { background: #aaa; }
+        .deal-form { margin-top: 18px; }
+        .deal-form label { font-weight: 500; margin-bottom: 6px; display: block; }
+        .deal-options { margin-bottom: 18px; }
+        .deal-option { display: flex; align-items: center; margin-bottom: 10px; }
+        .deal-option input[type=checkbox] { margin-right: 10px; }
+        .deal-option .desc { flex: 1; }
+        .deal-option .price { font-weight: 600; color: #00b894; margin-left: 10px; }
+        .custom-items { margin-bottom: 18px; }
+        .custom-item-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .custom-item-row input { flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+        .custom-item-row .remove-btn { background: #ff4444; color: #fff; border: none; border-radius: 4px; padding: 0 10px; cursor: pointer; }
+        .add-custom-btn { background: #f1f1f1; color: #333; border: 1px solid #ccc; border-radius: 4px; padding: 6px 12px; font-size: 0.95em; cursor: pointer; margin-bottom: 10px; }
+        .deal-summary { background: #f8f9fa; border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; font-size: 1.1em; color: #333; }
+        .deal-summary strong { color: #00b894; }
+        .submit-btn { width: 100%; background: #00e676; color: #fff; border: none; border-radius: 6px; padding: 14px 0; font-size: 1.1em; font-weight: 600; cursor: pointer; margin-top: 8px; }
+        .submit-btn:disabled { background: #aaa; }
+        .confirmation { text-align: center; color: #00b894; font-size: 1.2em; margin-top: 24px; }
+        @media (max-width: 600px) { .container { margin-top: 10px; padding: 12px 4px 24px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="member-header">
+            <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz T Club Logo" style="width: 60px; border-radius: 12px; margin-bottom: 8px;">
+            <h2 id="memberName">Loading...</h2>
+            <div class="member-id" id="memberId">&nbsp;</div>
+            <div class="member-badge" id="memberStatus">Verifying...</div>
+        </div>
+        <div class="vendor-login-section" id="vendorLoginSection">
+            <input type="password" id="vendorPassword" placeholder="Vendor Access Password">
+            <button id="vendorLoginBtn">Vendor Login</button>
+            <div id="vendorLoginMsg" style="color: #ff4444; margin-top: 8px; font-size: 0.95em;"></div>
+        </div>
+        <form class="deal-form" id="dealForm" style="display: none;">
+            <label>EE Auto Group Deal Options</label>
+            <div class="deal-options" id="dealOptions">
+                <div class="deal-option"><input type="checkbox" data-type="driver_regular" data-label="Driver & Passenger (Regular)" data-price="100"><span class="desc">Driver & Passenger Side Windows (Regular Film)</span><span class="price">$100</span></div>
+                <div class="deal-option"><input type="checkbox" data-type="driver_ceramic" data-label="Driver & Passenger (IR Ceramic)" data-price="150"><span class="desc">Driver & Passenger Side Windows (IR Ceramic)</span><span class="price">$150</span></div>
+                <div class="deal-option"><input type="checkbox" data-type="windshield_regular" data-label="Windshield (Regular)" data-price="130"><span class="desc">Windshield (Regular Film)</span><span class="price">$130</span></div>
+                <div class="deal-option"><input type="checkbox" data-type="all_regular" data-label="All Except Windshield/Sunroof (Regular)" data-price="200"><span class="desc">All Except Windshield/Sunroof (Regular Film)</span><span class="price">$200</span></div>
+                <div class="deal-option"><input type="checkbox" data-type="all_ceramic" data-label="All Except Windshield/Sunroof (IR Ceramic)" data-price="270"><span class="desc">All Except Windshield/Sunroof (IR Ceramic)</span><span class="price">$270</span></div>
+                <div class="deal-option"><input type="checkbox" data-type="best_package" data-label="Best Film Package (IR Ceramic, All Except Sunroof)" data-price="400"><span class="desc">Best Film Package (IR Ceramic, All Except Sunroof)</span><span class="price">$400</span></div>
+            </div>
+            <label style="margin-top: 10px;">Add Custom Item(s)</label>
+            <div class="custom-items" id="customItems"></div>
+            <button type="button" class="add-custom-btn" id="addCustomBtn"><i class="fas fa-plus"></i> Add Custom Item</button>
+            <div class="deal-summary" id="dealSummary">Total: <strong>$0</strong></div>
+            <button type="submit" class="submit-btn" id="submitDealBtn">Submit Deal</button>
+        </form>
+        <div class="confirmation" id="confirmationMsg" style="display:none;"></div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- CONFIG ---
+        const SUPABASE_URL = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
+        const VENDOR_PASSWORD = 'eeauto2024'; // Change to a secure password in production
+        const VENDOR_ID = 'ee-auto-uuid'; // Replace with actual vendor UUID if needed
+        const VENDOR_NAME = 'EE Auto';
+        const supabase = window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // --- MEMBER FETCH ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const memberId = urlParams.get('member_id');
+        async function loadMemberInfo() {
+            if (!memberId) {
+                document.getElementById('memberName').textContent = 'Invalid QR Code';
+                document.getElementById('memberStatus').textContent = 'Invalid';
+                return;
+            }
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('full_name, member_id, membership_status')
+                .eq('id', memberId)
+                .single();
+            if (error || !data) {
+                document.getElementById('memberName').textContent = 'Member Not Found';
+                document.getElementById('memberStatus').textContent = 'Not Verified';
+                return;
+            }
+            document.getElementById('memberName').textContent = data.full_name || 'Unnamed';
+            document.getElementById('memberId').textContent = data.member_id ? `Member ID: ${data.member_id}` : '';
+            document.getElementById('memberStatus').textContent = (data.membership_status === 'active') ? 'Verified Member' : 'Not Verified';
+            document.getElementById('memberStatus').style.background = (data.membership_status === 'active') ? '#00e676' : '#ff4444';
+        }
+        loadMemberInfo();
+
+        // --- VENDOR LOGIN ---
+        let vendorLoggedIn = false;
+        document.getElementById('vendorLoginBtn').onclick = function() {
+            const pw = document.getElementById('vendorPassword').value.trim();
+            if (pw.toLowerCase() === 'ee2025'.toLowerCase()) {
+                // Redirect to EE Auto Tracking page
+                window.location.href = 'ee-auto-tracking.html';
+                return;
+            }
+            if (pw.toLowerCase() === VENDOR_PASSWORD.toLowerCase()) {
+                vendorLoggedIn = true;
+                document.getElementById('vendorLoginSection').style.display = 'none';
+                document.getElementById('dealForm').style.display = 'block';
+            } else {
+                document.getElementById('vendorLoginMsg').textContent = 'Incorrect password.';
+            }
+        };
+
+        // --- DEAL FORM LOGIC ---
+        const dealOptions = [
+            { type: 'driver_regular', label: 'Driver & Passenger (Regular)', price: 100 },
+            { type: 'driver_ceramic', label: 'Driver & Passenger (IR Ceramic)', price: 150 },
+            { type: 'windshield_regular', label: 'Windshield (Regular)', price: 130 },
+            { type: 'all_regular', label: 'All Except Windshield/Sunroof (Regular)', price: 200 },
+            { type: 'all_ceramic', label: 'All Except Windshield/Sunroof (IR Ceramic)', price: 270 },
+            { type: 'best_package', label: 'Best Film Package (IR Ceramic, All Except Sunroof)', price: 400 }
+        ];
+        let selectedDeals = [];
+        let customItems = [];
+        function updateDealSummary() {
+            let total = 0;
+            selectedDeals = [];
+            document.querySelectorAll('.deal-option input[type=checkbox]').forEach((cb, idx) => {
+                if (cb.checked) {
+                    const opt = dealOptions[idx];
+                    selectedDeals.push(opt);
+                    total += opt.price;
+                }
+            });
+            customItems = [];
+            document.querySelectorAll('.custom-item-row').forEach(row => {
+                const desc = row.querySelector('.custom-desc').value.trim();
+                const price = parseFloat(row.querySelector('.custom-price').value);
+                if (desc && !isNaN(price)) {
+                    customItems.push({ desc, price });
+                    total += price;
+                }
+            });
+            document.getElementById('dealSummary').innerHTML = `Total: <strong>$${total}</strong>`;
+            return total;
+        }
+        document.getElementById('dealOptions').addEventListener('change', updateDealSummary);
+        document.getElementById('customItems').addEventListener('input', updateDealSummary);
+        document.getElementById('customItems').addEventListener('change', updateDealSummary);
+        document.getElementById('addCustomBtn').onclick = function() {
+            const row = document.createElement('div');
+            row.className = 'custom-item-row';
+            row.innerHTML = `<input class="custom-desc" placeholder="Description" type="text"><input class="custom-price" placeholder="Price" type="number" min="0" step="0.01"><button type="button" class="remove-btn">&times;</button>`;
+            row.querySelector('.remove-btn').onclick = function() { row.remove(); updateDealSummary(); };
+            document.getElementById('customItems').appendChild(row);
+        };
+        // --- DEAL SUBMIT ---
+        document.getElementById('dealForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const total = updateDealSummary();
+            if (selectedDeals.length === 0 && customItems.length === 0) {
+                alert('Please select at least one deal or add a custom item.');
+                return;
+            }
+            document.getElementById('submitDealBtn').disabled = true;
+            const dealDetails = selectedDeals.map(d => ({ type: d.type, label: d.label, price: d.price }));
+            const { error } = await supabase
+                .from('vendor_deals')
+                .insert({
+                    member_id: memberId,
+                    vendor_id: VENDOR_ID,
+                    vendor_name: VENDOR_NAME,
+                    deal_type: 'window_tint',
+                    deal_details: dealDetails,
+                    total_price: total,
+                    custom_items: customItems,
+                    created_at: new Date().toISOString(),
+                    created_by: VENDOR_ID
+                });
+            if (error) {
+                alert('Failed to log deal: ' + error.message);
+                document.getElementById('submitDealBtn').disabled = false;
+                return;
+            }
+            document.getElementById('dealForm').style.display = 'none';
+            document.getElementById('confirmationMsg').style.display = 'block';
+            document.getElementById('confirmationMsg').textContent = 'Deal logged for this member! Thank you, EE Auto.';
+        };
+    });
+    </script>
+</body>
+</html> 

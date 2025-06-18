@@ -393,6 +393,7 @@ async function fetchOverviewStats() {
             updateStat('activeEvents', 'No DB Connection');
             updateStat('totalEvents', 'No DB Connection');
             updateStat('pastEvents', 'No DB Connection');
+            updateStat('eeAutoDealsCount', 'No DB Connection');
             return;
         }
         
@@ -549,6 +550,17 @@ async function fetchOverviewStats() {
             console.log(`Recent registrations (30 days): ${recentRegs.length}`);
         } catch (error) {
             handleStatError('recentRegistrations', error);
+        }
+        
+        // Fetch EE Auto vendor deals count
+        const { count: eeAutoDealsCount, error: eeAutoDealsError } = await supabaseClient
+            .from('vendor_deals')
+            .select('*', { count: 'exact', head: true })
+            .eq('vendor_id', 'ee-auto-uuid');
+        if (eeAutoDealsError) {
+            handleStatError('eeAutoDealsCount', eeAutoDealsError);
+        } else {
+            updateStat('eeAutoDealsCount', eeAutoDealsCount ?? 0);
         }
         
         console.log('Finished fetching overview stats');
@@ -2715,5 +2727,62 @@ async function showWaiverDetailsModal(userId, eventId) {
         console.error('Error displaying waiver details modal:', error);
         alert('Could not display waiver details.');
     }
+}
+
+// Add QR code modal logic for member dashboard
+function showMemberQrModal(userId) {
+    // Remove any existing modal
+    const existingModal = document.getElementById('memberQrModal');
+    if (existingModal) existingModal.remove();
+
+    // Create modal HTML
+    const modalHTML = `
+        <div id="memberQrModal" class="modal" style="display: block; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7); backdrop-filter: blur(5px);">
+            <div class="modal-content" style="background-color: #fff; margin: 10% auto; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); position: relative; animation: modalFadeIn 0.3s ease-out; text-align: center;">
+                <span class="close" style="position: absolute; top: 15px; right: 20px; color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+                <h2 style="color: #171a20; margin-bottom: 10px;">Your Blitz T Club QR Code</h2>
+                <div id="memberQrCode" style="margin: 0 auto 15px; width: 220px; height: 220px;"></div>
+                <p style="color: #333; font-size: 1em;">Scan at EE Auto to verify your membership and access group deals!</p>
+                <button id="closeMemberQrBtn" class="btn secondary-btn" style="margin-top: 10px;">Close</button>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    // Generate QR code
+    const qrUrl = `https://yourdomain.com/verify-member.html?member_id=${userId}`;
+    new window.QRCode(document.getElementById('memberQrCode'), {
+        text: qrUrl,
+        width: 220,
+        height: 220,
+        colorDark: '#171a20',
+        colorLight: '#fff',
+        correctLevel: window.QRCode.CorrectLevel.H
+    });
+    // Close handlers
+    document.querySelector('#memberQrModal .close').onclick = () => document.getElementById('memberQrModal').remove();
+    document.getElementById('closeMemberQrBtn').onclick = () => document.getElementById('memberQrModal').remove();
+}
+// Expose for use in dashboard
+window.showMemberQrModal = showMemberQrModal;
+// Add button to member dashboard (assume a section with id 'member-dashboard-section')
+document.addEventListener('DOMContentLoaded', () => {
+    const memberSection = document.getElementById('member-dashboard-section');
+    if (memberSection) {
+        const qrBtn = document.createElement('button');
+        qrBtn.className = 'btn primary-btn';
+        qrBtn.innerHTML = '<i class="fas fa-qrcode"></i> Show My QR Code';
+        qrBtn.onclick = async () => {
+            const { data: { user } } = await window.supabaseClient.auth.getUser();
+            if (user) window.showMemberQrModal(user.id);
+            else alert('Please log in to view your QR code.');
+        };
+        memberSection.appendChild(qrBtn);
+    }
+});
+// Add QRCode.js CDN if not present
+if (!window.QRCode) {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+    document.head.appendChild(script);
 }
     

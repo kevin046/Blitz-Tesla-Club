@@ -79,6 +79,11 @@
         const VENDOR_ID = 'ee-auto-uuid'; // Replace with actual vendor UUID if needed
         const VENDOR_NAME = 'EE Auto';
         let supabase;
+        if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+            document.getElementById('memberErrorMsg').style.display = 'block';
+            document.getElementById('memberErrorMsg').textContent = 'Supabase library failed to load. Please check your internet connection or try again later.';
+            return;
+        }
         try {
             supabase = window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         } catch (e) {

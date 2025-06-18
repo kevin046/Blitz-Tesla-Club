@@ -45,6 +45,7 @@
             <div class="member-id" id="memberId">&nbsp;</div>
             <div class="member-badge" id="memberStatus">Verifying...</div>
         </div>
+        <div id="memberErrorMsg" style="display:none;color:#ff4444;text-align:center;font-weight:600;margin-bottom:12px;"></div>
         <div class="vendor-login-section" id="vendorLoginSection">
             <input type="password" id="vendorPassword" placeholder="Vendor Access Password">
             <button id="vendorLoginBtn">Vendor Login</button>
@@ -77,31 +78,56 @@
         const VENDOR_PASSWORD = 'eeauto2024'; // Change to a secure password in production
         const VENDOR_ID = 'ee-auto-uuid'; // Replace with actual vendor UUID if needed
         const VENDOR_NAME = 'EE Auto';
-        const supabase = window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let supabase;
+        try {
+            supabase = window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        } catch (e) {
+            document.getElementById('memberErrorMsg').style.display = 'block';
+            document.getElementById('memberErrorMsg').textContent = 'Error initializing Supabase. Please try again later.';
+            return;
+        }
 
         // --- MEMBER FETCH ---
         const urlParams = new URLSearchParams(window.location.search);
         const memberId = urlParams.get('member_id');
         async function loadMemberInfo() {
+            document.getElementById('memberErrorMsg').style.display = 'none';
+            document.getElementById('memberName').textContent = 'Loading...';
+            document.getElementById('memberStatus').textContent = 'Verifying...';
             if (!memberId) {
                 document.getElementById('memberName').textContent = 'Invalid QR Code';
                 document.getElementById('memberStatus').textContent = 'Invalid';
+                document.getElementById('memberErrorMsg').style.display = 'block';
+                document.getElementById('memberErrorMsg').textContent = 'No member ID found in QR code.';
+                document.getElementById('vendorLoginSection').style.display = 'none';
                 return;
             }
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('full_name, member_id, membership_status')
-                .eq('id', memberId)
-                .single();
-            if (error || !data) {
-                document.getElementById('memberName').textContent = 'Member Not Found';
-                document.getElementById('memberStatus').textContent = 'Not Verified';
-                return;
+            try {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('full_name, member_id, membership_status')
+                    .eq('id', memberId)
+                    .single();
+                if (error || !data) {
+                    document.getElementById('memberName').textContent = 'Member Not Found';
+                    document.getElementById('memberStatus').textContent = 'Not Verified';
+                    document.getElementById('memberErrorMsg').style.display = 'block';
+                    document.getElementById('memberErrorMsg').textContent = 'No member found for this QR code.';
+                    document.getElementById('vendorLoginSection').style.display = 'none';
+                    return;
+                }
+                document.getElementById('memberName').textContent = data.full_name || 'Unnamed';
+                document.getElementById('memberId').textContent = data.member_id ? `Member ID: ${data.member_id}` : '';
+                document.getElementById('memberStatus').textContent = (data.membership_status === 'active') ? 'Verified Member' : 'Not Verified';
+                document.getElementById('memberStatus').style.background = (data.membership_status === 'active') ? '#00e676' : '#ff4444';
+                document.getElementById('vendorLoginSection').style.display = 'block';
+            } catch (e) {
+                document.getElementById('memberName').textContent = 'Error';
+                document.getElementById('memberStatus').textContent = 'Error';
+                document.getElementById('memberErrorMsg').style.display = 'block';
+                document.getElementById('memberErrorMsg').textContent = 'Network or server error. Please try again.';
+                document.getElementById('vendorLoginSection').style.display = 'none';
             }
-            document.getElementById('memberName').textContent = data.full_name || 'Unnamed';
-            document.getElementById('memberId').textContent = data.member_id ? `Member ID: ${data.member_id}` : '';
-            document.getElementById('memberStatus').textContent = (data.membership_status === 'active') ? 'Verified Member' : 'Not Verified';
-            document.getElementById('memberStatus').style.background = (data.membership_status === 'active') ? '#00e676' : '#ff4444';
         }
         loadMemberInfo();
 

@@ -2435,21 +2435,12 @@
                 cardElement.dataset.type = window.userProfile.membership_type;
 
                 // Generate QR code
-                const qrData = JSON.stringify({
-                    id: window.userProfile.id,
-                    memberId: cardMemberId,
-                    type: window.userProfile.membership_type,
-                    name: window.userProfile.full_name,
-                    since: formattedDate,
-                    verified: true
-                });
-                
+                const qrUrl = `https://blitztclub.com/verify-member.html?member_id=${window.userProfile.id}`;
                 const qrCanvas = document.getElementById('memberQRCode');
                 // Clear previous QR code if any
                 const context = qrCanvas.getContext('2d');
                 context.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
-                
-                QRCode.toCanvas(qrCanvas, qrData, {
+                QRCode.toCanvas(qrCanvas, qrUrl, {
                     width: 120,
                     margin: 0,
                     color: {
@@ -2457,6 +2448,15 @@
                         light: '#ffffff'
                     }
                 });
+                // Show the QR code URL below for debugging
+                let qrTextDiv = document.getElementById('qrCodeUrlPreview');
+                if (!qrTextDiv) {
+                    qrTextDiv = document.createElement('div');
+                    qrTextDiv.id = 'qrCodeUrlPreview';
+                    qrTextDiv.style = 'margin-top:10px;font-size:12px;color:#333;word-break:break-all;text-align:center;';
+                    qrCanvas.parentNode.appendChild(qrTextDiv);
+                }
+                qrTextDiv.textContent = qrUrl;
 
                 modal.classList.add('show');
             });

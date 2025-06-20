@@ -2786,3 +2786,154 @@ if (!window.QRCode) {
     document.head.appendChild(script);
 }
     
+(() => {
+    document.addEventListener('DOMContentLoaded', () => {
+        // Ensure Supabase client is available
+        if (!window.supabaseClient) {
+            console.error('Supabase client not found. Make sure the Supabase script is loaded.');
+            return;
+        }
+        const supabase = window.supabaseClient;
+
+        // Navigation logic
+        const navItems = document.querySelectorAll('.nav-item');
+        const sections = document.querySelectorAll('.admin-section');
+
+        function navigateTo(targetId) {
+            sections.forEach(section => {
+                section.classList.remove('active');
+                if (section.id === targetId) {
+                    section.classList.add('active');
+                }
+            });
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.target === targetId) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        navItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = e.currentTarget.dataset.target;
+                navigateTo(targetId);
+            });
+        });
+
+        // Fetch and display dashboard stats
+        async function loadDashboardStats() {
+            // Total Users
+            const { count: totalUsers, error: usersError } = await supabase
+                .from('profiles')
+                .select('*', { count: 'exact', head: true });
+            if (!usersError) document.getElementById('totalUsers').textContent = totalUsers;
+
+            // Active Events
+            const { count: activeEvents, error: activeEventsError } = await supabase
+                .from('events')
+                .select('*', { count: 'exact', head: true })
+                .eq('status', 'upcoming');
+            if (!activeEventsError) document.getElementById('activeEvents').textContent = activeEvents;
+            
+            // Total Events
+            const { count: totalEvents, error: totalEventsError } = await supabase
+                .from('events')
+                .select('*', { count: 'exact', head: true });
+            if (!totalEventsError) document.getElementById('totalEvents').textContent = totalEvents;
+
+            // Recent Registrations (30 days)
+            const thirtyDaysAgo = new Date(new Date().setDate(new Date().getDate() - 30)).toISOString();
+            const { count: recentRegistrations, error: recentError } = await supabase
+                .from('profiles')
+                .select('*', { count: 'exact', head: true })
+                .gte('created_at', thirtyDaysAgo);
+            if (!recentError) document.getElementById('recentRegistrations').textContent = recentRegistrations;
+        }
+
+        // Fetch and display the QR scans feed
+        async function loadQrScansFeed() {
+            const { data, error } = await supabase
+                .from('qr_code_scans')
+                .select(`
+                    created_at,
+                    member_id_string,
+                    profiles:member_id (
+                        full_name,
+                        member_id
+                    )
+                `)
+                .order('created_at', { ascending: false })
+                .limit(15);
+
+            if (error) {
+                console.error('Error fetching QR scans:', error);
+                document.getElementById('qrScansFeed').innerHTML = '<li>Error loading scans. Check console for details.</li>';
+                return;
+            }
+
+            const feedElement = document.getElementById('qrScansFeed');
+            if (data && data.length > 0) {
+                feedElement.innerHTML = data.map(scan => {
+                    // Prefer the joined profile name, fallback to 'Unknown Member'
+                    const memberName = scan.profiles && scan.profiles.full_name
+                        ? scan.profiles.full_name
+                        : 'Unknown Member';
+                    // Prefer the joined profile member_id, fallback to member_id_string
+                    const memberId = (scan.profiles && scan.profiles.member_id)
+                        ? scan.profiles.member_id
+                        : (scan.member_id_string || '');
+                    return `
+                        <li>
+                            <div class="activity-icon"><i class="fas fa-id-card-alt"></i></div>
+                            <span class="user-info">
+                                <span class="member-name">${memberName}</span>
+                                <span class="member-id">${memberId ? '(' + memberId + ')' : ''}</span>
+                                was scanned
+                            </span>
+                            <span class="timestamp">${timeAgo(scan.created_at)}</span>
+                        </li>
+                    `;
+                }).join('');
+            } else {
+                feedElement.innerHTML = '<li>No recent QR scans found.</li>';
+            }
+        }
+
+        // Helper function to calculate time ago
+        function timeAgo(date) {
+            const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+            if (seconds < 0) return 'just now';
+            let interval = seconds / 31536000;
+            if (interval > 1) return Math.floor(interval) + " years ago";
+            interval = seconds / 2592000;
+            if (interval > 1) return Math.floor(interval) + " months ago";
+            interval = seconds / 86400;
+            if (interval > 1) return Math.floor(interval) + " days ago";
+            interval = seconds / 3600;
+            if (interval > 1) return Math.floor(interval) + " hours ago";
+            interval = seconds / 60;
+            if (interval > 1) return Math.floor(interval) + " minutes ago";
+            return Math.floor(seconds) + " seconds ago";
+        }
+        
+        // Placeholder for user management logic
+        async function loadAllUsers() {
+            // This function would be built out for the user management tab
+            console.log('loadAllUsers function would run here.');
+        }
+
+        // Initial data load
+        loadDashboardStats();
+        loadQrScansFeed();
+        loadAllUsers(); 
+
+        // Set interval to refresh data every 60 seconds
+        setInterval(() => {
+            loadDashboardStats();
+            loadQrScansFeed();
+        }, 60000);
+    });
+})();
+    

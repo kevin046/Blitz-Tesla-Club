@@ -563,91 +563,107 @@
 
         // Global variables
         let supabase;
-        let memberId;
+        let currentMemberId = null;
         let vendorLoggedIn = false;
 
-        // Initialize the application
-        document.addEventListener('DOMContentLoaded', async function() {
-            try {
-                // Initialize Supabase
-                if (typeof window.supabase === 'undefined') {
-                    throw new Error('Supabase library not loaded');
+        document.addEventListener('DOMContentLoaded', async () => {
+            initializeSupabase();
+            const urlParams = new URLSearchParams(window.location.search);
+            const memberUuid = urlParams.get('member_id');
+            if (memberUuid) {
+                // Fetch the member's profile to get the human-readable member_id
+                let memberIdString = '';
+                try {
+                    const { data, error } = await window.supabaseClient
+                        .from('profiles')
+                        .select('member_id')
+                        .eq('id', memberUuid)
+                        .single();
+                    if (!error && data && data.member_id) {
+                        memberIdString = data.member_id;
+                    }
+                } catch (e) {
+                    console.error('Could not fetch member_id string for scan log:', e);
                 }
-                
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                
-                // Get member ID from URL
-                const urlParams = new URLSearchParams(window.location.search);
-                memberId = urlParams.get('member_id');
-                
-                if (!memberId) {
-                    showError('Invalid QR Code', 'No member ID found in QR code.');
-                    return;
-                }
-                
-                // Load member information
-                await loadMemberInfo();
-                
-                // Set up event listeners
-                setupEventListeners();
-                
-            } catch (error) {
-                console.error('Initialization error:', error);
-                showError('Initialization Error', 'Failed to initialize the application. Please try again later.');
+                await logQrScan(memberUuid, memberIdString);
+                fetchMemberInfo(memberUuid);
+            } else {
+                displayError('No Member ID Provided', 'This page requires a member ID to function. Please scan a valid QR code.');
             }
         });
 
-        // Load member information
-        async function loadMemberInfo() {
+        function initializeSupabase() {
+            if (window.supabase) {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            } else {
+                displayError('Initialization Error', 'Could not connect to the verification service. Please try again later.');
+                console.error('Supabase client is not available.');
+            }
+        }
+        
+        async function logQrScan(memberUuid, memberIdString) {
+            if (!window.supabaseClient) return;
+            // Gather extra info (optional)
+            const deviceInfo = navigator.userAgent || '';
+            const scanData = {
+                member_id: memberUuid, // UUID from URL
+                member_id_string: memberIdString, // Human-readable member ID
+                vendor_id: 'EE Auto Group',
+                device_info: deviceInfo // Optional: add this column to your table if you want to store it
+            };
+            console.log('Logging scan to Supabase:', scanData); // Debug log
             try {
-                updateMemberStatus('Verifying...', 'status-pending', 'fas fa-spinner fa-spin');
-                
-                const { data, error } = await supabase
-                    .from('profiles')
-                    .select('full_name, member_id, membership_status, email, phone')
-                    .eq('id', memberId)
-                    .single();
-                
-                if (error || !data) {
-                    throw new Error('Member not found');
-                }
-                
-                // If member is found, log the scan
-                try {
-                    const { error: scanError } = await supabase
-                        .from('qr_code_scans')
-                        .insert({
-                            member_id: data.id, // Use the actual profile ID from the fetched data
-                            vendor_id: 'ee-auto-group' // Hardcoded for this vendor page
-                        });
-
-                    if (scanError) {
-                        console.error('Error logging QR scan:', scanError);
-                        // Don't block the UI for this, just log it
-                    } else {
-                        console.log('QR scan logged successfully for member:', data.id);
-                    }
-                } catch (e) {
-                    console.error('Exception during scan logging:', e);
-                }
-
-                // Update member display
-                document.getElementById('memberName').textContent = data.full_name || 'Unnamed Member';
-                document.getElementById('memberId').textContent = data.member_id ? `Member ID: ${data.member_id}` : '';
-                
-                // Update status
-                if (data.membership_status === 'active') {
-                    updateMemberStatus('Verified Member', 'status-verified', 'fas fa-check-circle');
-                    showVendorSection();
+                const { error } = await window.supabaseClient
+                    .from('qr_code_scans')
+                    .insert(scanData);
+                if (error) {
+                    console.error('Failed to log QR scan:', error);
                 } else {
-                    updateMemberStatus('Not Verified', 'status-error', 'fas fa-exclamation-triangle');
-                    showError('Member Not Verified', 'This member has not completed verification.');
+                    console.log('QR scan logged for member:', memberUuid, memberIdString);
                 }
-                
-            } catch (error) {
-                console.error('Error loading member info:', error);
-                updateMemberStatus('Error', 'status-error', 'fas fa-times-circle');
-                showError('Member Not Found', 'No member found for this QR code.');
+            } catch (e) {
+                console.error('Exception during scan logging:', e);
+            }
+        }
+
+        async function fetchMemberInfo(memberUuid) {
+            if (!supabase) {
+                displayError('Service Unavailable', 'Cannot fetch member information at this time.');
+                return;
+            }
+
+            // Show loading state
+            document.getElementById('memberCard').innerHTML = '<p>Loading member info...</p>';
+
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', memberUuid)
+                .single();
+
+            if (error || !data) {
+                displayError('Member Not Found', 'The provided member ID is invalid. Please ensure the QR code is correct.');
+                return;
+            }
+            
+            displayMemberInfo(data);
+        }
+
+        function displayMemberInfo(profile) {
+            const memberCard = document.getElementById('memberCard');
+            const statusClass = profile.membership_status === 'active' ? 'status-verified' : 'status-pending';
+            
+            // Update member display
+            document.getElementById('memberName').textContent = profile.full_name || 'Unnamed Member';
+            document.getElementById('memberId').textContent = profile.member_id ? `Member ID: ${profile.member_id}` : '';
+            
+            // Update status
+            updateMemberStatus(profile.membership_status === 'active' ? 'Verified Member' : 'Not Verified', statusClass, profile.membership_status === 'active' ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle');
+            
+            if (profile.membership_status === 'active') {
+                showVendorSection();
+            } else {
+                showError('Member Not Verified', 'This member has not completed verification.');
             }
         }
 
@@ -800,7 +816,7 @@
                 const { error } = await supabase
                     .from('vendor_deals')
                     .insert({
-                        member_id: memberId,
+                        member_id: currentMemberId,
                         vendor_id: VENDOR_ID,
                         vendor_name: VENDOR_NAME,
                         deal_type: 'window_tint',

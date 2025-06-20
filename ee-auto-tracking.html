@@ -938,11 +938,26 @@
             async function fetchMemberInfo(memberId) {
                 document.getElementById('memberInfoSection').innerHTML = '<div class="loading"><div class="spinner"></div>Loading member info...</div>';
                 
-                const { data, error } = await supabase
+                // Try to find by member_id first (for manual entry)
+                let { data, error } = await supabase
                     .from('profiles')
                     .select('full_name, member_id, phone, email, membership_status')
-                    .eq('id', memberId)
+                    .eq('member_id', memberId)
                     .single();
+
+                // If not found by member_id, try by id (for URL parameters)
+                if (error || !data) {
+                    const { data: dataById, error: errorById } = await supabase
+                        .from('profiles')
+                        .select('full_name, member_id, phone, email, membership_status')
+                        .eq('id', memberId)
+                        .single();
+                    
+                    if (!errorById && dataById) {
+                        data = dataById;
+                        error = null;
+                    }
+                }
 
                 if (error || !data) {
                     document.getElementById('memberInfoSection').innerHTML = `
@@ -950,6 +965,9 @@
                             <div style="color:var(--danger-red); text-align: center; padding: 20px;">
                                 <i class="fas fa-exclamation-triangle" style="font-size: 24px; margin-bottom: 10px;"></i>
                                 <div>Member not found.</div>
+                                <div style="margin-top: 10px; font-size: 14px; color: var(--text-secondary);">
+                                    Please check the member ID and try again.
+                                </div>
                                 <div style="margin-top: 15px;">
                                     <button class="btn btn-primary" onclick="location.reload()">
                                         <i class="fas fa-refresh"></i>

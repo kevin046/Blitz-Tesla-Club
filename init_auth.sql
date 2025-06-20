@@ -160,4 +160,28 @@ VALUES (
 
 -- Add initial schema version
 INSERT INTO auth.schema_migrations (version) VALUES ('20240101000000');
+
+-- Create qr_code_scans table
+CREATE TABLE public.qr_code_scans (
+    id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    created_at timestamp with time zone DEFAULT now(),
+    member_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE,
+    vendor_id text
+);
+
+-- Enable RLS for qr_code_scans
+ALTER TABLE public.qr_code_scans ENABLE ROW LEVEL SECURITY;
+
+-- Create RLS policies for qr_code_scans
+CREATE POLICY "Admins can view all QR scans" ON public.qr_code_scans
+    FOR SELECT
+    TO authenticated
+    USING (
+        (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+    );
+
+CREATE POLICY "Vendors can create QR scans" ON public.qr_code_scans
+    FOR INSERT
+    TO anon, authenticated
+    WITH CHECK (true);
   

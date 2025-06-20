@@ -2448,15 +2448,39 @@
                         light: '#ffffff'
                     }
                 });
-                // Show the QR code URL below for debugging
+                // Remove the old QR code URL preview and create a modern button
                 let qrTextDiv = document.getElementById('qrCodeUrlPreview');
-                if (!qrTextDiv) {
-                    qrTextDiv = document.createElement('div');
-                    qrTextDiv.id = 'qrCodeUrlPreview';
-                    qrTextDiv.style = 'margin-top:10px;font-size:12px;color:#333;word-break:break-all;text-align:center;';
-                    qrCanvas.parentNode.appendChild(qrTextDiv);
+                if (qrTextDiv) {
+                    qrTextDiv.remove();
                 }
-                qrTextDiv.textContent = qrUrl;
+
+                // Remove any existing copy button to prevent duplicates
+                const existingBtn = document.getElementById('copyQrLinkBtn');
+                if (existingBtn) {
+                    existingBtn.remove();
+                }
+
+                // Create a "Copy Link" button instead of showing the URL
+                const copyBtn = document.createElement('button');
+                copyBtn.id = 'copyQrLinkBtn';
+                copyBtn.className = 'copy-link-btn';
+                copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy Verification Link';
+                qrCanvas.parentNode.appendChild(copyBtn);
+
+                copyBtn.addEventListener('click', () => {
+                    navigator.clipboard.writeText(qrUrl).then(() => {
+                        copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                        setTimeout(() => {
+                            // Check if the button still exists before trying to update it
+                            if (document.getElementById('copyQrLinkBtn')) {
+                                copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy Verification Link';
+                            }
+                        }, 2000);
+                    }).catch(err => {
+                        console.error('Failed to copy text: ', err);
+                        alert('Failed to copy link.');
+                    });
+                });
 
                 modal.classList.add('show');
             });

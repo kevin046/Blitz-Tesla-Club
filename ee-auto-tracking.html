@@ -1148,7 +1148,14 @@
 
             document.getElementById('dealOptions').addEventListener('change', updateDealSummary);
             document.getElementById('customItems').addEventListener('input', updateDealSummary);
-            document.getElementById('customItems').addEventListener('change', updateDealSummary);
+            
+            // Delegated event listener for removing custom items
+            document.getElementById('customItems').addEventListener('click', function(e) {
+                if (e.target.closest('.remove-btn')) {
+                    e.target.closest('.custom-item-row').remove();
+                    updateDealSummary();
+                }
+            });
 
             document.getElementById('addCustomBtn').onclick = function() {
                 const row = document.createElement('div');
@@ -1156,7 +1163,7 @@
                 row.innerHTML = `
                     <input class="custom-desc" placeholder="Description" type="text">
                     <input class="custom-price" placeholder="Price" type="number" min="0" step="0.01">
-                    <button type="button" class="remove-btn" onclick="this.parentElement.remove(); updateDealSummary();">
+                    <button type="button" class="remove-btn">
                         <i class="fas fa-times"></i>
                     </button>
                 `;

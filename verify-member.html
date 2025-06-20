@@ -3,233 +3,810 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Blitz T Club Member Verification</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Blitz T Club - Member Verification</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Montserrat', Arial, sans-serif; background: #f7f8fa; margin: 0; padding: 0; }
-        .container { max-width: 480px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); padding: 24px 18px 32px; margin-top: 32px; }
-        .member-header { text-align: center; margin-bottom: 18px; }
-        .member-badge { display: inline-block; background: #00e676; color: #fff; font-weight: 600; border-radius: 20px; padding: 6px 18px; margin-top: 8px; font-size: 1em; }
-        .member-id { color: #888; font-size: 0.95em; margin-top: 2px; }
-        .vendor-login-section { margin: 18px 0 24px; text-align: center; }
-        .vendor-login-section input { padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; margin-right: 8px; }
-        .vendor-login-section button { padding: 10px 18px; border-radius: 6px; background: #007bff; color: #fff; border: none; font-weight: 600; cursor: pointer; }
-        .vendor-login-section button:disabled { background: #aaa; }
-        .deal-form { margin-top: 18px; }
-        .deal-form label { font-weight: 500; margin-bottom: 6px; display: block; }
-        .deal-options { margin-bottom: 18px; }
-        .deal-option { display: flex; align-items: center; margin-bottom: 10px; }
-        .deal-option input[type=checkbox] { margin-right: 10px; }
-        .deal-option .desc { flex: 1; }
-        .deal-option .price { font-weight: 600; color: #00b894; margin-left: 10px; }
-        .custom-items { margin-bottom: 18px; }
-        .custom-item-row { display: flex; gap: 8px; margin-bottom: 8px; }
-        .custom-item-row input { flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
-        .custom-item-row .remove-btn { background: #ff4444; color: #fff; border: none; border-radius: 4px; padding: 0 10px; cursor: pointer; }
-        .add-custom-btn { background: #f1f1f1; color: #333; border: 1px solid #ccc; border-radius: 4px; padding: 6px 12px; font-size: 0.95em; cursor: pointer; margin-bottom: 10px; }
-        .deal-summary { background: #f8f9fa; border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; font-size: 1.1em; color: #333; }
-        .deal-summary strong { color: #00b894; }
-        .submit-btn { width: 100%; background: #00e676; color: #fff; border: none; border-radius: 6px; padding: 14px 0; font-size: 1.1em; font-weight: 600; cursor: pointer; margin-top: 8px; }
-        .submit-btn:disabled { background: #aaa; }
-        .confirmation { text-align: center; color: #00b894; font-size: 1.2em; margin-top: 24px; }
-        @media (max-width: 600px) { .container { margin-top: 10px; padding: 12px 4px 24px; } }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            max-width: 480px;
+            width: 100%;
+            position: relative;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            padding: 40px 30px 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #b0b0b0;
+            font-size: 14px;
+            font-weight: 400;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .member-card {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .member-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .member-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 8px;
+        }
+
+        .member-id {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 16px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-verified {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-error {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+            display: none;
+        }
+
+        .vendor-section {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .vendor-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            background: #ffffff;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+            border: 2px solid #e5e7eb;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .deal-form {
+            display: none;
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #e2e8f0;
+            margin-top: 20px;
+        }
+
+        .deal-form h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .deal-options {
+            margin-bottom: 24px;
+        }
+
+        .deal-option {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background: #ffffff;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .deal-option:hover {
+            border-color: #667eea;
+            background: #f8fafc;
+        }
+
+        .deal-option input[type="checkbox"] {
+            margin-right: 16px;
+            width: 20px;
+            height: 20px;
+            accent-color: #667eea;
+        }
+
+        .deal-option-content {
+            flex: 1;
+        }
+
+        .deal-option-title {
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 4px;
+        }
+
+        .deal-option-desc {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .deal-option-price {
+            font-weight: 600;
+            color: #059669;
+            font-size: 16px;
+        }
+
+        .custom-items {
+            margin-bottom: 20px;
+        }
+
+        .custom-item-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+
+        .custom-item-row input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .custom-item-row input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .remove-btn {
+            background: #ef4444;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .add-custom-btn {
+            background: #f3f4f6;
+            color: #374151;
+            border: 2px dashed #d1d5db;
+            border-radius: 12px;
+            padding: 12px;
+            width: 100%;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .add-custom-btn:hover {
+            border-color: #667eea;
+            background: #f8fafc;
+        }
+
+        .deal-summary {
+            background: #ffffff;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .deal-summary-label {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .deal-summary-total {
+            font-size: 24px;
+            font-weight: 700;
+            color: #059669;
+        }
+
+        .confirmation {
+            background: #dcfce7;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e5e7eb;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .vendor-message {
+            text-align: center;
+            font-size: 14px;
+            margin-top: 12px;
+            min-height: 20px;
+        }
+
+        .vendor-message.error {
+            color: #dc2626;
+        }
+
+        .vendor-message.success {
+            color: #059669;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                margin: 10px;
+                border-radius: 16px;
+            }
+            
+            .header {
+                padding: 30px 20px 20px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .member-card,
+            .vendor-section,
+            .deal-form {
+                padding: 20px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="member-header">
-            <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz T Club Logo" style="width: 60px; border-radius: 12px; margin-bottom: 8px;">
-            <h2 id="memberName">Loading...</h2>
-            <div class="member-id" id="memberId">&nbsp;</div>
-            <div class="member-badge" id="memberStatus">Verifying...</div>
+        <div class="header">
+            <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz T Club" class="logo">
+            <h1>Member Verification</h1>
+            <p>Verify member status and log vendor deals</p>
         </div>
-        <div id="memberErrorMsg" style="display:none;color:#ff4444;text-align:center;font-weight:600;margin-bottom:12px;"></div>
-        <div class="vendor-login-section" id="vendorLoginSection">
-            <input type="password" id="vendorPassword" placeholder="Vendor Access Password">
-            <button id="vendorLoginBtn">Vendor Login</button>
-            <div id="vendorLoginMsg" style="color: #ff4444; margin-top: 8px; font-size: 0.95em;"></div>
-        </div>
-        <form class="deal-form" id="dealForm" style="display: none;">
-            <label>EE Auto Group Deal Options</label>
-            <div class="deal-options" id="dealOptions">
-                <div class="deal-option"><input type="checkbox" data-type="driver_regular" data-label="Driver & Passenger (Regular)" data-price="100"><span class="desc">Driver & Passenger Side Windows (Regular Film)</span><span class="price">$100</span></div>
-                <div class="deal-option"><input type="checkbox" data-type="driver_ceramic" data-label="Driver & Passenger (IR Ceramic)" data-price="150"><span class="desc">Driver & Passenger Side Windows (IR Ceramic)</span><span class="price">$150</span></div>
-                <div class="deal-option"><input type="checkbox" data-type="windshield_regular" data-label="Windshield (Regular)" data-price="130"><span class="desc">Windshield (Regular Film)</span><span class="price">$130</span></div>
-                <div class="deal-option"><input type="checkbox" data-type="all_regular" data-label="All Except Windshield/Sunroof (Regular)" data-price="200"><span class="desc">All Except Windshield/Sunroof (Regular Film)</span><span class="price">$200</span></div>
-                <div class="deal-option"><input type="checkbox" data-type="all_ceramic" data-label="All Except Windshield/Sunroof (IR Ceramic)" data-price="270"><span class="desc">All Except Windshield/Sunroof (IR Ceramic)</span><span class="price">$270</span></div>
-                <div class="deal-option"><input type="checkbox" data-type="best_package" data-label="Best Film Package (IR Ceramic, All Except Sunroof)" data-price="400"><span class="desc">Best Film Package (IR Ceramic, All Except Sunroof)</span><span class="price">$400</span></div>
+        
+        <div class="content">
+            <!-- Error Message -->
+            <div id="errorMessage" class="error-message"></div>
+            
+            <!-- Member Information -->
+            <div class="member-card">
+                <div class="member-info">
+                    <div id="memberName" class="member-name">Loading...</div>
+                    <div id="memberId" class="member-id"></div>
+                    <div id="memberStatus" class="status-badge status-pending">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Verifying...</span>
+                    </div>
+                </div>
             </div>
-            <label style="margin-top: 10px;">Add Custom Item(s)</label>
-            <div class="custom-items" id="customItems"></div>
-            <button type="button" class="add-custom-btn" id="addCustomBtn"><i class="fas fa-plus"></i> Add Custom Item</button>
-            <div class="deal-summary" id="dealSummary">Total: <strong>$0</strong></div>
-            <button type="submit" class="submit-btn" id="submitDealBtn">Submit Deal</button>
-        </form>
-        <div class="confirmation" id="confirmationMsg" style="display:none;"></div>
+            
+            <!-- Vendor Login Section -->
+            <div id="vendorSection" class="vendor-section" style="display: none;">
+                <h3><i class="fas fa-user-shield"></i> Vendor Access</h3>
+                <div class="input-group">
+                    <label for="vendorPassword">Enter Vendor Password</label>
+                    <input type="password" id="vendorPassword" class="input-field" placeholder="Enter password">
+                </div>
+                <button id="vendorLoginBtn" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Vendor Login
+                </button>
+                <div id="vendorMessage" class="vendor-message"></div>
+            </div>
+            
+            <!-- Deal Form -->
+            <div id="dealForm" class="deal-form">
+                <h3><i class="fas fa-tags"></i> EE Auto Group Deal</h3>
+                
+                <div class="deal-options" id="dealOptions">
+                    <div class="deal-option">
+                        <input type="checkbox" data-type="driver_regular" data-label="Driver & Passenger (Regular)" data-price="100">
+                        <div class="deal-option-content">
+                            <div class="deal-option-title">Driver & Passenger (Regular)</div>
+                            <div class="deal-option-desc">Driver & Passenger Side Windows (Regular Film)</div>
+                        </div>
+                        <div class="deal-option-price">$100</div>
+                    </div>
+                    
+                    <div class="deal-option">
+                        <input type="checkbox" data-type="driver_ceramic" data-label="Driver & Passenger (IR Ceramic)" data-price="150">
+                        <div class="deal-option-content">
+                            <div class="deal-option-title">Driver & Passenger (IR Ceramic)</div>
+                            <div class="deal-option-desc">Driver & Passenger Side Windows (IR Ceramic)</div>
+                        </div>
+                        <div class="deal-option-price">$150</div>
+                    </div>
+                    
+                    <div class="deal-option">
+                        <input type="checkbox" data-type="windshield_regular" data-label="Windshield (Regular)" data-price="130">
+                        <div class="deal-option-content">
+                            <div class="deal-option-title">Windshield (Regular)</div>
+                            <div class="deal-option-desc">Windshield (Regular Film)</div>
+                        </div>
+                        <div class="deal-option-price">$130</div>
+                    </div>
+                    
+                    <div class="deal-option">
+                        <input type="checkbox" data-type="all_regular" data-label="All Except Windshield/Sunroof (Regular)" data-price="200">
+                        <div class="deal-option-content">
+                            <div class="deal-option-title">All Except Windshield/Sunroof (Regular)</div>
+                            <div class="deal-option-desc">All Except Windshield/Sunroof (Regular Film)</div>
+                        </div>
+                        <div class="deal-option-price">$200</div>
+                    </div>
+                    
+                    <div class="deal-option">
+                        <input type="checkbox" data-type="all_ceramic" data-label="All Except Windshield/Sunroof (IR Ceramic)" data-price="270">
+                        <div class="deal-option-content">
+                            <div class="deal-option-title">All Except Windshield/Sunroof (IR Ceramic)</div>
+                            <div class="deal-option-desc">All Except Windshield/Sunroof (IR Ceramic)</div>
+                        </div>
+                        <div class="deal-option-price">$270</div>
+                    </div>
+                    
+                    <div class="deal-option">
+                        <input type="checkbox" data-type="best_package" data-label="Best Film Package (IR Ceramic, All Except Sunroof)" data-price="400">
+                        <div class="deal-option-content">
+                            <div class="deal-option-title">Best Film Package</div>
+                            <div class="deal-option-desc">IR Ceramic, All Except Sunroof</div>
+                        </div>
+                        <div class="deal-option-price">$400</div>
+                    </div>
+                </div>
+                
+                <div class="custom-items" id="customItems"></div>
+                <button type="button" class="add-custom-btn" id="addCustomBtn">
+                    <i class="fas fa-plus"></i> Add Custom Item
+                </button>
+                
+                <div class="deal-summary" id="dealSummary">
+                    <div class="deal-summary-label">Total Amount</div>
+                    <div class="deal-summary-total">$0</div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" id="submitDealBtn">
+                    <i class="fas fa-check"></i>
+                    Submit Deal
+                </button>
+            </div>
+            
+            <!-- Confirmation Message -->
+            <div id="confirmationMsg" class="confirmation"></div>
+        </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Supabase Script -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // --- CONFIG ---
+        // Configuration
         const SUPABASE_URL = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
-        const VENDOR_PASSWORD = 'eeauto2024'; // Change to a secure password in production
-        const VENDOR_ID = 'ee-auto-uuid'; // Replace with actual vendor UUID if needed
+        const VENDOR_PASSWORD = 'eeauto2024';
+        const VENDOR_ID = 'ee-auto-uuid';
         const VENDOR_NAME = 'EE Auto';
-        let supabase;
-        if (!window.supabase || typeof window.supabase.createClient !== 'function') {
-            document.getElementById('memberErrorMsg').style.display = 'block';
-            document.getElementById('memberErrorMsg').textContent = 'Supabase library failed to load. Please check your internet connection or try again later.';
-            return;
-        }
-        try {
-            supabase = window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        } catch (e) {
-            document.getElementById('memberErrorMsg').style.display = 'block';
-            document.getElementById('memberErrorMsg').textContent = 'Error initializing Supabase. Please try again later.';
-            return;
-        }
 
-        // --- MEMBER FETCH ---
-        const urlParams = new URLSearchParams(window.location.search);
-        const memberId = urlParams.get('member_id');
-        async function loadMemberInfo() {
-            document.getElementById('memberErrorMsg').style.display = 'none';
-            document.getElementById('memberName').textContent = 'Loading...';
-            document.getElementById('memberStatus').textContent = 'Verifying...';
-            if (!memberId) {
-                document.getElementById('memberName').textContent = 'Invalid QR Code';
-                document.getElementById('memberStatus').textContent = 'Invalid';
-                document.getElementById('memberErrorMsg').style.display = 'block';
-                document.getElementById('memberErrorMsg').textContent = 'No member ID found in QR code.';
-                document.getElementById('vendorLoginSection').style.display = 'none';
-                return;
-            }
+        // Global variables
+        let supabase;
+        let memberId;
+        let vendorLoggedIn = false;
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', async function() {
             try {
-                const { data, error } = await supabase
-                    .from('profiles')
-                    .select('full_name, member_id, membership_status')
-                    .eq('id', memberId)
-                    .single();
-                if (error || !data) {
-                    document.getElementById('memberName').textContent = 'Member Not Found';
-                    document.getElementById('memberStatus').textContent = 'Not Verified';
-                    document.getElementById('memberErrorMsg').style.display = 'block';
-                    document.getElementById('memberErrorMsg').textContent = 'No member found for this QR code.';
-                    document.getElementById('vendorLoginSection').style.display = 'none';
+                // Initialize Supabase
+                if (typeof window.supabase === 'undefined') {
+                    throw new Error('Supabase library not loaded');
+                }
+                
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                
+                // Get member ID from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                memberId = urlParams.get('member_id');
+                
+                if (!memberId) {
+                    showError('Invalid QR Code', 'No member ID found in QR code.');
                     return;
                 }
-                document.getElementById('memberName').textContent = data.full_name || 'Unnamed';
+                
+                // Load member information
+                await loadMemberInfo();
+                
+                // Set up event listeners
+                setupEventListeners();
+                
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showError('Initialization Error', 'Failed to initialize the application. Please try again later.');
+            }
+        });
+
+        // Load member information
+        async function loadMemberInfo() {
+            try {
+                updateMemberStatus('Verifying...', 'status-pending', 'fas fa-spinner fa-spin');
+                
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('full_name, member_id, membership_status, email, phone')
+                    .eq('id', memberId)
+                    .single();
+                
+                if (error || !data) {
+                    throw new Error('Member not found');
+                }
+                
+                // Update member display
+                document.getElementById('memberName').textContent = data.full_name || 'Unnamed Member';
                 document.getElementById('memberId').textContent = data.member_id ? `Member ID: ${data.member_id}` : '';
-                document.getElementById('memberStatus').textContent = (data.membership_status === 'active') ? 'Verified Member' : 'Not Verified';
-                document.getElementById('memberStatus').style.background = (data.membership_status === 'active') ? '#00e676' : '#ff4444';
-                document.getElementById('vendorLoginSection').style.display = 'block';
-            } catch (e) {
-                document.getElementById('memberName').textContent = 'Error';
-                document.getElementById('memberStatus').textContent = 'Error';
-                document.getElementById('memberErrorMsg').style.display = 'block';
-                document.getElementById('memberErrorMsg').textContent = 'Network or server error. Please try again.';
-                document.getElementById('vendorLoginSection').style.display = 'none';
+                
+                // Update status
+                if (data.membership_status === 'active') {
+                    updateMemberStatus('Verified Member', 'status-verified', 'fas fa-check-circle');
+                    showVendorSection();
+                } else {
+                    updateMemberStatus('Not Verified', 'status-error', 'fas fa-exclamation-triangle');
+                    showError('Member Not Verified', 'This member has not completed verification.');
+                }
+                
+            } catch (error) {
+                console.error('Error loading member info:', error);
+                updateMemberStatus('Error', 'status-error', 'fas fa-times-circle');
+                showError('Member Not Found', 'No member found for this QR code.');
             }
         }
-        loadMemberInfo();
 
-        // --- VENDOR LOGIN ---
-        let vendorLoggedIn = false;
-        document.getElementById('vendorLoginBtn').onclick = function() {
-            const pw = document.getElementById('vendorPassword').value.trim();
-            if (pw.toLowerCase() === 'ee2025'.toLowerCase()) {
-                // Redirect to EE Auto Tracking page
+        // Update member status display
+        function updateMemberStatus(text, className, iconClass) {
+            const statusElement = document.getElementById('memberStatus');
+            statusElement.className = `status-badge ${className}`;
+            statusElement.innerHTML = `<i class="${iconClass}"></i><span>${text}</span>`;
+        }
+
+        // Show vendor section
+        function showVendorSection() {
+            document.getElementById('vendorSection').style.display = 'block';
+        }
+
+        // Show error message
+        function showError(title, message) {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.innerHTML = `<strong>${title}</strong><br>${message}`;
+            errorElement.style.display = 'block';
+        }
+
+        // Hide error message
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Vendor login
+            document.getElementById('vendorLoginBtn').addEventListener('click', handleVendorLogin);
+            
+            // Enter key in password field
+            document.getElementById('vendorPassword').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    handleVendorLogin();
+                }
+            });
+            
+            // Deal form events
+            document.getElementById('dealOptions').addEventListener('change', updateDealSummary);
+            document.getElementById('addCustomBtn').addEventListener('click', addCustomItem);
+            document.getElementById('submitDealBtn').addEventListener('click', submitDeal);
+        }
+
+        // Handle vendor login
+        function handleVendorLogin() {
+            const password = document.getElementById('vendorPassword').value.trim();
+            const messageElement = document.getElementById('vendorMessage');
+            
+            if (!password) {
+                showVendorMessage('Please enter a password.', 'error');
+                return;
+            }
+            
+            if (password.toLowerCase() === 'ee2025') {
+                // Redirect to tracking page
                 window.location.href = 'ee-auto-tracking.html';
                 return;
             }
-            if (pw.toLowerCase() === VENDOR_PASSWORD.toLowerCase()) {
+            
+            if (password.toLowerCase() === VENDOR_PASSWORD.toLowerCase()) {
                 vendorLoggedIn = true;
-                document.getElementById('vendorLoginSection').style.display = 'none';
+                document.getElementById('vendorSection').style.display = 'none';
                 document.getElementById('dealForm').style.display = 'block';
+                showVendorMessage('Login successful!', 'success');
             } else {
-                document.getElementById('vendorLoginMsg').textContent = 'Incorrect password.';
+                showVendorMessage('Incorrect password.', 'error');
             }
-        };
+        }
 
-        // --- DEAL FORM LOGIC ---
-        const dealOptions = [
-            { type: 'driver_regular', label: 'Driver & Passenger (Regular)', price: 100 },
-            { type: 'driver_ceramic', label: 'Driver & Passenger (IR Ceramic)', price: 150 },
-            { type: 'windshield_regular', label: 'Windshield (Regular)', price: 130 },
-            { type: 'all_regular', label: 'All Except Windshield/Sunroof (Regular)', price: 200 },
-            { type: 'all_ceramic', label: 'All Except Windshield/Sunroof (IR Ceramic)', price: 270 },
-            { type: 'best_package', label: 'Best Film Package (IR Ceramic, All Except Sunroof)', price: 400 }
-        ];
-        let selectedDeals = [];
-        let customItems = [];
+        // Show vendor message
+        function showVendorMessage(message, type) {
+            const messageElement = document.getElementById('vendorMessage');
+            messageElement.textContent = message;
+            messageElement.className = `vendor-message ${type}`;
+        }
+
+        // Add custom item
+        function addCustomItem() {
+            const customItemsContainer = document.getElementById('customItems');
+            const row = document.createElement('div');
+            row.className = 'custom-item-row';
+            row.innerHTML = `
+                <input type="text" class="custom-desc" placeholder="Description" style="flex: 2;">
+                <input type="number" class="custom-price" placeholder="Price" min="0" step="0.01" style="flex: 1;">
+                <button type="button" class="remove-btn" onclick="this.parentElement.remove(); updateDealSummary();">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            customItemsContainer.appendChild(row);
+        }
+
+        // Update deal summary
         function updateDealSummary() {
             let total = 0;
-            selectedDeals = [];
-            document.querySelectorAll('.deal-option input[type=checkbox]').forEach((cb, idx) => {
-                if (cb.checked) {
-                    const opt = dealOptions[idx];
-                    selectedDeals.push(opt);
-                    total += opt.price;
+            const selectedDeals = [];
+            const customItems = [];
+            
+            // Calculate selected deals
+            document.querySelectorAll('.deal-option input[type="checkbox"]').forEach((checkbox, index) => {
+                if (checkbox.checked) {
+                    const dealOption = checkbox.closest('.deal-option');
+                    const price = parseFloat(checkbox.dataset.price);
+                    const label = checkbox.dataset.label;
+                    selectedDeals.push({ type: checkbox.dataset.type, label, price });
+                    total += price;
                 }
             });
-            customItems = [];
+            
+            // Calculate custom items
             document.querySelectorAll('.custom-item-row').forEach(row => {
                 const desc = row.querySelector('.custom-desc').value.trim();
                 const price = parseFloat(row.querySelector('.custom-price').value);
-                if (desc && !isNaN(price)) {
+                if (desc && !isNaN(price) && price > 0) {
                     customItems.push({ desc, price });
                     total += price;
                 }
             });
-            document.getElementById('dealSummary').innerHTML = `Total: <strong>$${total}</strong>`;
-            return total;
+            
+            // Update display
+            document.getElementById('dealSummary').innerHTML = `
+                <div class="deal-summary-label">Total Amount</div>
+                <div class="deal-summary-total">$${total.toFixed(2)}</div>
+            `;
+            
+            return { total, selectedDeals, customItems };
         }
-        document.getElementById('dealOptions').addEventListener('change', updateDealSummary);
-        document.getElementById('customItems').addEventListener('input', updateDealSummary);
-        document.getElementById('customItems').addEventListener('change', updateDealSummary);
-        document.getElementById('addCustomBtn').onclick = function() {
-            const row = document.createElement('div');
-            row.className = 'custom-item-row';
-            row.innerHTML = `<input class="custom-desc" placeholder="Description" type="text"><input class="custom-price" placeholder="Price" type="number" min="0" step="0.01"><button type="button" class="remove-btn">&times;</button>`;
-            row.querySelector('.remove-btn').onclick = function() { row.remove(); updateDealSummary(); };
-            document.getElementById('customItems').appendChild(row);
-        };
-        // --- DEAL SUBMIT ---
-        document.getElementById('dealForm').onsubmit = async function(e) {
-            e.preventDefault();
-            const total = updateDealSummary();
+
+        // Submit deal
+        async function submitDeal() {
+            const { total, selectedDeals, customItems } = updateDealSummary();
+            
             if (selectedDeals.length === 0 && customItems.length === 0) {
                 alert('Please select at least one deal or add a custom item.');
                 return;
             }
-            document.getElementById('submitDealBtn').disabled = true;
-            const dealDetails = selectedDeals.map(d => ({ type: d.type, label: d.label, price: d.price }));
-            const { error } = await supabase
-                .from('vendor_deals')
-                .insert({
-                    member_id: memberId,
-                    vendor_id: VENDOR_ID,
-                    vendor_name: VENDOR_NAME,
-                    deal_type: 'window_tint',
-                    deal_details: dealDetails,
-                    total_price: total,
-                    custom_items: customItems,
-                    created_at: new Date().toISOString(),
-                    created_by: VENDOR_ID
-                });
-            if (error) {
+            
+            const submitBtn = document.getElementById('submitDealBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+            
+            try {
+                const { error } = await supabase
+                    .from('vendor_deals')
+                    .insert({
+                        member_id: memberId,
+                        vendor_id: VENDOR_ID,
+                        vendor_name: VENDOR_NAME,
+                        deal_type: 'window_tint',
+                        deal_details: selectedDeals,
+                        total_price: total,
+                        custom_items: customItems,
+                        created_at: new Date().toISOString(),
+                        created_by: VENDOR_ID
+                    });
+                
+                if (error) {
+                    throw error;
+                }
+                
+                // Show success message
+                document.getElementById('dealForm').style.display = 'none';
+                const confirmationElement = document.getElementById('confirmationMsg');
+                confirmationElement.innerHTML = `
+                    <i class="fas fa-check-circle"></i>
+                    <strong>Deal Successfully Logged!</strong><br>
+                    Thank you, EE Auto. The deal has been recorded for this member.
+                `;
+                confirmationElement.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error submitting deal:', error);
                 alert('Failed to log deal: ' + error.message);
-                document.getElementById('submitDealBtn').disabled = false;
-                return;
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-check"></i> Submit Deal';
             }
-            document.getElementById('dealForm').style.display = 'none';
-            document.getElementById('confirmationMsg').style.display = 'block';
-            document.getElementById('confirmationMsg').textContent = 'Deal logged for this member! Thank you, EE Auto.';
-        };
-    });
+        }
     </script>
 </body>
 </html> 

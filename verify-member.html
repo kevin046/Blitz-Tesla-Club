@@ -661,6 +661,7 @@
             
             if (profile.membership_status === 'active') {
                 showVendorSection();
+                setupEventListeners();
             } else {
                 showError('Member Not Verified', 'This member has not completed verification.');
             }

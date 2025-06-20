@@ -595,6 +595,7 @@
         function initializeSupabase() {
             if (window.supabase) {
                 supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                window.supabaseClient = supabase; // Ensure global client is set
             } else {
                 displayError('Initialization Error', 'Could not connect to the verification service. Please try again later.');
                 console.error('Supabase client is not available.');
@@ -633,7 +634,10 @@
             }
 
             // Show loading state
-            document.getElementById('memberCard').innerHTML = '<p>Loading member info...</p>';
+            const memberCardElem = document.getElementById('memberCard');
+            if (memberCardElem) {
+                memberCardElem.innerHTML = '<p>Loading member info...</p>';
+            }
 
             const { data, error } = await supabase
                 .from('profiles')
@@ -645,12 +649,12 @@
                 displayError('Member Not Found', 'The provided member ID is invalid. Please ensure the QR code is correct.');
                 return;
             }
-            
             displayMemberInfo(data);
         }
 
         function displayMemberInfo(profile) {
             const memberCard = document.getElementById('memberCard');
+            if (!memberCard) return; // Defensive: only update if element exists
             const statusClass = profile.membership_status === 'active' ? 'status-verified' : 'status-pending';
             
             // Update member display

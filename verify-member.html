@@ -444,7 +444,7 @@
             <div id="errorMessage" class="error-message"></div>
             
             <!-- Member Information -->
-            <div class="member-card">
+            <div id="memberCard" class="member-card">
                 <div class="member-info">
                     <div id="memberName" class="member-name">Loading...</div>
                     <div id="memberId" class="member-id"></div>
@@ -595,6 +595,7 @@
         function initializeSupabase() {
             if (window.supabase) {
                 supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                window.supabaseClient = supabase;
             } else {
                 showError('Initialization Error', 'Could not connect to the verification service. Please try again later.');
                 console.error('Supabase client is not available.');
@@ -628,7 +629,10 @@
             }
 
             // Show loading state
-            document.getElementById('memberCard').innerHTML = '<p>Loading member info...</p>';
+            document.getElementById('memberName').textContent = 'Loading...';
+            document.getElementById('memberId').textContent = '';
+            document.getElementById('memberStatus').className = 'status-badge status-pending';
+            document.getElementById('memberStatus').innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Verifying...</span>';
 
             const { data, error } = await supabase
                 .from('profiles')

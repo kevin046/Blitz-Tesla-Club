@@ -684,9 +684,15 @@
                 return;
             }
             
-            if (password.toLowerCase() === 'ee2025') {
-                // Redirect to tracking page
-                window.location.href = 'ee-auto-tracking.html';
+            if (password.toLowerCase() === 'eeauto') {
+                // Redirect to tracking page with member ID
+                const urlParams = new URLSearchParams(window.location.search);
+                const memberId = urlParams.get('member_id');
+                if (memberId) {
+                    window.location.href = `ee-auto-tracking.html?member_id=${encodeURIComponent(memberId)}`;
+                } else {
+                    window.location.href = 'ee-auto-tracking.html';
+                }
                 return;
             }
             

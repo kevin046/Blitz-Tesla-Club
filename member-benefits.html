@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, minimal-ui">
+    <title>Member Benefits - Blitz T Club</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="mobile-navigation.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/BvmtNLtB/logo.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="navigation.js" defer></script>
+    <style>
+        body.benefits-page {
+            background: linear-gradient(120deg, #f8f9fa 0%, #e9e6f7 100%);
+            min-height: 100vh;
+        }
+        .benefits-hero {
+            background: linear-gradient(135deg, #171a20 0%, #764ba2 100%);
+            color: #fff;
+            padding: 110px 20px 60px;
+            text-align: center;
+            position: relative;
+        }
+        .benefits-hero h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            letter-spacing: 0.02em;
+        }
+        .benefits-hero p {
+            font-size: 1.25rem;
+            color: #e0e0e0;
+            margin-bottom: 2.5rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .benefits-cards {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2.5rem;
+            margin-top: -60px;
+            margin-bottom: 3rem;
+        }
+        .benefit-card {
+            background: #fff;
+            border-radius: 22px;
+            box-shadow: 0 8px 32px rgba(23,26,32,0.13);
+            padding: 2.7rem 2.2rem 2.2rem;
+            max-width: 520px;
+            width: 100%;
+            text-align: left;
+            position: relative;
+            transition: box-shadow 0.3s;
+        }
+        .benefit-card:hover {
+            box-shadow: 0 12px 40px rgba(118,75,162,0.18);
+        }
+        .benefit-card .vendor-logo {
+            width: 100px;
+            height: 100px;
+            border-radius: 18px;
+            object-fit: contain;
+            background: #f8fafc;
+            box-shadow: 0 2px 8px rgba(23,26,32,0.08);
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 3px solid #fff;
+        }
+        .benefit-card h2 {
+            font-size: 1.6rem;
+            color: #171a20;
+            margin-top: 70px;
+            margin-bottom: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+        }
+        .benefit-card .deal-details {
+            color: #393c41;
+            font-size: 1.13rem;
+            margin-bottom: 1.3rem;
+        }
+        .benefit-card .deal-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1.3rem;
+            background: #f8f6ff;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .benefit-card .deal-table th, .benefit-card .deal-table td {
+            padding: 0.8rem 0.5rem;
+            border-bottom: 1px solid #ececec;
+            text-align: left;
+        }
+        .benefit-card .deal-table th {
+            color: #764ba2;
+            font-weight: 700;
+            background: #f3edff;
+            font-size: 1.08rem;
+        }
+        .benefit-card .deal-table td {
+            color: #171a20;
+            font-size: 1.08rem;
+        }
+        .benefit-card .deal-table tr:last-child td {
+            border-bottom: none;
+        }
+        .benefit-card .qr-instructions {
+            background: #f8f6ff;
+            color: #764ba2;
+            border-radius: 12px;
+            padding: 1.3rem 1.1rem;
+            margin-bottom: 1.3rem;
+            font-size: 1.08rem;
+            display: flex;
+            align-items: center;
+            gap: 1.1rem;
+        }
+        .benefit-card .qr-instructions i {
+            font-size: 2rem;
+        }
+        .benefit-card .note {
+            color: #888;
+            font-size: 1.01rem;
+            margin-top: 1.3rem;
+        }
+        .benefit-card .note a {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+        @media (max-width: 900px) {
+            .benefits-cards {
+                margin-top: -40px;
+            }
+            .benefit-card {
+                padding: 2rem 1rem 1.5rem;
+            }
+        }
+        @media (max-width: 600px) {
+            .benefits-hero {
+                padding: 90px 10px 40px;
+            }
+            .benefits-hero h1 {
+                font-size: 2rem;
+            }
+            .benefits-cards {
+                margin-top: -30px;
+            }
+            .benefit-card {
+                padding: 1.2rem 0.3rem 1.2rem;
+            }
+            .benefit-card h2 {
+                margin-top: 60px;
+            }
+        }
+    </style>
+</head>
+<body class="benefits-page">
+    <nav>
+      <div class="logo">
+        <a href="index.html">
+          <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo">
+          <span>BLITZ T CLUB</span>
+        </a>
+      </div>
+      <button class="menu-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="nav-links">
+        <i class="fas fa-bars"></i>
+      </button>
+      <ul class="nav-links" id="nav-links"></ul>
+    </nav>
+    <main>
+      <section class="section-content" style="padding-top: 120px; padding-bottom: 40px;">
+        <h1 style="font-size:2.5rem; font-weight:700; color:#171a20; margin-bottom:0.5rem; letter-spacing:0.01em;">Member Benefits</h1>
+        <p style="font-size:1.2rem; color:#393c41; margin-bottom:2.5rem; max-width:600px; margin-left:auto; margin-right:auto;">Unlock exclusive deals and experiences as a Blitz T Club member. Enjoy special pricing and perks from our trusted partners.</p>
+        <div class="dashboard-grid" style="display:flex; flex-wrap:wrap; gap:2.5rem; justify-content:center;">
+          <div class="dashboard-card" style="max-width:480px; width:100%; background:#fff; border-radius:18px; box-shadow:0 8px 32px rgba(23,26,32,0.10); padding:2.5rem 2rem 2rem; position:relative; display:flex; flex-direction:column; align-items:center;">
+            <div style="margin-bottom:1.5rem;">
+              <span style="font-family:'Montserrat',sans-serif; font-size:2.2rem; font-weight:800; letter-spacing:0.01em;">
+                <span style="color:#FF5722;">EE</span><span style="color:#171a20;"> Auto</span>
+              </span>
+            </div>
+            <h2 style="font-size:1.3rem; color:#764ba2; font-weight:700; margin-bottom:0.7rem; text-align:center;">Window Tinting Special</h2>
+            <div style="color:#393c41; font-size:1.08rem; margin-bottom:1.2rem; text-align:center;">
+              <strong>Blitz T Club Member Pricing</strong> – Show your membership and save on professional window tinting for your Tesla!
+            </div>
+            <table class="deal-table" style="width:100%; border-collapse:collapse; background:#f8f6ff; border-radius:10px; overflow:hidden; margin-bottom:1.2rem;">
+              <thead>
+                <tr>
+                  <th style="color:#764ba2; font-weight:700; background:#f3edff; font-size:1.08rem; padding:0.8rem 0.5rem; text-align:left;">Service</th>
+                  <th style="color:#764ba2; font-weight:700; background:#f3edff; font-size:1.08rem; padding:0.8rem 0.5rem; text-align:left;">Member Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec;">Driver &amp; Passenger (Regular)</td><td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec;">$100</td></tr>
+                <tr><td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec;">Driver &amp; Passenger (IR Ceramic)</td><td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec;">$150</td></tr>
+                <tr><td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec;">Windshield (Regular)</td><td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec;">$130</td></tr>
+                <tr><td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec;">All Except Windshield/Sunroof (Regular)</td><td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec;">$200</td></tr>
+                <tr><td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec;">All Except Windshield/Sunroof (IR Ceramic)</td><td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec;">$270</td></tr>
+                <tr><td style="padding:0.8rem 0.5rem;">Best Film Package (IR Ceramic, All Except Sunroof)</td><td style="padding:0.8rem 0.5rem;">$400</td></tr>
+              </tbody>
+            </table>
+            <div style="background:#f8f6ff; color:#764ba2; border-radius:12px; padding:1.3rem 1.1rem; margin-bottom:1.3rem; font-size:1.08rem; display:flex; align-items:center; gap:1.1rem;">
+              <i class="fas fa-qrcode" style="font-size:2rem;"></i>
+              <span><strong>How to Redeem:</strong> Please have your Blitz T Club member QR code scanned by EE Auto staff to access these exclusive prices.<br><span style="color:#393c41;font-size:0.98em;">No QR, no deal – this offer is for verified members only.</span></span>
+            </div>
+            <div style="color:#888; font-size:1.01rem; margin-top:1.3rem; text-align:center;">
+              <i class="fas fa-info-circle"></i> For questions or to book your appointment, contact EE Auto Group directly.<br>
+              <a href="https://www.ee-auto.com/contact-us" target="_blank" rel="noopener" style="color:#764ba2; text-decoration:underline;">Contact EE Auto Group</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <div class="footer-links">
+                    <a href="index.html">Home</a>
+                    <a href="events.html">Events</a>
+                    <a href="gallery.html">Gallery</a>
+                    <a href="contact.html">Contact</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Member Area</h3>
+                <div class="footer-links">
+                    <a href="sponsors.html">Our Sponsors</a>
+                    <a href="member-benefits.html">Member Benefits</a>
+                    <a href="#" id="footerLogoutBtn">Logout</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Legal</h3>
+                <div class="footer-links">
+                    <a href="privacy.html">Privacy Policy</a>
+                    <a href="terms.html">Terms of Service</a>
+                    <a href="about.html">About Us</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Connect With Us</h3>
+                <div class="footer-social">
+                    <a href="https://x.com/BlitzTClub" target="_blank" aria-label="Follow us on X">
+                        <i class="fa-brands fa-square-x-twitter"></i>
+                    </a>
+                    <a href="https://www.instagram.com/blitztclub/" target="_blank" aria-label="Follow us on Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 Blitz T Club. All rights reserved.</p>
+            <p class="powered-by">
+                Website powered by <a href="http://www.summitpixels.com" target="_blank">SummitPixels</a>
+            </p>
+        </div>
+    </footer>
+</body>
+</html>

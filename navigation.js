@@ -225,7 +225,7 @@ async function initializeNavigation() {
             { href: 'dashboard.html', icon: 'fas fa-tachometer-alt', text: 'Dashboard' },
             { href: 'events.html', icon: 'fas fa-calendar', text: 'Events' },
             { href: 'gallery.html', icon: 'fas fa-images', text: 'Gallery' },
-            { href: 'news.html', icon: 'fas fa-newspaper', text: 'News' },
+            { href: 'member-benefits.html', icon: 'fas fa-gift', text: 'Member Benefits' },
             { href: 'contact.html', icon: 'fas fa-envelope', text: 'Contact' },
             { href: 'about.html', icon: 'fas fa-info-circle', text: 'About Us' },
             { href: '#', icon: 'fas fa-sign-out-alt', text: 'Logout', id: 'logoutBtn' }
@@ -234,7 +234,7 @@ async function initializeNavigation() {
             { href: 'index.html', icon: 'fas fa-home', text: '', iconOnly: true },
             { href: 'events.html', icon: 'fas fa-calendar', text: 'Events' },
             { href: 'gallery.html', icon: 'fas fa-images', text: 'Gallery' },
-            { href: 'news.html', icon: 'fas fa-newspaper', text: 'News' },
+            { href: 'member-benefits.html', icon: 'fas fa-gift', text: 'Member Benefits' },
             { href: 'contact.html', icon: 'fas fa-envelope', text: 'Contact' },
             { href: 'about.html', icon: 'fas fa-info-circle', text: 'About Us' },
             { href: 'register.html', icon: 'fas fa-user-plus', text: 'Join Us' },

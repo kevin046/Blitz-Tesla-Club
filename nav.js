@@ -15,7 +15,6 @@ function createNavigation() {
             <li><a href="./index.html">Home</a></li>
             <li><a href="./events.html">Events</a></li>
             <li><a href="./gallery.html">Gallery</a></li>
-            <li><a href="./news.html">News</a></li>
             <li><a href="./register.html">Join Us</a></li>
             <li><a href="./login.html">Login</a></li>
         </ul>

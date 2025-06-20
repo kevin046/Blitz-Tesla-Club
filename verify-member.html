@@ -595,7 +595,6 @@
         function initializeSupabase() {
             if (window.supabase) {
                 supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                window.supabaseClient = supabase; // Ensure global client is set
             } else {
                 displayError('Initialization Error', 'Could not connect to the verification service. Please try again later.');
                 console.error('Supabase client is not available.');
@@ -604,18 +603,16 @@
         
         async function logQrScan(memberUuid, memberIdString) {
             if (!window.supabaseClient) return;
-            const scanData = {
-                member_id: memberUuid, // UUID from URL
-                member_id_string: memberIdString, // Human-readable member ID
-                vendor_id: 'EE Auto Group'
-            };
-            console.log('Logging scan to Supabase:', scanData); // Debug log
             try {
                 const { error } = await window.supabaseClient
                     .from('qr_code_scans')
-                    .insert(scanData);
+                    .insert({
+                        member_id: memberUuid,
+                        member_id_string: memberIdString,
+                        vendor_id: 'EE Auto Group'
+                    });
                 if (error) {
-                    console.error('Failed to log QR scan:', error, error.details || error.message);
+                    console.error('Failed to log QR scan:', error);
                 } else {
                     console.log('QR scan logged for member:', memberUuid, memberIdString);
                 }
@@ -631,10 +628,7 @@
             }
 
             // Show loading state
-            const memberCardElem = document.getElementById('memberCard');
-            if (memberCardElem) {
-                memberCardElem.innerHTML = '<p>Loading member info...</p>';
-            }
+            document.getElementById('memberCard').innerHTML = '<p>Loading member info...</p>';
 
             const { data, error } = await supabase
                 .from('profiles')
@@ -646,12 +640,12 @@
                 displayError('Member Not Found', 'The provided member ID is invalid. Please ensure the QR code is correct.');
                 return;
             }
+            
             displayMemberInfo(data);
         }
 
         function displayMemberInfo(profile) {
             const memberCard = document.getElementById('memberCard');
-            if (!memberCard) return; // Defensive: only update if element exists
             const statusClass = profile.membership_status === 'active' ? 'status-verified' : 'status-pending';
             
             // Update member display
@@ -847,17 +841,6 @@
                 alert('Failed to log deal: ' + error.message);
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i class="fas fa-check"></i> Submit Deal';
-            }
-        }
-
-        // Add this utility function near the top of your main <script> block or before it is first used
-        function displayError(title, message) {
-            const errorElement = document.getElementById('errorMessage');
-            if (errorElement) {
-                errorElement.innerHTML = `<strong>${title}</strong><br>${message}`;
-                errorElement.style.display = 'block';
-            } else {
-                alert(`${title}\n${message}`); // fallback if element is missing
             }
         }
     </script>

@@ -525,53 +525,22 @@
             }
         }
 
-        // Test function to verify video IDs
-        async function testVideoIds() {
-            const testIds = ['p1dxjAjGzfg', 'HHiLFB_iQGs', 'lA4tmeWR308'];
-            console.log('Testing video IDs:', testIds);
-            
-            for (const videoId of testIds) {
-                console.log(`Testing video ID: ${videoId}`);
-                const details = await fetchVideoDetails(videoId);
-                if (details) {
-                    console.log(`✅ Video ${videoId} is available:`, details.snippet?.title);
-                    console.log(`📺 Embed status for ${videoId}:`, {
-                        embeddable: details.status?.embeddable,
-                        privacyStatus: details.status?.privacyStatus,
-                        uploadStatus: details.status?.uploadStatus
-                    });
-                } else {
-                    console.log(`❌ Video ${videoId} is not available`);
-                }
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', async () => {
-            console.log('Gallery page loaded, starting video tests...');
-            
-            // Test video IDs on page load
-            await testVideoIds();
-            
             const galleryItems = document.querySelectorAll('.gallery-item');
             const filterButtons = document.querySelectorAll('.filter-btn');
             const videoModal = document.getElementById('videoModal');
             const modalVideo = document.getElementById('modalVideo');
             const closeModal = document.querySelector('.close-modal');
 
-            console.log('Found gallery items:', galleryItems.length);
-
             // Fetch video details for each gallery item
             for (const item of galleryItems) {
                 const videoId = item.dataset.videoId;
-                console.log('Processing gallery item with video ID:', videoId);
                 
                 if (!videoId) {
-                    console.error('No video ID found for gallery item');
                     continue;
                 }
                 
                 const videoDetails = await fetchVideoDetails(videoId);
-                console.log('Video details for', videoId, ':', videoDetails);
                 
                 if (videoDetails && videoDetails.snippet) {
                     const titleElement = item.querySelector('.video-title');
@@ -582,9 +551,7 @@
                     if (videoDetails.snippet.title) {
                         adjustTitleSize(titleElement, videoDetails.snippet.title);
                         thumbnailImage.alt = videoDetails.snippet.title;
-                        console.log('✅ Set title for video:', videoId, videoDetails.snippet.title);
                     } else {
-                        console.warn('Missing title for video:', videoId);
                         titleElement.textContent = 'Video Unavailable';
                         item.classList.add('error');
                     }
@@ -593,15 +560,12 @@
                     const duration = videoDetails.contentDetails?.duration;
                     if (duration) {
                         durationElement.innerHTML = `<i class="far fa-clock"></i> ${parseDuration(duration)}`;
-                        console.log('✅ Set duration for video:', videoId, parseDuration(duration));
                     } else {
                         durationElement.innerHTML = '<i class="far fa-clock"></i> LIVE';
-                        console.warn('Live stream detected for video:', videoId);
                     }
 
                     // Check if video is embeddable
                     const isEmbeddable = videoDetails.status?.embeddable;
-                    console.log('Embeddable status for', videoId, ':', isEmbeddable);
                     
                     if (isEmbeddable === false) {
                         item.classList.add('error');
@@ -660,10 +624,7 @@
                         playBtn.disabled = true;
                         playBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
                         playBtn.title = 'This video cannot be embedded. Click "Watch on YouTube" to view.';
-                        
-                        console.warn('Video not embeddable:', videoId);
                     } else {
-                        console.log('✅ Video is embeddable:', videoId, isEmbeddable);
                         // Ensure the item is not marked as error
                         item.classList.remove('error');
                         
@@ -676,7 +637,6 @@
                         }
                     }
                 } else {
-                    console.warn('No video data available for:', videoId);
                     const titleElement = item.querySelector('.video-title');
                     const durationElement = item.querySelector('.video-duration');
                     const playBtn = item.querySelector('.play-btn');
@@ -742,7 +702,6 @@
                         
                         // Show loading state
                         item.classList.add('loading');
-                        console.log('Attempting to play video:', videoId);
                         
                         // Test if video is playable first
                         const testIframe = document.createElement('iframe');
@@ -750,7 +709,6 @@
                         testIframe.style.display = 'none';
                         
                         testIframe.onload = () => {
-                            console.log('Video iframe loaded successfully:', videoId);
                             item.classList.remove('loading');
                             modalVideo.src = testIframe.src;
                             videoModal.classList.add('active');
@@ -758,7 +716,6 @@
                         };
                         
                         testIframe.onerror = () => {
-                            console.error('Video iframe failed to load:', videoId);
                             item.classList.remove('loading');
                             item.classList.add('error');
                             alert('This video cannot be embedded. Redirecting to YouTube...');
@@ -769,7 +726,6 @@
                         // Set a timeout in case the video takes too long to load
                         setTimeout(() => {
                             if (item.classList.contains('loading')) {
-                                console.warn('Video loading timeout:', videoId);
                                 item.classList.remove('loading');
                                 item.classList.add('error');
                                 alert('Video loading timeout. Redirecting to YouTube...');
@@ -780,7 +736,6 @@
                         
                         document.body.appendChild(testIframe);
                     } catch (error) {
-                        console.error('Video playback error:', error);
                         item.classList.remove('loading');
                         alert('Error loading video. Redirecting to YouTube...');
                         const videoId = item.dataset.videoId;

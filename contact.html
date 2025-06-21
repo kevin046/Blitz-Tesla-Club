@@ -533,12 +533,7 @@
                     Please try again or contact us directly.
                 </div>
 
-                <form class="contact-form" id="contactForm" action="https://formsubmit.co/info@blitztclub.com" method="POST" accept-charset="UTF-8">
-                    <input type="hidden" name="_template" value="table">
-                    <input type="hidden" name="_subject" value="New Contact Form Message - Blitz T Club">
-                    <input type="hidden" name="_captcha" value="false">
-                    <input type="hidden" name="_next" value="https://blitztclub.com/contact.html">
-                    
+                <form class="contact-form" id="contactForm" onsubmit="sendEmail(event)">
                     <div class="form-group">
                         <label for="name">Full Name *</label>
                         <input type="text" id="name" name="name" required>
@@ -633,19 +628,73 @@
     </footer>
    
     <script>
-        // Simple form handling for FormSubmit
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check if we're on a success page (FormSubmit redirects here)
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('success') === 'true') {
-                // Show success message
-                const successMessage = document.getElementById('successMessage');
-                if (successMessage) {
-                    successMessage.style.display = 'block';
-                    successMessage.scrollIntoView({ behavior: 'smooth' });
-                }
+        // Email sending function
+        function sendEmail(event) {
+            event.preventDefault();
+            
+            // Get form data
+            const form = document.getElementById('contactForm');
+            const formData = new FormData(form);
+            
+            const name = formData.get('name');
+            const email = formData.get('email');
+            const memberId = formData.get('memberId');
+            const subject = formData.get('subject');
+            const message = formData.get('message');
+            
+            // Create professional email content
+            const emailSubject = `New Contact Form Message: ${subject}`;
+            const emailBody = `
+Dear Blitz T Club Team,
+
+You have received a new contact form message from the website.
+
+Contact Details:
+- Name: ${name}
+- Email: ${email}
+${memberId ? `- Member ID: ${memberId}` : ''}
+- Subject: ${subject}
+- Date: ${new Date().toLocaleString()}
+
+Message:
+${message}
+
+---
+This message was sent from the Blitz T Club website contact form.
+Please respond to ${email} to reply to the sender.
+
+Best regards,
+Blitz T Club Website
+            `.trim();
+
+            // Create mailto link
+            const mailtoLink = `mailto:info@blitztclub.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+            
+            // Show success message
+            const successMessage = document.getElementById('successMessage');
+            if (successMessage) {
+                successMessage.style.display = 'block';
+                successMessage.scrollIntoView({ behavior: 'smooth' });
             }
             
+            // Reset form
+            form.reset();
+            
+            // Open email client
+            try {
+                window.open(mailtoLink, '_blank');
+            } catch (e) {
+                console.log('Could not auto-open email client');
+            }
+            
+            // Show additional notification
+            setTimeout(() => {
+                alert('Thank you for contacting us! Your email client should open with a pre-filled message. Please review and send the email to complete your message.');
+            }, 1000);
+        }
+
+        // Simple form handling
+        document.addEventListener('DOMContentLoaded', function() {
             // Add loading state to submit button
             const form = document.getElementById('contactForm');
             const submitBtn = document.getElementById('submitBtn');
@@ -653,7 +702,13 @@
             if (form && submitBtn) {
                 form.addEventListener('submit', function() {
                     submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Preparing Email...';
+                    
+                    // Re-enable button after a short delay
+                    setTimeout(() => {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
+                    }, 2000);
                 });
             }
         });

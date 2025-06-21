@@ -1378,14 +1378,380 @@
             opacity: 0.65 !important;
         }
 
+        /* Past Event Styles */
+        .past-event {
+            opacity: 0.8;
+            position: relative;
+        }
+
+        .past-event::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.05) 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .past-event-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #6c757d, #495057);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .past-event-badge i {
+            font-size: 1rem;
+        }
+
+        .past-event-message {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid #6c757d;
+        }
+
+        .past-event-message i {
+            color: #6c757d;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .past-event-message p {
+            margin: 0;
+            color: #495057;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        .past-event .event-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .past-event .btn {
+            min-width: 200px;
+        }
+
+        /* Event Categories Navigation */
+        .event-categories {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 40px 0;
+            padding: 0 20px;
+        }
+
+        .category-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            background: #ffffff;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            color: #666;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .category-btn:hover {
+            border-color: #00e676;
+            color: #00e676;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 230, 118, 0.2);
+        }
+
+        .category-btn.active {
+            background: linear-gradient(135deg, #00e676, #2196f3);
+            border-color: #00e676;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3);
+        }
+
+        .category-btn i {
+            font-size: 1.1rem;
+        }
+
+        /* Events Sections */
+        .events-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .events-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .section-header h2 {
+            font-size: 2rem;
+            color: #171a20;
+            margin-bottom: 10px;
+        }
+
+        .section-header p {
+            font-size: 1.1rem;
+            color: #666;
+        }
+
+        /* Events Grid */
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        /* Past Event Cards */
+        .past-event-card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+
+        .past-event-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .event-card-image {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+        }
+
+        .event-card-image .event-image-container {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            transition: transform 0.3s ease;
+        }
+
+        .past-event-card:hover .event-card-image .event-image-container {
+            transform: scale(1.05);
+        }
+
+        .past-event-overlay {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 2;
+        }
+
+        .event-card-content {
+            padding: 25px;
+        }
+
+        .event-card-content .event-title {
+            font-size: 1.4rem;
+            color: #171a20;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .event-meta {
+            margin-bottom: 20px;
+        }
+
+        .event-meta .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .event-meta .meta-item i {
+            color: #00e676;
+            width: 16px;
+            text-align: center;
+        }
+
+        .event-highlights {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .highlight-tag {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            color: #495057;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .highlight-tag i {
+            color: #00e676;
+            font-size: 0.8rem;
+        }
+
+        .event-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .event-actions .btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 10px 16px;
+            font-size: 0.9rem;
+        }
+
+        /* Placeholder Styling */
+        .event-placeholder {
+            text-align: center;
+            padding: 60px 40px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 16px;
+            border: 2px dashed #dee2e6;
+            grid-column: 1 / -1;
+        }
+
+        .placeholder-icon {
+            font-size: 3rem;
+            color: #00e676;
+            margin-bottom: 20px;
+        }
+
+        .event-placeholder h3 {
+            color: #171a20;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .event-placeholder p {
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .event-categories {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+            }
+
+            .category-btn {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+
+            .events-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .event-card-content {
+                padding: 20px;
+            }
+
+            .event-actions {
+                flex-direction: column;
+            }
+
+            .event-actions .btn {
+                width: 100%;
+            }
+        }
+
+        /* Event Details Modal Styles */
+        .event-details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 20px 0;
+        }
+        
+        .detail-item {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .detail-item i {
+            color: #00e676;
+            margin-top: 3px;
+            width: 16px;
+        }
+        
+        .detail-item ul {
+            margin: 10px 0 0 20px;
+            padding: 0;
+        }
+        
+        .detail-item li {
+            margin-bottom: 5px;
+            color: #666;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .event-details-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .modal-actions {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body class="events-page">
     <script>
       // Initialize Supabase client connection
-      // IMPORTANT: Replace the placeholders below with your actual Supabase project details from the Supabase dashboard
-      // For example: const SUPABASE_URL = 'https://abc123.supabase.co';
-      //              const SUPABASE_KEY = 'your-real-anon-key';
       const SUPABASE_URL = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI';
       window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1414,105 +1780,92 @@
 
     <main class="events-container">
         <header class="events-header">
-            <h1>Upcoming Events</h1>
+            <h1>Events</h1>
             <p>Join us for exclusive Tesla owner gatherings and experiences</p>
         </header>
 
-        <!-- Tesla Light Show Event Card -->
-        <div class="event-card featured-event">
-            <div class="event-header">
-                <div class="event-image-container"></div>
-                
-                <div class="event-details">
-                    <h1 class="event-title">Tesla Light Show Spectacular</h1>
-                    
-                    <div class="event-meta-grid">
-                        <div class="meta-item">
-                            <i class="fas fa-calendar-day meta-icon"></i>
-                            <div class="meta-content">
-                                <strong>Event Date</strong>
-                                <span>May 30, 2025 @ 7:30 PM EST</span>
-                            </div>
+        <!-- Event Categories Navigation -->
+        <div class="event-categories">
+            <button class="category-btn active" data-category="upcoming">
+                <i class="fas fa-calendar-alt"></i>
+                Upcoming Events
+            </button>
+            <button class="category-btn" data-category="past">
+                <i class="fas fa-history"></i>
+                Past Events
+            </button>
+        </div>
+
+        <!-- Upcoming Events Section -->
+        <section id="upcoming-events" class="events-section active">
+            <div class="section-header">
+                <h2>Upcoming Events</h2>
+                <p>Mark your calendar for these exciting Tesla community gatherings</p>
                         </div>
                         
-                        <div class="meta-item">
-                            <i class="fas fa-map-marker-alt meta-icon"></i>
-                            <div class="meta-content">
-                                <strong>Location</strong>
-                                <span>Golf IT Up Parking Lot<br>2910 Steeles Ave East, Thornhill, ON</span>
+            <div class="events-grid">
+                <div class="event-placeholder">
+                    <div class="placeholder-icon">
+                        <i class="fas fa-calendar-plus"></i>
                             </div>
+                    <h3>More Events Coming Soon</h3>
+                    <p>We're constantly planning new experiences for our members</p>
+                    <a href="contact.html" class="btn">Suggest an Event Idea</a>
                         </div>
                     </div>
+        </section>
 
-                    <div class="event-description">
-                        <h3>Event Highlights</h3>
-                        <ul class="feature-list">
-                            <li>
-                                <i class="fas fa-lightbulb text-accent"></i>
-                                Custom light choreography
-                            </li>
-                            <li>
-                                <i class="fas fa-users"></i>
-                                Member networking sessions
-                            </li>
-                            <li>
-                                <i class="fas fa-wrench"></i>
-                                Technical workshops
-                            </li>
-                            <li>
-                                <i class="fas fa-camera"></i>
-                                Professional photo ops
-                            </li>
-                        </ul>
+        <!-- Past Events Section -->
+        <section id="past-events" class="events-section">
+            <div class="section-header">
+                <h2>Past Events</h2>
+                <p>Relive our memorable Tesla community gatherings</p>
                     </div>
+            
+            <div class="events-grid">
+                <!-- Tesla Light Show Event Card -->
+                <div class="event-card past-event-card">
+                    <div class="event-card-image">
+                        <div class="event-image-container"></div>
+                        <div class="past-event-overlay">
+                            <span class="past-event-badge">
+                                <i class="fas fa-calendar-check"></i> Past Event
+                            </span>
                 </div>
             </div>
 
-            <div class="event-actions">
-              <button class="btn primary-btn" id="eventRegisterBtn">
-            <i class="fas fa-car"></i> Register Your Tesla
-            </ button>
-                <button class="btn primary-btn" id="checkStatusBtn">
-                    <i class="fas fa-clipboard-check"></i> Check My Registration
-                </button>
-                <button class="btn secondary-btn" id="signWaiverBtn">
-                    <i class="fas fa-file-signature"></i> Sign Event Waiver
-                </button>
-                <div class="registration-count">
-                    <div class="registration-icon">
-                        <i class="fas fa-car"></i>
+                    <div class="event-card-content">
+                        <h3 class="event-title">Tesla Light Show Spectacular</h3>
+                        
+                        <div class="event-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-calendar-day"></i>
+                                <span>May 30, 2025 @ 7:30 PM EST</span>
                     </div>
-                    <div class="registration-details">
-                        <div class="total-count">
-                            <i class="fas fa-users"></i> Total Registered: <strong id="totalCount">0</strong>
+                            <div class="meta-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Golf IT Up Parking Lot, Thornhill, ON</span>
                         </div>
-                        <div class="model-breakdown">
-                            <h4>Model Breakdown:</h4>
-                            <div class="model-list" id="modelList">
-                                <!-- Model items will be inserted here -->
                             </div>
-                        </div>
-                    </div>
-                </div>
+
+                        <div class="event-highlights">
+                            <span class="highlight-tag"><i class="fas fa-lightbulb"></i> Light Show</span>
+                            <span class="highlight-tag"><i class="fas fa-users"></i> Networking</span>
+                            <span class="highlight-tag"><i class="fas fa-camera"></i> Photo Ops</span>
             </div>
 
-            <div class="event-map">
-                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2876.21620035702!2d-79.47620368434426!3d43.87225594411095!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x882b2a126c606a0d%3A0x5a1b12a3d5b3e8b!2s2910%20Steeles%20Ave%20E%2C%20Thornhill%2C%20ON%20L3T%204A1%2C%20Canada!5e0!3m2!1sen!2sca!4v1718761350502!5m2!1sen!2sca" 
-                        width="100%" 
-                        height="300" 
-                        style="border:0;" 
-                        allowfullscreen="" 
-                        loading="lazy">
-                </iframe>
+                        <div class="event-actions">
+                            <a href="gallery.html" class="btn primary-btn">
+                                <i class="fas fa-images"></i> View Gallery
+                            </a>
+                            <button class="btn secondary-btn" onclick="showEventDetails('tesla-light-show')">
+                                <i class="fas fa-info-circle"></i> Details
+                            </button>
             </div>
         </div>
-
-        <!-- Keep existing "coming soon" placeholder at bottom -->
-        <div class="event-placeholder">
-            <h2>More Events Coming Soon</h2>
-            <p>We're constantly planning new experiences for our members</p>
-            <a href="contact.html" class="btn">Suggest an Event Idea</a>
         </div>
+            </div>
+        </section>
     </main>
 
     <footer>
@@ -1567,257 +1920,21 @@
         </div>
     </footer>
 
-    <div id="registrationModal" class="modal">
-        <div class="modal-content">
+    <!-- Event Details Modal -->
+    <div id="eventDetailsModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
             <span class="close">&times;</span>
-            <h2><i class="fas fa-car"></i> Register Your Tesla</h2>
-            <form id="registrationForm">
-                <div class="form-group">
-                    <label>Select Your Tesla Model:</label>
-                    <select class="modern-select" id="teslaModel" required>
-                        <option value="">Choose Model</option>
-                        <option value="Model 3">Model 3</option>
-                        <option value="Model 3 Highland">Model 3 (Highland)</option>
-                        <option value="Model Y">Model Y</option>
-                        <option value="Model Y Juniper">Model Y (Juniper)</option>
-                        <option value="Model S">Model S</option>
-                        <option value="Model X">Model X</option>
-                        <option value="Cybertruck">Cybertruck</option>
-                    </select>
+            <div id="eventDetailsContent">
+                <!-- Content will be populated by JavaScript -->
                 </div>
-                <div class="cancel-section">
-                    <p>Already registered? <a href="#" id="cancelRegistration">Cancel registration</a></p>
-                </div>
-                <button type="submit" class="btn primary-btn">
-                    <i class="fas fa-check-circle"></i> Confirm Registration
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <div id="cancelModal" class="modal">
-        <div class="modal-content">
-            <span class="close cancel-close">&times;</span>
-            <h2><i class="fas fa-times-circle"></i> Cancel Registration</h2>
-            <form id="cancelForm">
-                <div class="form-group">
-                    <label>Reason for cancellation:</label>
-                    <select class="modern-select" id="cancelReason" required>
-                        <option value="">Select reason</option>
-                        <option value="Schedule Conflict">Schedule Conflict</option>
-                        <option value="Vehicle Unavailable">Vehicle Unavailable</option>
-                        <option value="Change of Plans">Change of Plans</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn danger-btn">
-                    <i class="fas fa-trash-alt"></i> Confirm Cancellation
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <div id="wechatModal" class="modal">
-        <div class="modal-content">
-            <span class="close wechat-close">&times;</span>
-            <h2><i class="fab fa-weixin"></i> Join Our WeChat Group</h2>
-            <div class="qr-container">
-                <!-- Improve the background image implementation for better display -->
-                <div class="qr-code-background" 
-                     style="width: 280px; 
-                            height: 280px; 
-                            background-image: url('https://i.postimg.cc/nzqXwGZX/IMG-6509.jpg'); 
-                            background-size: cover; 
-                            background-position: center center; 
-                            background-repeat: no-repeat; 
-                            background-color: white; 
-                            border-radius: 8px; 
-                            box-shadow: 0 6px 20px rgba(0,0,0,0.15); 
-                            margin: 0 auto; 
-                            border: 4px solid white; 
-                            padding: 10px; 
-                            box-sizing: border-box;
-                            cursor: pointer;
-                            transition: transform 0.2s ease;"
-                     title="Tap to download QR code"
-                     onclick="downloadQRCode('https://i.postimg.cc/xddpFf52/QR-code-for-light.jpg')">
-                </div>
-                
-                <!-- QR code actions -->
-                <div class="qr-actions" style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <a href="#" class="qr-btn download-btn" id="downloadQRBtn" style="background: #07C160; color: white; padding: 10px 20px; border-radius: 20px; text-decoration: none; display: flex; align-items: center; gap: 8px; font-weight: 500; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                        <i class="fas fa-download"></i> Download QR Code
-                    </a>
-                </div>
-                
-                <!-- Add back the mobile instruction for clarity -->
-                <div class="mobile-only" style="text-align: center; margin-top: 10px; color: #555; font-size: 13px;">
-                    <i class="fas fa-info-circle"></i> Tap QR code to save directly
-                </div>
-            </div>
-            
-            <p class="qr-instructions">
-                <strong style="color: #07C160; font-size: 16px;">How to join our Tesla community:</strong><br>
-                1. Save this QR code to your device<br>
-                2. Open WeChat and tap "+" > "Scan"<br>
-                3. Select the saved QR code or scan directly from your screen
-                <span class="qr-subtitle">Connect with 200+ Tesla owners across Canada</span>
-            </p>
-            
-            <div class="qr-benefits">
-                <div class="qr-benefit">
-                    <i class="fas fa-calendar-alt"></i>
-                    <span>Event updates</span>
-                </div>
-                <div class="qr-benefit">
-                    <i class="fas fa-users"></i>
-                    <span>Owner network</span>
-                </div>
-                <div class="qr-benefit">
-                    <i class="fas fa-lightbulb"></i>
-                    <span>Tips & advice</span>
-                </div>
-                <div class="qr-benefit">
-                    <i class="fas fa-tag"></i>
-                    <span>Member perks</span>
-                </div>
-            </div>
-            
-            <button class="btn primary-btn" id="closeQrBtn">
-                <i class="fas fa-check-circle"></i> Got it!
-            </button>
-        </div>
-    </div>
-
-    <!-- New Registration Status Modal -->
-    <div id="statusModal" class="modal">
-        <div class="modal-content">
-            <span class="close status-close">&times;</span>
-            
-            <!-- Registered Status Content -->
-            <div id="registeredContent" style="display: none;">
-                <div class="status-icon registered">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <h2>You're Registered!</h2>
-                <div class="status-details">
-                    <p class="event-name">Tesla Light Show Spectacular</p>
-                    <p class="event-date"><i class="fas fa-calendar-day"></i> May 30, 2025 @ 7:30 PM EST</p>
-                    <p class="event-location"><i class="fas fa-map-marker-alt"></i> Golf IT Up Parking Lot, Thornhill</p>
-                    
-                    <div class="registration-info">
-                        <p class="registered-model">
-                            <i class="fas fa-car"></i> Registered Vehicle: <strong id="userRegisteredModel">Loading...</strong>
-                        </p>
-                        <p class="registered-date">
-                            <i class="fas fa-clock"></i> Registered on: <span id="userRegisteredDate">Loading...</span>
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="status-actions">
-                    <button class="btn danger-btn" id="openCancelBtn">
-                        <i class="fas fa-times-circle"></i> Cancel Registration
-                    </button>
-                    
-                    <button class="btn secondary-btn" id="closeStatusBtn">
-                        <i class="fas fa-check"></i> Close
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Not Registered Status Content -->
-            <div id="notRegisteredContent" style="display: none;">
-                <div class="status-icon not-registered">
-                    <i class="fas fa-exclamation-circle"></i>
-                </div>
-                <h2>Not Registered Yet</h2>
-                <div class="status-details">
-                    <p class="event-name">Tesla Light Show Spectacular</p>
-                    <p class="event-date"><i class="fas fa-calendar-day"></i> May 30, 2025 @ 7:30 PM EST</p>
-                    <p class="event-location"><i class="fas fa-map-marker-alt"></i> Golf IT Up Parking Lot, Thornhill</p>
-                    
-                    <div class="not-registered-info">
-                        <p><i class="fas fa-info-circle"></i> You haven't registered for this event yet.</p>
-                        <p class="spots-left">Join <strong id="totalRegistered">0</strong> other Tesla owners who have already registered!</p>
-                    </div>
-                </div>
-                
-                <div class="status-actions">
-                    <button class="btn primary-btn" id="registerNowBtn">
-                        <i class="fas fa-car"></i> Register Now
-                    </button>
-                    
-                    <button class="btn secondary-btn" id="closeStatusBtn2">
-                        <i class="fas fa-times"></i> Close
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Waiver Modal -->
-    <div id="waiverModal" class="modal">
-        <div class="modal-content" style="max-width: 700px; max-height: 85vh; overflow-y: auto;">
-            <span class="close waiver-close">&times;</span>
-            <h2><i class="fas fa-file-signature"></i> Event Liability Waiver</h2>
-            <div id="waiverTextDisplay" style="height: 250px; overflow-y: auto; border: 1px solid #eee; padding: 15px; margin-bottom: 15px; background: #f9f9f9; border-radius: 8px; white-space: pre-wrap; font-family: monospace; font-size: 0.9em;">
-                Loading waiver text...
-            </div>
-            <form id="waiverForm">
-                <div class="form-group">
-                    <label for="waiverParticipantName">Participant Name (Printed)</label>
-                    <input type="text" id="waiverParticipantName" required style="background: #fff; color: #333; border: 1px solid #ccc;">
-                </div>
-                <div class="form-group">
-                    <label for="waiverSignature">Your Signature (Type your full name)</label>
-                    <input type="text" id="waiverSignature" required style="background: #fff; color: #333; border: 1px solid #ccc;">
-                </div>
-                <div class="form-group">
-                    <label for="waiverVehicleModelYear">Vehicle Model / Year</label>
-                    <input type="text" id="waiverVehicleModelYear" placeholder="e.g., Tesla Model Y / 2023" style="background: #fff; color: #333; border: 1px solid #ccc;">
-                </div>
-                <div class="form-group">
-                    <label for="waiverLicensePlate">License Plate #</label>
-                    <input type="text" id="waiverLicensePlate" placeholder="e.g., ABCD 123" style="background: #fff; color: #333; border: 1px solid #ccc;">
-                </div>
-                <div class="form-group terms-checkbox" style="background: transparent; padding: 0;">
-                    <label for="waiverConfirmCheckbox" style="display: flex; align-items: center; color: #333 !important;">
-                        <input type="checkbox" id="waiverConfirmCheckbox" required style="width: auto; height: auto; margin-right: 10px; accent-color: #00e676;">
-                        I HAVE READ THIS WAIVER, UNDERSTAND ITS TERMS, AND SIGN IT VOLUNTARILY. I AM AT LEAST 18 YEARS OF AGE OR HAVE OBTAINED LEGAL GUARDIAN CONSENT IF UNDER 18.
-                    </label>
-                </div>
-                <button type="submit" class="btn primary-btn" id="submitWaiverBtn" style="margin-top: 15px;">
-                    <i class="fas fa-check-circle"></i> Submit Waiver
-                </button>
-            </form>
         </div>
     </div>
 
     <script>
-    // WAIVER TEXT (Can be moved to a separate config if needed)
-    const WAIVER_TEXT_TEMPLATE = `TESLA LIGHT SHOW EVENT LIABILITY WAIVER & RELEASE AGREEMENT
-Event Details:                                                          Date: May 30, 2025                                                  Time: 7:30 PM – 9:00 PM  
-Location: Golf It Up Parking Lot (West Side), 2910 Steeles Ave E, Thornhill, ON L3T 7X1  
-
-PARTICIPANT ACKNOWLEDGMENT AND WAIVER
-
-By signing below, I, {participantName}, acknowledge and agree to the following terms regarding my voluntary participation in the Tesla Light Show event (the "Event") hosted by Blitz T Club Corporation and Golf It Up:  
-1. Assumption of Risk: I understand that participation in the Event, including any use of my Tesla vehicle or attendance as a spectator, involves inherent risks, including but not limited to accidents, property damage, or personal injury. I accept all risks voluntarily.  
-2. Release of Liability: I hereby release, discharge, and hold harmless Blitz T Club Corporation, Golf It Up, Shops On Steeles & 404, their owners, employees, affiliates, and property management (collectively, the "Released Parties") from any and all claims, liabilities, damages, or expenses (including legal fees) arising from my participation in the Event, whether caused by negligence, acts of others, or otherwise.  
-3. Responsibility for Actions: I am solely responsible for my own conduct, the conduct of my passengers, and the operation of my vehicle during the Event. I agree to comply with all applicable laws and regulations.  
-4. No Warranty or Supervision: I acknowledge that the Released Parties are not responsible for supervising the Event, providing safety instructions, or ensuring the functionality of any vehicle or equipment.  
-5. Media Release: I grant permission to the Released Parties to use any photographs, videos, or recordings of me/my vehicle taken during the Event for promotional purposes without compensation.  
-6. Governing Law: This Waiver shall be governed by the laws of Ontario, Canada. If any provision is deemed unenforceable, the remainder shall remain valid.  
-Participant Certification:  
-I HAVE READ THIS WAIVER, UNDERSTAND ITS TERMS, AND SIGN IT VOLUNTARILY. I AM AT LEAST 18 YEARS OF AGE OR HAVE OBTAINED LEGAL GUARDIAN CONSENT IF UNDER 18.`;
-
     document.addEventListener('DOMContentLoaded', async () => {
         // Set viewport height for mobile browsers
         function setViewportHeight() {
-            // First we get the viewport height and we multiply it by 1% to get a value for a vh unit
             let vh = window.innerHeight * 0.01;
-            // Then we set the value in the --vh custom property to the root of the document
             document.documentElement.style.setProperty('--vh', `${vh}px`);
         }
         
@@ -1828,935 +1945,141 @@ I HAVE READ THIS WAIVER, UNDERSTAND ITS TERMS, AND SIGN IT VOLUNTARILY. I AM AT 
         window.addEventListener('resize', setViewportHeight);
         window.addEventListener('orientationchange', setViewportHeight);
         
-        // Wait for Supabase client initialization
-        await new Promise(resolve => {
-            if (window.supabaseClient) return resolve();
-            document.addEventListener('supabase:ready', resolve);
+        // Category navigation functionality
+        const categoryBtns = document.querySelectorAll('.category-btn');
+        const eventSections = document.querySelectorAll('.events-section');
+        
+        categoryBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const category = btn.getAttribute('data-category');
+                
+                // Update active button
+                categoryBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Show/hide sections
+                eventSections.forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                const targetSection = document.getElementById(`${category}-events`);
+                if (targetSection) {
+                    targetSection.classList.add('active');
+                }
+            });
         });
 
-        // Now safely use the client
-        const supabaseClient = window.supabaseClient;
-        
-        // Get actual UUID from your database
-        const EVENT_ID = 'fdee67a0-1234-5678-9abc-1d39527f8a7e'; 
-        let eventDetailsFromDB = null; // To store event details including deadline
-
-        // Add null check for safety
-        if (!supabaseClient?.from) {
-            console.error('Supabase client not properly initialized');
-            return;
-        }
-
-        async function fetchEventDetails() {
-            const { data, error } = await supabaseClient
-                .from('events')
-                .select('id, title, registration_ends_at') // Select the deadline column
-                .eq('id', EVENT_ID)
-                .single();
-
-            if (error) {
-                console.error('Error fetching event details for deadline check:', error);
-                // Display a general error or disable registration if event details can't be fetched
-                const eventRegisterBtn = document.getElementById('eventRegisterBtn');
-                if (eventRegisterBtn) {
-                    eventRegisterBtn.disabled = true;
-                    eventRegisterBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error Loading Event Info';
-                }
-                return null;
-            }
-            return data;
-        }
-
-        async function applyRegistrationDeadlineLogic() {
-            eventDetailsFromDB = await fetchEventDetails();
-            const eventRegisterBtn = document.getElementById('eventRegisterBtn');
-            const checkStatusBtn = document.getElementById('checkStatusBtn');
-
-            if (eventDetailsFromDB && eventDetailsFromDB.registration_ends_at) {
-                const registrationDeadline = new Date(eventDetailsFromDB.registration_ends_at);
-                const now = new Date();
-                const registrationClosedMessageId = 'registrationClosedMessage';
-
-                // Remove any existing message first
-                const existingMsg = document.getElementById(registrationClosedMessageId);
-                if (existingMsg) existingMsg.remove();
-
-                if (now >= registrationDeadline) {
-                    // Deadline has passed
-                    if (eventRegisterBtn) {
-                        eventRegisterBtn.disabled = true;
-                        eventRegisterBtn.innerHTML = '<i class="fas fa-times-circle"></i> Registration Closed';
-                        eventRegisterBtn.style.backgroundColor = '#aaa'; 
-                        eventRegisterBtn.style.cursor = 'not-allowed';
-                        eventRegisterBtn.title = 'Registration for this event has ended.';
-                    }
-                    
-                    const actionsContainer = document.querySelector('.event-actions');
-                    if (actionsContainer) {
-                        const closedMessage = document.createElement('p');
-                        closedMessage.id = registrationClosedMessageId;
-                        closedMessage.textContent = 'Registration for this event has ended.';
-                        closedMessage.style.color = '#cc0000';
-                        closedMessage.style.fontWeight = 'bold';
-                        closedMessage.style.marginTop = '10px';
-                        closedMessage.style.textAlign = 'center';
-                        // Insert the message before the button container or at a prominent place
-                        if (eventRegisterBtn) {
-                           actionsContainer.insertBefore(closedMessage, eventRegisterBtn);
-                        } else {
-                           actionsContainer.appendChild(closedMessage);
-                        }
-                    }
-                } else {
-                    // Registration is open
-                    if (eventRegisterBtn) {
-                        eventRegisterBtn.disabled = false;
-                        eventRegisterBtn.innerHTML = '<i class="fas fa-car"></i> Register Your Tesla';
-                        eventRegisterBtn.style.backgroundColor = ''; // Reset style
-                        eventRegisterBtn.style.cursor = 'pointer';
-                        eventRegisterBtn.title = '';
-                    }
-                }
-            } else {
-                console.warn('Event registration deadline not found or event details fetch failed.');
-                // If no deadline is set, or fetch failed, assume registration is open unless specified otherwise
-                // However, if eventDetailsFromDB is null (fetch failed), button should be disabled by fetchEventDetails itself.
-                 if (eventRegisterBtn && !eventDetailsFromDB) { // Explicitly disable if fetch truly failed
-                    eventRegisterBtn.disabled = true;
-                    eventRegisterBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Event Info Unavailable';
-                }
-            }
-
-            // Ensure 'Check My Registration' button is always enabled if it exists
-            if (checkStatusBtn) {
-                checkStatusBtn.disabled = false;
-            }
-        }
-
-        // Apply deadline logic on page load
-        await applyRegistrationDeadlineLogic();
-
-        // Modified registration count display
-        const updateRegistrationCount = async () => {
-            const { data, error } = await supabaseClient
-                .from('event_registrations')
-                .select('vehicle_model')
-                .eq('event_id', EVENT_ID)
-                .is('cancelled_at', null);
-
-            if (error) {
-                console.error('Error fetching registrations:', error);
-                return;
-            }
-
-            const modelCounts = (data || []).reduce((acc, { vehicle_model }) => {
-                acc[vehicle_model] = (acc[vehicle_model] || 0) + 1;
-                return acc;
-            }, {});
-
-            // Update total count
-            const total = Object.values(modelCounts).reduce((sum, count) => sum + count, 0);
-            document.getElementById('totalCount').textContent = total;
+        // Event details modal functionality
+        window.showEventDetails = function(eventId) {
+            const modal = document.getElementById('eventDetailsModal');
+            const content = document.getElementById('eventDetailsContent');
             
-            // Also update in the registration status modal
-            const totalRegisteredElement = document.getElementById('totalRegistered');
-            if (totalRegisteredElement) {
-                totalRegisteredElement.textContent = total;
-            }
-
-            // Update model list
-            const modelList = document.getElementById('modelList');
-            modelList.innerHTML = Object.entries(modelCounts)
-                .map(([model, count]) => `
-                    <div class="model-item">
-                        <div class="model-name">${model}</div>
-                        <div class="model-count">(${count})</div>
-                    </div>
-                `).join('') || '<div class="no-registrations">No registrations yet</div>';
-        };
-        
-        // Function to check user's registration status
-        const checkRegistrationStatus = async () => {
-            try {
-                const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
-                
-                if (userError || !user) {
-                    alert('Please login to check your registration status');
-                    return { registered: false };
-                }
-                
-                const { data, error } = await supabaseClient
-                    .from('event_registrations')
-                    .select('id, vehicle_model, registered_at')
-                    .eq('user_id', user.id)
-                    .eq('event_id', EVENT_ID)
-                    .is('cancelled_at', null)
-                    .maybeSingle();
-                
-                if (error) {
-                    console.error('Error checking registration status:', error);
-                    return { registered: false };
-                }
-                
-                return { 
-                    registered: !!data, 
-                    details: data 
-                };
-            } catch (error) {
-                console.error('Error in registration status check:', error);
-                return { registered: false };
-            }
-        };
-        
-        // Function to show registration status modal
-        const showStatusModal = async () => {
-            const statusModal = document.getElementById('statusModal');
-            const registeredContent = document.getElementById('registeredContent');
-            const notRegisteredContent = document.getElementById('notRegisteredContent');
-            
-            // First update total registration count
-            await updateRegistrationCount();
-            
-            // Check the user's registration status
-            const { registered, details } = await checkRegistrationStatus();
-            
-            if (registered && details) {
-                // Show registered content
-                registeredContent.style.display = 'block';
-                notRegisteredContent.style.display = 'none';
-                
-                // Update registration details
-                document.getElementById('userRegisteredModel').textContent = details.vehicle_model;
-                
-                // Format the registration date nicely in EST/EDT
-                const registeredDate = new Date(details.registered_at);
-                const options = { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    timeZone: 'America/New_York' // Added timezone
-                };
-                const formattedDate = registeredDate.toLocaleString('en-US', options); // Use toLocaleString
-                document.getElementById('userRegisteredDate').textContent = formattedDate;
-            } else {
-                // Show not registered content
-                registeredContent.style.display = 'none';
-                notRegisteredContent.style.display = 'block';
-            }
-            
-            // Show the modal
-            statusModal.style.display = 'block';
-            statusModal.classList.add('fade-in');
-        };
-        
-        // Modal handling
-        document.getElementById('eventRegisterBtn').addEventListener('click', async () => {
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            if (!user) return alert('Please login to register');
-            document.getElementById('registrationModal').style.display = 'block';
-        });
-
-        document.querySelector('.close').addEventListener('click', () => {
-            document.getElementById('registrationModal').style.display = 'none';
-        });
-        
-        // Check status button click handler
-        document.getElementById('checkStatusBtn').addEventListener('click', showStatusModal);
-        
-        // Close buttons for status modal
-        document.querySelector('.status-close').addEventListener('click', () => {
-            document.getElementById('statusModal').style.display = 'none';
-        });
-        
-        document.getElementById('closeStatusBtn')?.addEventListener('click', () => {
-            document.getElementById('statusModal').style.display = 'none';
-        });
-        
-        document.getElementById('closeStatusBtn2')?.addEventListener('click', () => {
-            document.getElementById('statusModal').style.display = 'none';
-        });
-        
-        // Register Now button in the status modal
-        document.getElementById('registerNowBtn')?.addEventListener('click', () => {
-            document.getElementById('statusModal').style.display = 'none';
-            document.getElementById('registrationModal').style.display = 'block';
-        });
-        
-        // Open Cancel Modal button in the status modal
-        document.getElementById('openCancelBtn')?.addEventListener('click', () => {
-            document.getElementById('statusModal').style.display = 'none';
-            document.getElementById('cancelModal').style.display = 'block';
-        });
-
-        window.addEventListener('click', (e) => {
-            const registrationModal = document.getElementById('registrationModal');
-            const statusModal = document.getElementById('statusModal');
-            
-            if (e.target === registrationModal) {
-                registrationModal.style.display = 'none';
-            }
-            
-            if (e.target === statusModal) {
-                statusModal.style.display = 'none';
-            }
-            
-            if (e.target === document.getElementById('cancelModal')) {
-                document.getElementById('cancelModal').style.display = 'none';
-            }
-        });
-
-        // Modified registration handler
-        document.getElementById('registrationForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            // --- START: DEADLINE CHECK ---
-            if (eventDetailsFromDB && eventDetailsFromDB.registration_ends_at) {
-                const registrationDeadline = new Date(eventDetailsFromDB.registration_ends_at);
-                const now = new Date();
-                if (now >= registrationDeadline) {
-                    alert('Registration for this event has closed.');
-                    document.getElementById('registrationModal').style.display = 'none';
-                    // Ensure button state is updated if somehow it was still enabled
-                    const eventRegisterBtn = document.getElementById('eventRegisterBtn');
-                    if (eventRegisterBtn) {
-                        eventRegisterBtn.disabled = true;
-                        eventRegisterBtn.innerHTML = '<i class="fas fa-times-circle"></i> Registration Closed';
-                        eventRegisterBtn.style.backgroundColor = '#aaa';
-                        eventRegisterBtn.style.cursor = 'not-allowed';
-                    }
-                    return; // Prevent registration
-                }
-            } else {
-                // This case means either the deadline wasn't fetched or isn't set for the event.
-                // If eventDetailsFromDB is null, it means fetching event details failed.
-                if (!eventDetailsFromDB) {
-                    alert('Could not verify event registration window as event details are unavailable. Please try refreshing the page.');
-                    document.getElementById('registrationModal').style.display = 'none';
-                    return;
-                }
-                // If eventDetailsFromDB is valid but registration_ends_at is null/undefined,
-                // it implies the event is open for registration (no explicit deadline set).
-                // You might want to log this or handle as a specific case if all events *should* have a deadline.
-                console.warn('Registration deadline not explicitly set for this event. Proceeding with registration.');
-            }
-            // --- END: DEADLINE CHECK ---
-
-            const model = document.getElementById('teslaModel').value;
-            
-            if (!model) return alert('Please select a Tesla model');
-            
-            try {
-                const { data: { user }, error: userErr } = await supabaseClient.auth.getUser();
-                if (userErr || !user) throw new Error('Not authenticated');
-                
-                // Check if the user's profile is complete
-                const { data: profile, error: profileErr } = await supabaseClient
-                    .from('profiles')
-                    .select('phone, street, city, province, postal_code, car_models')
-                    .eq('id', user.id)
-                    .single();
-                
-                if (profileErr) {
-                    console.error('Error fetching profile:', profileErr);
-                    throw new Error('Could not fetch user profile');
-                }
-                
-                // Check for required fields
-                const isMissingPhone = !profile.phone || profile.phone.trim() === '';
-                const isMissingAddress = !profile.street || profile.street.trim() === '' || 
-                                        !profile.city || profile.city.trim() === '' ||
-                                        !profile.province || profile.province.trim() === '' ||
-                                        !profile.postal_code || profile.postal_code.trim() === '';
-                
-                if (isMissingPhone || isMissingAddress) {
-                    if (confirm('Your profile is incomplete. You need to complete your profile before registering for events. Would you like to do that now?')) {
-                        window.location.href = 'profile-completion.html';
-                    }
-                    return;
-                }
-
-                // First verify event exists
-                let { data: eventData, error: eventError } = await supabaseClient
-                    .from('events')
-                    .select('id')
-                    .eq('id', EVENT_ID)
-                    .limit(1);
-
-                if (eventError) {
-                    console.error('Event verification failed:', eventError);
-                    return alert('Error verifying event');
-                }
-
-                if (!eventData || eventData.length === 0) {
-                    // Event does not exist, create it with all required fields
-                    const { data: insertedEvent, error: insertError } = await supabaseClient
-                        .from('events')
-                        .upsert({
-                            id: EVENT_ID,
+            // Event details data
+            const eventDetails = {
+                'tesla-light-show': {
                             title: 'Tesla Light Show Spectacular',
-                            date: '2025-05-30T20:00:00Z', 
-                            location: 'Golf IT Up Parking Lot, 2910 Steeles Ave East, Thornhill, ON'
-                        }, { onConflict: 'id' });  // Add conflict resolution
-
-                    if (insertError) {
-                        console.error('Error inserting event:', insertError);
-                        return alert('Error creating event: ' + insertError.message);
-                    }
-                    eventData = insertedEvent;
+                    date: 'May 30, 2025 @ 7:30 PM EST',
+                    location: 'Golf IT Up Parking Lot, 2910 Steeles Ave East, Thornhill, ON',
+                    description: 'An incredible evening of synchronized Tesla light shows, networking, and community building.',
+                    highlights: [
+                        'Custom light choreography synchronized to music',
+                        'Member networking sessions',
+                        'Technical workshops and demonstrations',
+                        'Professional photo opportunities',
+                        'Food and refreshments provided'
+                    ],
+                    mapUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2876.21620035702!2d-79.47620368434426!3d43.87225594411095!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x882b2a126c606a0d%3A0x5a1b12a3d5b3e8b!2s2910%20Steeles%20Ave%20E%2C%20Thornhill%2C%20ON%20L3T%204A1%2C%20Canada!5e0!3m2!1sen!2sca!4v1718761350502!5m2!1sen!2sca'
                 }
-
-                // Check existing registrations
-                const { data: existingRegs, error: fetchErr } = await supabaseClient
-                    .from('event_registrations')
-                    .select('id', { count: 'exact' })
-                    .eq('user_id', user_id)
-                    .eq('event_id', EVENT_ID)
-                    .is('cancelled_at', null);
-
-                if (fetchErr) throw fetchErr;
-                if ((existingRegs?.length ?? 0) >= 1) {
-                    return alert('Max 1 vehicles per event');
-                }
-
-                // Insert new registration
-                const { error } = await supabaseClient
-                    .from('event_registrations')
-                    .insert({
-                        user_id: user.id,
-                        event_id: EVENT_ID,
-                        vehicle_model: model,
-                        registered_at: new Date().toISOString()
-                    });
-
-                if (error) {
-                    if (error.code === '23503') {
-                        alert('Error: Invalid event reference. Please contact support.');
-                    } else {
-                        alert('Registration failed: ' + error.message);
-                    }
-                    console.error('Registration error:', error);
-                    return;
-                }
-
-                // Update the user's events_attended count in their profile
-                try {
-                    // First, get the current profile data
-                    const { data: profileData, error: profileError } = await supabaseClient
-                        .from('profiles')
-                        .select('events_attended')
-                        .eq('id', user.id)
-                        .single();
-                    
-                    if (profileError) {
-                        console.error('Error fetching profile for events_attended update:', profileError);
-                    } else {
-                        // Get current count or default to 0 if null
-                        const currentCount = profileData?.events_attended || 0;
-                        
-                        // Update the profile with incremented count
-                        const { error: updateError } = await supabaseClient
-                            .from('profiles')
-                            .update({ events_attended: currentCount + 1 })
-                            .eq('id', user.id);
-                        
-                        if (updateError) {
-                            console.error('Error updating events_attended count:', updateError);
-                        } else {
-                            console.log('Successfully updated events_attended count to', currentCount + 1);
-                        }
-                    }
-                } catch (countError) {
-                    console.error('Error handling events_attended count update:', countError);
-                    // Continue with registration process even if count update fails
-                }
-
-                document.getElementById('registrationModal').style.display = 'none';
-                await updateRegistrationCount();
-         
-                // Show WeChat QR code modal with animation
-                const wechatModal = document.getElementById('wechatModal');
-                wechatModal.classList.add('fade-in');
-                wechatModal.style.display = 'block';
-         
-                // Track that the user has seen the QR code
-                try {
-                    localStorage.setItem('wechatQrShown', 'true');
-                } catch (e) {
-                    console.error('Could not save QR shown state to localStorage', e);
-                }
-
-            } catch (error) {
-                console.error('Registration process failed:', error);
-                alert('Registration failed: ' + error.message);
+            };
+            
+            const event = eventDetails[eventId];
+            if (event) {
+                content.innerHTML = `
+                    <h2>${event.title}</h2>
+                    <div class="event-details-grid">
+                        <div class="event-info">
+                            <div class="detail-item">
+                                <i class="fas fa-calendar-day"></i>
+                                <strong>Date:</strong> ${event.date}
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <strong>Location:</strong> ${event.location}
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>Description:</strong> ${event.description}
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-star"></i>
+                                <strong>Highlights:</strong>
+                                <ul>
+                                    ${event.highlights.map(highlight => `<li>${highlight}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="event-map">
+                            <iframe src="${event.mapUrl}" 
+                                    width="100%" 
+                                    height="300" 
+                                    style="border:0;" 
+                                    allowfullscreen="" 
+                                    loading="lazy">
+                            </iframe>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <a href="gallery.html" class="btn primary-btn">
+                            <i class="fas fa-images"></i> View Gallery
+                        </a>
+                        <button class="btn secondary-btn" onclick="document.getElementById('eventDetailsModal').style.display='none'">
+                            <i class="fas fa-times"></i> Close
+                        </button>
+                    </div>
+                `;
             }
-        });
+            
+            modal.style.display = 'block';
+        };
 
-        // Initial count update
-        await updateRegistrationCount();
-
-        // Cancel registration handling
-        document.getElementById('cancelRegistration').addEventListener('click', async (e) => {
-            e.preventDefault();
-            // Check if user is logged in before showing modal
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            if (!user) {
-                alert('Please login to manage your registration.');
-                // Optionally redirect to login page
-                // window.location.href = 'login.html'; 
-                return;
-            }
-            document.getElementById('cancelModal').style.display = 'block';
-        });
+        // Modal close functionality
+        const modal = document.getElementById('eventDetailsModal');
+        const closeBtn = modal.querySelector('.close');
         
-        // Close cancel modal
-        document.querySelector('.cancel-close').addEventListener('click', () => {
-            document.getElementById('cancelModal').style.display = 'none';
-        });
-        
-        // Cancel form submission
-        document.getElementById('cancelForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const reason = document.getElementById('cancelReason').value;
-            if (!reason) return alert('Please select a cancellation reason');
-
-            try {
-                const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-                if (authError || !user) throw new Error('Not authenticated');
-        
-                // Find active registrations (users might have more than one)
-                const { data: activeRegistrations, error: fetchError } = await supabaseClient
-                    .from('event_registrations')
-                    .select('id')
-                    .eq('user_id', user.id)
-                    .eq('event_id', EVENT_ID)
-                    .is('cancelled_at', null);
-
-                if (fetchError || !activeRegistrations || activeRegistrations.length === 0) {
-                    alert('No active registration found to cancel.');
-                    console.error('Error fetching active registrations or none found:', fetchError);
-                    document.getElementById('cancelModal').style.display = 'none';
-                    return;
-                }
-
-                // Cancel all active registrations for this user and event
-                // Supabase update can take an array of IDs if we wanted to be more specific,
-                // but the current logic will update all matching rows.
-                const updates = activeRegistrations.map(reg => 
-                    supabaseClient
-                        .from('event_registrations')
-                        .update({
-                            cancelled_at: new Date().toISOString()
-                        })
-                        .eq('id', reg.id) 
-                );
-                
-                const results = await Promise.all(updates);
-                const DBERROR = results.find(result => result.error);
-
-                if (DBERROR) {
-                    console.error('Cancellation error details:', DBERROR.error);
-                    throw new Error(DBERROR.error.message || 'Failed to cancel one or more registrations');
-                }
-
-                // Update the user's events_attended count in their profile when they cancel
-                try {
-                    // First, get the current profile data
-                    const { data: profileData, error: profileError } = await supabaseClient
-                        .from('profiles')
-                        .select('events_attended')
-                        .eq('id', user.id)
-                        .single();
-                    
-                    if (profileError) {
-                        console.error('Error fetching profile for events_attended update:', profileError);
-                    } else {
-                        // Get current count or default to 0 if null
-                        const currentCount = profileData?.events_attended || 0;
-                        
-                        // Only decrement if count is greater than 0
-                        if (currentCount > 0) {
-                            // Update the profile with decremented count
-                            const { error: updateError } = await supabaseClient
-                                .from('profiles')
-                                .update({ events_attended: currentCount - activeRegistrations.length })
-                                .eq('id', user.id);
-                            
-                            if (updateError) {
-                                console.error('Error updating events_attended count:', updateError);
-                            } else {
-                                console.log('Successfully decremented events_attended count by', activeRegistrations.length);
-                            }
-                        }
-                    }
-                } catch (countError) {
-                    console.error('Error handling events_attended count update:', countError);
-                    // Continue with cancellation process even if count update fails
-                }
-
-                document.getElementById('cancelModal').style.display = 'none';
-                await updateRegistrationCount();
-                alert('Registration(s) cancelled successfully');
-                window.location.reload(); // Refresh to update UI
-
-            } catch (error) {
-                console.error('Cancellation failed:', error);
-                alert(`Cancellation failed: ${error.message}`);
-            }
-        });
-
-        // Handle closing the QR code modal
-        document.querySelector('.wechat-close').addEventListener('click', () => {
-            document.getElementById('wechatModal').style.display = 'none';
-            window.location.href = 'dashboard.html'; // Redirect after closing
-        });
-
-        document.getElementById('closeQrBtn').addEventListener('click', () => {
-            document.getElementById('wechatModal').style.display = 'none';
-            window.location.href = 'dashboard.html'; // Redirect after clicking button
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
         });
 
         window.addEventListener('click', (e) => {
-            if (e.target === document.getElementById('wechatModal')) {
-                document.getElementById('wechatModal').style.display = 'none';
-                window.location.href = 'dashboard.html'; // Redirect after clicking outside
+            if (e.target === modal) {
+                modal.style.display = 'none';
             }
         });
 
-        const signWaiverBtn = document.getElementById('signWaiverBtn');
-        const waiverModal = document.getElementById('waiverModal');
-        const waiverForm = document.getElementById('waiverForm');
-        const waiverTextDisplay = document.getElementById('waiverTextDisplay');
-        const waiverParticipantNameInput = document.getElementById('waiverParticipantName');
-        const waiverCloseBtn = document.querySelector('.waiver-close');
-
-        // Function to check if waiver is signed and update button
-        async function checkAndUpdateWaiverStatus() {
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            
-            // Reset classes first
-            signWaiverBtn.classList.remove('waiver-btn-pending', 'waiver-btn-signed', 'waiver-btn-login-required', 'waiver-btn-error');
-
-            if (!user) {
-                signWaiverBtn.innerHTML = '<i class="fas fa-lock"></i> Login to Sign Waiver';
-                signWaiverBtn.title = "Please login to sign the event waiver.";
-                signWaiverBtn.disabled = true;
-                signWaiverBtn.classList.add('waiver-btn-login-required');
-                return;
+        // Past event message - no registration functionality needed
+        console.log('Tesla Light Show Spectacular is a past event. Registration functionality has been disabled.');
+        
+        // Add a subtle animation to the past event badge
+        const pastEventBadge = document.querySelector('.past-event-badge');
+        if (pastEventBadge) {
+            pastEventBadge.style.animation = 'fadeInUp 0.6s ease-out';
+        }
+        
+        // Add CSS animation for the badge
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
             }
-
-            const { data: existingWaiver, error } = await supabaseClient
-                .from('event_waivers')
-                .select('user_id') // Changed from 'id' to 'user_id'
-                .eq('user_id', user.id)
-                .eq('event_id', EVENT_ID) // EVENT_ID should be defined from earlier script
-                .maybeSingle();
-
-            if (error) {
-                console.error('Error checking waiver status:', error);
-                signWaiverBtn.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error Checking Waiver';
-                signWaiverBtn.disabled = true;
-                signWaiverBtn.classList.add('waiver-btn-error');
-                return;
-            }
-
-            if (existingWaiver) {
-                signWaiverBtn.innerHTML = '<i class="fas fa-check-circle"></i> Waiver Signed';
-                signWaiverBtn.disabled = true;
-                signWaiverBtn.title = "You have already signed the waiver for this event.";
-                signWaiverBtn.classList.add('waiver-btn-signed');
-            } else {
-                signWaiverBtn.innerHTML = '<i class="fas fa-file-signature"></i> Sign Event Waiver';
-                signWaiverBtn.disabled = false;
-                signWaiverBtn.title = "Sign the event waiver to participate.";
-                signWaiverBtn.classList.add('waiver-btn-pending');
-            }
-        }
-        
-        // Call on page load after other initializations
-        if (signWaiverBtn) { // ensure button exists
-            await checkAndUpdateWaiverStatus();
-        }
-
-
-        if (signWaiverBtn && waiverModal && waiverForm && waiverTextDisplay && waiverParticipantNameInput && waiverCloseBtn) {
-            signWaiverBtn.addEventListener('click', async () => {
-                const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
-                if (userError || !user) {
-                    alert('Please login to sign the waiver.');
-                    return;
-                }
-
-                // Pre-fill name
-                const { data: profile, error: profileError } = await supabaseClient
-                    .from('profiles')
-                    .select('full_name')
-                    .eq('id', user.id)
-                    .single();
-
-                let participantName = '';
-                if (profile && profile.full_name) {
-                    participantName = profile.full_name;
-                    waiverParticipantNameInput.value = participantName;
-                }
-                
-                // Populate waiver text
-                const populatedWaiverText = WAIVER_TEXT_TEMPLATE.replace('{participantName}', participantName || '_________________________');
-                waiverTextDisplay.textContent = populatedWaiverText;
-                
-                waiverModal.style.display = 'block';
-                waiverModal.classList.add('fade-in');
-            });
-
-            waiverCloseBtn.addEventListener('click', () => {
-                waiverModal.style.display = 'none';
-            });
-
-            window.addEventListener('click', (event) => {
-                if (event.target === waiverModal) {
-                    waiverModal.style.display = 'none';
-                }
-            });
-
-            waiverForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const submitWaiverBtn = document.getElementById('submitWaiverBtn');
-                submitWaiverBtn.disabled = true;
-                submitWaiverBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-
-                const { data: { user } } = await supabaseClient.auth.getUser();
-                if (!user) {
-                    alert('Session expired. Please login again.');
-                    submitWaiverBtn.disabled = false;
-                    submitWaiverBtn.innerHTML = '<i class="fas fa-check-circle"></i> Submit Waiver';
-                    return;
-                }
-
-                const participantName = document.getElementById('waiverParticipantName').value.trim();
-                const signatureText = document.getElementById('waiverSignature').value.trim();
-                const vehicleModelYear = document.getElementById('waiverVehicleModelYear').value.trim();
-                const licensePlate = document.getElementById('waiverLicensePlate').value.trim();
-                const confirmed = document.getElementById('waiverConfirmCheckbox').checked;
-
-                if (!participantName || !signatureText) {
-                    alert('Please fill in your name and signature.');
-                    submitWaiverBtn.disabled = false;
-                    submitWaiverBtn.innerHTML = '<i class="fas fa-check-circle"></i> Submit Waiver';
-                    return;
-                }
-                if (!confirmed) {
-                    alert('Please confirm you have read and agree to the waiver.');
-                    submitWaiverBtn.disabled = false;
-                    submitWaiverBtn.innerHTML = '<i class="fas fa-check-circle"></i> Submit Waiver';
-                    return;
-                }
-                
-                // Use the actual text displayed to the user for storage
-                const signedWaiverText = waiverTextDisplay.textContent;
-
-
-                try {
-                    const { error: insertError } = await supabaseClient
-                        .from('event_waivers')
-                        .insert({
-                            user_id: user.id,
-                            event_id: EVENT_ID, // EVENT_ID from earlier in the script
-                            participant_name: participantName,
-                            signature_text: signatureText,
-                            vehicle_model_year: vehicleModelYear,
-                            license_plate: licensePlate,
-                            waiver_text: signedWaiverText, // Store the dynamically populated text
-                            signed_at: new Date().toISOString()
-                        });
-
-                    if (insertError) {
-                        if (insertError.code === '23505') { // Unique constraint violation
-                             alert('You have already signed the waiver for this event.');
-                        } else {
-                            throw insertError;
-                        }
-                    } else {
-                        alert('Waiver submitted successfully!');
-                    }
-                    
-                    waiverModal.style.display = 'none';
-                    waiverForm.reset();
-                    await checkAndUpdateWaiverStatus(); // Update button state
-
-                } catch (error) {
-                    console.error('Error submitting waiver:', error);
-                    alert('Failed to submit waiver: ' + error.message);
-                } finally {
-                    submitWaiverBtn.disabled = false;
-                    submitWaiverBtn.innerHTML = '<i class="fas fa-check-circle"></i> Submit Waiver';
-                }
-            });
-        }
-    });
-
-    document.addEventListener('DOMContentLoaded', () => {
-        // Remove this duplicate mobile menu code
-        /* DELETE START
-        const menuToggle = document.querySelector('.menu-toggle');
-        const navLinks = document.querySelector('.nav-links');
-        
-        menuToggle.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-            menuToggle.querySelector('i').classList.toggle('fa-times');
-        });
-
-        document.addEventListener('click', (e) => {
-            if (!menuToggle.contains(e.target) && !navLinks.contains(e.target)) {
-                navLinks.classList.remove('active');
-                menuToggle.querySelector('i').classList.remove('fa-times');
-            }
-        });
-
-        document.querySelectorAll('.nav-links a').forEach(link => {
-            link.addEventListener('click', () => {
-                navLinks.classList.remove('active');
-                menuToggle.querySelector('i').classList.remove('fa-times');
-            });
-        });
-        DELETE END */
-        
-        // Keep only the event registration code
-        const registrationModal = document.getElementById('registrationModal');
-        // ... rest of your existing event-specific code
-    });
-
-    // Check if we're on a mobile device
-    document.addEventListener('DOMContentLoaded', function() {
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        const openWechatBtn = document.querySelector('.open-wechat-btn');
-        
-        // Make the QR code directly tappable/downloadable for mobile users
-        if (isMobile) {
-            const qrCodeBackground = document.querySelector('.qr-code-background');
-            if (qrCodeBackground) {
-                // Make the QR code background tappable to save on mobile
-                qrCodeBackground.addEventListener('click', function() {
-                    // Create a link to download the image and trigger it
-                    const downloadLink = document.createElement('a');
-                    downloadLink.href = 'https://i.postimg.cc/21qqLLDm/QR-code-for-light.jpg';
-                    downloadLink.download = 'WeChat-QR-Code.jpg';
-                    document.body.appendChild(downloadLink);
-                    downloadLink.click();
-                    document.body.removeChild(downloadLink);
-                });
-                
-                // Add visual cues that it's clickable
-                qrCodeBackground.style.cursor = 'pointer';
-                qrCodeBackground.title = 'Tap to download QR code';
-            }
-        }
-        
-        if (openWechatBtn) {
-            // Always make WeChat button visible regardless of device
-            openWechatBtn.parentElement.style.display = 'block';
-            
-            // Use the direct WeChat group link for all devices
-            openWechatBtn.href = "https://weixin.qq.com/g/CQYAALcAeyOtrsp0D8_4QpeR_bvp0KJ51iDo3pbzkY_3ZE-Hp-6mnOjkRQWBAVQN";
-            openWechatBtn.setAttribute('target', '_blank');
-            
-            // Add special handling for mobile to try opening the WeChat app first
-            if (isMobile) {
-                openWechatBtn.addEventListener('click', function(e) {
-                    // Try to open WeChat app first (might not work on all devices)
-                    setTimeout(function() {
-                        window.location.href = "weixin://";
-                    }, 100);
-                });
-            }
-        }
-    });
-
-    // Update the QR code handling
-    document.addEventListener('DOMContentLoaded', function() {
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        
-        // Handle direct QR code download without third-party site visit
-        const downloadQRBtn = document.getElementById('downloadQRBtn');
-        const qrCodeBg = document.querySelector('.qr-code-background');
-        const qrImageUrl = 'https://i.postimg.cc/xddpFf52/QR-code-for-light.jpg';
-        
-        if (downloadQRBtn) {
-            downloadQRBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                downloadQRCode(qrImageUrl);
-            });
-        }
-        
-        // Make the QR code div directly tappable/downloadable
-        if (qrCodeBg) {
-            qrCodeBg.addEventListener('click', function() {
-                downloadQRCode(qrImageUrl);
-            });
-        }
-        
-        // Helper function to download the QR image
-        function downloadQRCode(imageUrl) {
-            // Create a temporary image to get the actual dimensions
-            const tempImage = new Image();
-            tempImage.crossOrigin = "Anonymous";
-            tempImage.src = imageUrl;
-            
-            tempImage.onload = function() {
-                // Create a canvas element
-                const canvas = document.createElement('canvas');
-                canvas.width = tempImage.naturalWidth || 280;
-                canvas.height = tempImage.naturalHeight || 280;
-                
-                // Draw the image on the canvas
-                const ctx = canvas.getContext('2d');
-                try {
-                    ctx.drawImage(tempImage, 0, 0);
-                    
-                    // Convert canvas to blob and download
-                    canvas.toBlob(function(blob) {
-                        // Create a temporary URL for the blob
-                        const url = URL.createObjectURL(blob);
-                        
-                        // Create a link element and trigger download
-                        const downloadLink = document.createElement('a');
-                        downloadLink.href = url;
-                        downloadLink.download = 'WeChat-QR-Code.jpg';
-                        document.body.appendChild(downloadLink);
-                        downloadLink.click();
-                        document.body.removeChild(downloadLink);
-                        
-                        // Release the blob URL
-                        setTimeout(function() {
-                            URL.revokeObjectURL(url);
-                        }, 100);
-                    }, 'image/jpeg');
-                } catch (e) {
-                    console.error('Error creating QR code download:', e);
-                    
-                    // Fallback - direct download from URL
-                    const downloadLink = document.createElement('a');
-                    downloadLink.href = imageUrl;
-                    downloadLink.download = 'WeChat-QR-Code.jpg';
-                    document.body.appendChild(downloadLink);
-                    downloadLink.click();
-                    document.body.removeChild(downloadLink);
-                }
-            };
-            
-            // Handle loading error
-            tempImage.onerror = function() {
-                console.error('Error loading QR code image');
-                
-                // Fallback - direct download from URL
-                const downloadLink = document.createElement('a');
-                downloadLink.href = imageUrl;
-                downloadLink.download = 'WeChat-QR-Code.jpg';
-                document.body.appendChild(downloadLink);
-                downloadLink.click();
-                document.body.removeChild(downloadLink);
-            };
-        }
+        `;
+        document.head.appendChild(style);
     });
     </script>
 </body>

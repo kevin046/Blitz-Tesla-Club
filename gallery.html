@@ -133,6 +133,38 @@
             opacity: 1;
         }
 
+        /* Gallery Header YouTube Link */
+        .gallery-subheader {
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .youtube-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);
+        }
+
+        .youtube-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 0, 0, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+
+        .youtube-link i {
+            font-size: 1.2rem;
+        }
+
         /* Video Modal */
         .video-modal {
             display: none;
@@ -225,6 +257,20 @@
         .gallery-item.error .play-btn {
             color: #ff4444;
         }
+
+        .gallery-item.error .play-btn:hover {
+            transform: scale(1.1);
+            color: #ff6666;
+        }
+
+        .gallery-item.error .gallery-item-overlay {
+            background: rgba(255, 0, 0, 0.1);
+            border: 2px solid #ff4444;
+        }
+
+        .gallery-item.error .video-title {
+            color: #ff4444;
+        }
     </style>
 </head>
 <body class="gallery-page">
@@ -247,6 +293,12 @@
         <header class="gallery-header">
             <h1>Club Gallery</h1>
             <p>Memories from Our Past Events</p>
+            <div class="gallery-subheader">
+                <a href="https://www.youtube.com/@BlitzTClub-Toronto/videos" target="_blank" class="youtube-link">
+                    <i class="fab fa-youtube"></i>
+                    View More Videos on YouTube
+                </a>
+            </div>
         </header>
 
         <div class="gallery-filters">
@@ -292,6 +344,43 @@
                     </button>
                 </div>
             </div>
+
+            <!-- New Videos from Blitz T Club YouTube Channel -->
+            <div class="gallery-item" data-category="shows" data-date="2025-01-15" data-video-id="p1dxjAjGzfg">
+                <img class="thumbnail" src="https://img.youtube.com/vi/p1dxjAjGzfg/maxresdefault.jpg" alt="Loading...">
+                <div class="gallery-item-overlay">
+                    <h3 class="video-title">Loading...</h3>
+                    <p class="event-date"><i class="far fa-calendar"></i> January 15, 2025</p>
+                    <p class="video-duration"><i class="far fa-clock"></i> Loading...</p>
+                    <button class="play-btn" aria-label="Play video">
+                        <i class="fas fa-play-circle"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="gallery-item" data-category="meetups" data-date="2025-01-20" data-video-id="HHiLFB_iQGs">
+                <img class="thumbnail" src="https://img.youtube.com/vi/HHiLFB_iQGs/maxresdefault.jpg" alt="Loading...">
+                <div class="gallery-item-overlay">
+                    <h3 class="video-title">Loading...</h3>
+                    <p class="event-date"><i class="far fa-calendar"></i> January 20, 2025</p>
+                    <p class="video-duration"><i class="far fa-clock"></i> Loading...</p>
+                    <button class="play-btn" aria-label="Play video">
+                        <i class="fas fa-play-circle"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="gallery-item" data-category="shows" data-date="2025-01-25" data-video-id="lA4tmeWR308">
+                <img class="thumbnail" src="https://img.youtube.com/vi/lA4tmeWR308/maxresdefault.jpg" alt="Loading...">
+                <div class="gallery-item-overlay">
+                    <h3 class="video-title">Loading...</h3>
+                    <p class="event-date"><i class="far fa-calendar"></i> January 25, 2025</p>
+                    <p class="video-duration"><i class="far fa-clock"></i> Loading...</p>
+                    <button class="play-btn" aria-label="Play video">
+                        <i class="fas fa-play-circle"></i>
+                    </button>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -303,9 +392,7 @@
             </button>
             <iframe 
                 id="modalVideo"
-                title="Video player"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen>
+                title="Video player">
             </iframe>
         </div>
     </div>
@@ -374,17 +461,29 @@
                     throw new Error('YouTube API key not configured');
                 }
                 
+                console.log('Fetching details for video ID:', videoId);
+                
                 const response = await fetch(
-                    `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${videoId}&key=${config.YOUTUBE_API_KEY}`
+                    `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails,status&id=${videoId}&key=${config.YOUTUBE_API_KEY}`
                 );
                 
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('YouTube API error response:', errorText);
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 
                 const data = await response.json();
-                console.log('YouTube API response:', data);
+                console.log('YouTube API response for', videoId, ':', data);
+                
+                if (!data.items || data.items.length === 0) {
+                    console.warn('No video found for ID:', videoId);
+                    return null;
+                }
+                
                 return data.items[0];
             } catch (error) {
-                console.error('Video fetch failed:', error);
+                console.error('Video fetch failed for', videoId, ':', error);
                 return null;
             }
         }
@@ -426,58 +525,205 @@
             }
         }
 
+        // Test function to verify video IDs
+        async function testVideoIds() {
+            const testIds = ['p1dxjAjGzfg', 'HHiLFB_iQGs', 'lA4tmeWR308'];
+            console.log('Testing video IDs:', testIds);
+            
+            for (const videoId of testIds) {
+                console.log(`Testing video ID: ${videoId}`);
+                const details = await fetchVideoDetails(videoId);
+                if (details) {
+                    console.log(`✅ Video ${videoId} is available:`, details.snippet?.title);
+                    console.log(`📺 Embed status for ${videoId}:`, {
+                        embeddable: details.status?.embeddable,
+                        privacyStatus: details.status?.privacyStatus,
+                        uploadStatus: details.status?.uploadStatus
+                    });
+                } else {
+                    console.log(`❌ Video ${videoId} is not available`);
+                }
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
+            console.log('Gallery page loaded, starting video tests...');
+            
+            // Test video IDs on page load
+            await testVideoIds();
+            
             const galleryItems = document.querySelectorAll('.gallery-item');
             const filterButtons = document.querySelectorAll('.filter-btn');
             const videoModal = document.getElementById('videoModal');
             const modalVideo = document.getElementById('modalVideo');
             const closeModal = document.querySelector('.close-modal');
 
+            console.log('Found gallery items:', galleryItems.length);
+
             // Fetch video details for each gallery item
             for (const item of galleryItems) {
                 const videoId = item.dataset.videoId;
-                const videoDetails = await fetchVideoDetails(videoId);
+                console.log('Processing gallery item with video ID:', videoId);
                 
-                if (videoDetails) {
+                if (!videoId) {
+                    console.error('No video ID found for gallery item');
+                    continue;
+                }
+                
+                const videoDetails = await fetchVideoDetails(videoId);
+                console.log('Video details for', videoId, ':', videoDetails);
+                
+                if (videoDetails && videoDetails.snippet) {
                     const titleElement = item.querySelector('.video-title');
                     const durationElement = item.querySelector('.video-duration');
                     const thumbnailImage = item.querySelector('.thumbnail');
                     
-                    // Add null checks for nested properties
-                    if (videoDetails.snippet?.title) {
+                    // Set the title
+                    if (videoDetails.snippet.title) {
                         adjustTitleSize(titleElement, videoDetails.snippet.title);
                         thumbnailImage.alt = videoDetails.snippet.title;
+                        console.log('✅ Set title for video:', videoId, videoDetails.snippet.title);
                     } else {
                         console.warn('Missing title for video:', videoId);
                         titleElement.textContent = 'Video Unavailable';
+                        item.classList.add('error');
                     }
 
                     // Handle duration safely
                     const duration = videoDetails.contentDetails?.duration;
                     if (duration) {
                         durationElement.innerHTML = `<i class="far fa-clock"></i> ${parseDuration(duration)}`;
+                        console.log('✅ Set duration for video:', videoId, parseDuration(duration));
                     } else {
                         durationElement.innerHTML = '<i class="far fa-clock"></i> LIVE';
                         console.warn('Live stream detected for video:', videoId);
                     }
 
-                    // After fetching video details
-                    if (videoDetails && videoDetails.status?.embeddable) {
-                        // Existing code
-                    } else {
+                    // Check if video is embeddable
+                    const isEmbeddable = videoDetails.status?.embeddable;
+                    console.log('Embeddable status for', videoId, ':', isEmbeddable);
+                    
+                    if (isEmbeddable === false) {
                         item.classList.add('error');
-                        item.querySelector('.play-btn').disabled = true;
+                        const titleElement = item.querySelector('.video-title');
+                        titleElement.textContent = 'Video Not Available for Embedding';
+                        titleElement.style.color = '#ff4444';
+                        
+                        // Add an explanation message
+                        const explanationMsg = document.createElement('p');
+                        explanationMsg.textContent = 'This video cannot be played on our website due to embedding restrictions.';
+                        explanationMsg.style.cssText = `
+                            color: #ff6666;
+                            font-size: 0.9rem;
+                            margin: 10px 0;
+                            text-align: center;
+                            font-style: italic;
+                        `;
+                        
+                        // Add a fallback link to YouTube
+                        const youtubeLink = document.createElement('a');
+                        youtubeLink.href = `https://www.youtube.com/watch?v=${videoId}`;
+                        youtubeLink.target = '_blank';
+                        youtubeLink.className = 'youtube-fallback-link';
+                        youtubeLink.innerHTML = '<i class="fab fa-youtube"></i> Watch on YouTube';
+                        youtubeLink.style.cssText = `
+                            display: inline-block;
+                            background: #ff0000;
+                            color: white;
+                            padding: 12px 20px;
+                            border-radius: 25px;
+                            text-decoration: none;
+                            font-size: 1rem;
+                            font-weight: 600;
+                            margin-top: 15px;
+                            transition: all 0.3s ease;
+                            box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);
+                        `;
+                        
+                        // Add hover effect
+                        youtubeLink.addEventListener('mouseenter', () => {
+                            youtubeLink.style.transform = 'translateY(-2px)';
+                            youtubeLink.style.boxShadow = '0 6px 20px rgba(255, 0, 0, 0.4)';
+                        });
+                        
+                        youtubeLink.addEventListener('mouseleave', () => {
+                            youtubeLink.style.transform = 'translateY(0)';
+                            youtubeLink.style.boxShadow = '0 4px 15px rgba(255, 0, 0, 0.3)';
+                        });
+                        
+                        const overlay = item.querySelector('.gallery-item-overlay');
+                        overlay.appendChild(explanationMsg);
+                        overlay.appendChild(youtubeLink);
+                        
+                        // Disable the play button and show it's not available
+                        const playBtn = item.querySelector('.play-btn');
+                        playBtn.disabled = true;
+                        playBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                        playBtn.title = 'This video cannot be embedded. Click "Watch on YouTube" to view.';
+                        
                         console.warn('Video not embeddable:', videoId);
+                    } else {
+                        console.log('✅ Video is embeddable:', videoId, isEmbeddable);
+                        // Ensure the item is not marked as error
+                        item.classList.remove('error');
+                        
+                        // Enable the play button
+                        const playBtn = item.querySelector('.play-btn');
+                        if (playBtn) {
+                            playBtn.disabled = false;
+                            playBtn.innerHTML = '<i class="fas fa-play"></i>';
+                            playBtn.title = 'Play video';
+                        }
                     }
                 } else {
                     console.warn('No video data available for:', videoId);
-                    item.querySelector('.video-title').textContent = 'Video Unavailable';
-                    item.querySelector('.video-duration').innerHTML = '<i class="far fa-clock"></i> LIVE';
+                    const titleElement = item.querySelector('.video-title');
+                    const durationElement = item.querySelector('.video-duration');
+                    const playBtn = item.querySelector('.play-btn');
+                    
+                    titleElement.textContent = 'Video Unavailable';
+                    durationElement.innerHTML = '<i class="far fa-clock"></i> Unavailable';
+                    item.classList.add('error');
+                    playBtn.disabled = true;
+                    playBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                    playBtn.title = 'This video is currently unavailable';
+                    
+                    // Add a fallback link to YouTube
+                    const youtubeLink = document.createElement('a');
+                    youtubeLink.href = `https://www.youtube.com/watch?v=${videoId}`;
+                    youtubeLink.target = '_blank';
+                    youtubeLink.className = 'youtube-fallback-link';
+                    youtubeLink.innerHTML = '<i class="fab fa-youtube"></i> Watch on YouTube';
+                    youtubeLink.style.cssText = `
+                        display: inline-block;
+                        background: #ff0000;
+                        color: white;
+                        padding: 12px 20px;
+                        border-radius: 25px;
+                        text-decoration: none;
+                        font-size: 1rem;
+                        font-weight: 600;
+                        margin-top: 15px;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);
+                    `;
+                    
+                    // Add hover effect
+                    youtubeLink.addEventListener('mouseenter', () => {
+                        youtubeLink.style.transform = 'translateY(-2px)';
+                        youtubeLink.style.boxShadow = '0 6px 20px rgba(255, 0, 0, 0.4)';
+                    });
+                    
+                    youtubeLink.addEventListener('mouseleave', () => {
+                        youtubeLink.style.transform = 'translateY(0)';
+                        youtubeLink.style.boxShadow = '0 4px 15px rgba(255, 0, 0, 0.3)';
+                    });
+                    
+                    const overlay = item.querySelector('.gallery-item-overlay');
+                    overlay.appendChild(youtubeLink);
                 }
 
-                // Add loading state during initialization
-                item.classList.add('loading');
-                // After data loads
+                // Remove loading state after processing
                 item.classList.remove('loading');
             }
 
@@ -488,26 +734,59 @@
                         const videoId = item.dataset.videoId;
                         if (!videoId) throw new Error('Missing video ID');
                         
+                        // Check if item has error class (video unavailable)
+                        if (item.classList.contains('error')) {
+                            alert('This video is currently unavailable. Please try another video or visit our YouTube channel for more content.');
+                            return;
+                        }
+                        
+                        // Show loading state
+                        item.classList.add('loading');
+                        console.log('Attempting to play video:', videoId);
+                        
                         // Test if video is playable first
                         const testIframe = document.createElement('iframe');
-                        testIframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=0`;
+                        testIframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0&modestbranding=1`;
                         testIframe.style.display = 'none';
                         
                         testIframe.onload = () => {
+                            console.log('Video iframe loaded successfully:', videoId);
+                            item.classList.remove('loading');
                             modalVideo.src = testIframe.src;
                             videoModal.classList.add('active');
                             document.body.style.overflow = 'hidden';
                         };
                         
                         testIframe.onerror = () => {
-                            alert('This video is unavailable. Please try another one.');
+                            console.error('Video iframe failed to load:', videoId);
+                            item.classList.remove('loading');
+                            item.classList.add('error');
+                            alert('This video cannot be embedded. Redirecting to YouTube...');
+                            window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank');
                             testIframe.remove();
                         };
+                        
+                        // Set a timeout in case the video takes too long to load
+                        setTimeout(() => {
+                            if (item.classList.contains('loading')) {
+                                console.warn('Video loading timeout:', videoId);
+                                item.classList.remove('loading');
+                                item.classList.add('error');
+                                alert('Video loading timeout. Redirecting to YouTube...');
+                                window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank');
+                                testIframe.remove();
+                            }
+                        }, 5000); // 5 second timeout
                         
                         document.body.appendChild(testIframe);
                     } catch (error) {
                         console.error('Video playback error:', error);
-                        alert('Error loading video. Please try again.');
+                        item.classList.remove('loading');
+                        alert('Error loading video. Redirecting to YouTube...');
+                        const videoId = item.dataset.videoId;
+                        if (videoId) {
+                            window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank');
+                        }
                     }
                 };
                 

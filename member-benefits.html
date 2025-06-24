@@ -159,6 +159,94 @@
             .benefit-card h2 {
                 margin-top: 60px;
             }
+            
+            /* Mobile table optimizations */
+            .deal-table {
+                font-size: 0.85rem !important;
+            }
+            
+            .deal-table th, .deal-table td {
+                padding: 0.5rem 0.3rem !important;
+                font-size: 0.8rem !important;
+            }
+            
+            .deal-table th {
+                font-size: 0.75rem !important;
+                padding: 0.4rem 0.2rem !important;
+            }
+            
+            /* Stack table on very small screens */
+            @media (max-width: 480px) {
+                .deal-table {
+                    display: block;
+                    background: none !important;
+                }
+                
+                .deal-table thead {
+                    display: none;
+                }
+                
+                .deal-table tbody {
+                    display: block;
+                }
+                
+                .deal-table tr {
+                    display: block;
+                    background: #f8f6ff;
+                    border-radius: 8px;
+                    margin-bottom: 0.8rem;
+                    padding: 0.8rem;
+                    border: 1px solid #e0e0e0;
+                }
+                
+                .deal-table td {
+                    display: block;
+                    text-align: left !important;
+                    padding: 0.3rem 0 !important;
+                    border: none !important;
+                    font-size: 0.85rem !important;
+                }
+                
+                .deal-table td:before {
+                    content: attr(data-label) ": ";
+                    font-weight: 700;
+                    color: #764ba2;
+                    display: inline-block;
+                    width: 80px;
+                }
+                
+                .deal-table td:nth-child(1) {
+                    font-weight: 700;
+                    color: #171a20;
+                    font-size: 0.9rem !important;
+                    margin-bottom: 0.5rem;
+                    border-bottom: 1px solid #e0e0e0 !important;
+                    padding-bottom: 0.5rem !important;
+                }
+                
+                .deal-table td:nth-child(1):before {
+                    display: none;
+                }
+            }
+            
+            /* Mobile info boxes */
+            .dashboard-card > div[style*="background"] {
+                padding: 1rem 0.8rem !important;
+                font-size: 0.9rem !important;
+                flex-direction: column !important;
+                text-align: center !important;
+                gap: 0.5rem !important;
+            }
+            
+            .dashboard-card > div[style*="background"] i {
+                font-size: 1.5rem !important;
+            }
+            
+            /* Mobile card adjustments */
+            .dashboard-card {
+                padding: 1.5rem 1rem 1rem !important;
+                margin: 0 0.5rem !important;
+            }
         }
     </style>
 </head>
@@ -201,40 +289,40 @@
               </thead>
               <tbody>
                 <tr>
-                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec;">Driver &amp; Passenger (Regular)</td>
-                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; text-decoration:line-through; color:#888;">$150</td>
-                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; font-weight:700; color:#1976d2;">$100</td>
-                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; font-weight:700; color:#d32f2f;">$50 (33%)</td>
+                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec;" data-label="Service">Driver &amp; Passenger (Regular)</td>
+                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; text-decoration:line-through; color:#888;" data-label="Regular Price">$150</td>
+                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; font-weight:700; color:#1976d2;" data-label="Member Price">$100</td>
+                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; font-weight:700; color:#d32f2f;" data-label="You Save">$50 (33%)</td>
                 </tr>
                 <tr>
-                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec;">Driver &amp; Passenger (IR Ceramic)</td>
-                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; text-decoration:line-through; color:#888;">$200</td>
-                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; font-weight:700; color:#1976d2;">$150</td>
-                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; font-weight:700; color:#d32f2f;">$50 (25%)</td>
+                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec;" data-label="Service">Driver &amp; Passenger (IR Ceramic)</td>
+                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; text-decoration:line-through; color:#888;" data-label="Regular Price">$200</td>
+                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; font-weight:700; color:#1976d2;" data-label="Member Price">$150</td>
+                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; font-weight:700; color:#d32f2f;" data-label="You Save">$50 (25%)</td>
                 </tr>
                 <tr>
-                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec;">Windshield (Regular)</td>
-                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; text-decoration:line-through; color:#888;">$170</td>
-                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; font-weight:700; color:#1976d2;">$130</td>
-                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; font-weight:700; color:#d32f2f;">$40 (24%)</td>
+                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec;" data-label="Service">Windshield (Regular)</td>
+                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; text-decoration:line-through; color:#888;" data-label="Regular Price">$170</td>
+                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; font-weight:700; color:#1976d2;" data-label="Member Price">$130</td>
+                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; font-weight:700; color:#d32f2f;" data-label="You Save">$40 (24%)</td>
                 </tr>
                 <tr>
-                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec;">All Except Windshield/Sunroof (Regular)</td>
-                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; text-decoration:line-through; color:#888;">$250-$270</td>
-                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; font-weight:700; color:#1976d2;">$200</td>
-                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; font-weight:700; color:#d32f2f;">$50-$70 (20-26%)</td>
+                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec;" data-label="Service">All Except Windshield/Sunroof (Regular)</td>
+                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; text-decoration:line-through; color:#888;" data-label="Regular Price">$250-$270</td>
+                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; font-weight:700; color:#1976d2;" data-label="Member Price">$200</td>
+                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; font-weight:700; color:#d32f2f;" data-label="You Save">$50-$70 (20-26%)</td>
                 </tr>
                 <tr>
-                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec;">All Except Windshield/Sunroof (IR Ceramic)</td>
-                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; text-decoration:line-through; color:#888;">$450-$470</td>
-                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; font-weight:700; color:#1976d2;">$270</td>
-                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; font-weight:700; color:#d32f2f;">$180-$200 (40-43%)</td>
+                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec;" data-label="Service">All Except Windshield/Sunroof (IR Ceramic)</td>
+                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; text-decoration:line-through; color:#888;" data-label="Regular Price">$450-$470</td>
+                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; font-weight:700; color:#1976d2;" data-label="Member Price">$270</td>
+                  <td style="padding:0.8rem 0.5rem; border-bottom:1px solid #ececec; text-align:center; font-weight:700; color:#d32f2f;" data-label="You Save">$180-$200 (40-43%)</td>
                 </tr>
                 <tr>
-                  <td style="padding:0.8rem 0.5rem;">Best Film Package (IR Ceramic, All Except Sunroof)</td>
-                  <td style="padding:0.8rem 0.5rem; text-align:center; text-decoration:line-through; color:#888;">$620-$640</td>
-                  <td style="padding:0.8rem 0.5rem; text-align:center; font-weight:700; color:#1976d2;">$400</td>
-                  <td style="padding:0.8rem 0.5rem; text-align:center; font-weight:700; color:#d32f2f;">$220-$240 (35-38%)</td>
+                  <td style="padding:0.8rem 0.5rem;" data-label="Service">Best Film Package (IR Ceramic, All Except Sunroof)</td>
+                  <td style="padding:0.8rem 0.5rem; text-align:center; text-decoration:line-through; color:#888;" data-label="Regular Price">$620-$640</td>
+                  <td style="padding:0.8rem 0.5rem; text-align:center; font-weight:700; color:#1976d2;" data-label="Member Price">$400</td>
+                  <td style="padding:0.8rem 0.5rem; text-align:center; font-weight:700; color:#d32f2f;" data-label="You Save">$220-$240 (35-38%)</td>
                 </tr>
               </tbody>
             </table>

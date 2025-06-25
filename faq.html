@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, minimal-ui">
+    <title>FAQ - Blitz T Club</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="mobile-navigation.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/BvmtNLtB/logo.png">
+    <script src="navigation.js" defer></script>
+    <style>
+        body.faq-page {
+            background: linear-gradient(120deg, #f8f9fa 0%, #e9e6f7 100%);
+            min-height: 100vh;
+        }
+        
+        .faq-hero {
+            background: linear-gradient(135deg, #171a20 0%, #764ba2 100%);
+            color: #fff;
+            padding: 110px 20px 60px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .faq-hero h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            letter-spacing: 0.02em;
+        }
+        
+        .faq-hero p {
+            font-size: 1.25rem;
+            color: #e0e0e0;
+            margin-bottom: 2.5rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .faq-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+        
+        .faq-section {
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 8px 32px rgba(23,26,32,0.13);
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .faq-section h2 {
+            font-size: 1.8rem;
+            color: #171a20;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .faq-section h2 i {
+            color: #764ba2;
+            font-size: 1.5rem;
+        }
+        
+        .faq-item {
+            border-bottom: 1px solid #e9ecef;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+        }
+        
+        .faq-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .faq-question {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #171a20;
+            margin-bottom: 0.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: color 0.3s ease;
+        }
+        
+        .faq-question:hover {
+            color: #764ba2;
+        }
+        
+        .faq-question i {
+            font-size: 1rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .faq-question.active i {
+            transform: rotate(180deg);
+        }
+        
+        .faq-answer {
+            color: #393c41;
+            line-height: 1.6;
+            font-size: 1.05rem;
+            display: none;
+            padding-top: 0.5rem;
+        }
+        
+        .faq-answer.active {
+            display: block;
+        }
+        
+        .contact-section {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            color: #fff;
+            border-radius: 18px;
+            padding: 2.5rem;
+            text-align: center;
+            margin-top: 3rem;
+        }
+        
+        .contact-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        
+        .contact-section p {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .contact-btn {
+            display: inline-block;
+            background: #fff;
+            color: #764ba2;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .contact-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .faq-hero h1 {
+                font-size: 2.2rem;
+            }
+            
+            .faq-container {
+                padding: 2rem 1rem;
+            }
+            
+            .faq-section {
+                padding: 1.5rem;
+            }
+            
+            .faq-question {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body class="faq-page">
+    <nav>
+      <div class="logo">
+        <a href="index.html">
+          <img src="https://i.ibb.co/fkrdXZK/Logo4-white.png" alt="Blitz Tesla Club Logo">
+          <span>BLITZ T CLUB</span>
+        </a>
+      </div>
+      <button class="menu-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="nav-links">
+        <i class="fas fa-bars"></i>
+      </button>
+      <ul class="nav-links" id="nav-links"></ul>
+    </nav>
+    
+    <main>
+        <section class="faq-hero">
+            <h1>Frequently Asked Questions</h1>
+            <p>Find answers to common questions about Blitz T Club membership, events, and benefits.</p>
+        </section>
+        
+        <div class="faq-container">
+            <div class="faq-section">
+                <h2><i class="fas fa-users"></i>Membership</h2>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        How do I become a member of Blitz T Club?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        To become a member, simply visit our registration page and fill out the membership form. You'll need to provide basic information and verify your Tesla ownership. Once approved, you'll receive your member QR code and access to exclusive benefits.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        Is membership free?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Yes, membership to Blitz T Club is completely free! We believe in building an inclusive community for all Tesla owners without any membership fees.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        Do I need to own a Tesla to join?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Yes, Blitz T Club is specifically for Tesla owners. We require verification of Tesla ownership to maintain the integrity of our community and ensure our member benefits are available to actual Tesla owners.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        How do I access my member QR code?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Once your membership is approved, you can access your QR code by logging into your dashboard. The QR code is used to redeem exclusive member benefits at our partner locations.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="faq-section">
+                <h2><i class="fas fa-calendar-alt"></i>Events</h2>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        How often do you host events?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        We host events throughout the year, typically 2-3 major events per month. These include meetups, drives, educational sessions, and special Tesla-related activities. Check our events page for the latest schedule.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        Are events open to non-members?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Most of our events are exclusive to Blitz T Club members. However, we occasionally host public events to introduce potential members to our community. Check individual event details for specific requirements.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        How do I register for events?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Event registration is available through our events page. Simply click on the event you're interested in and follow the registration process. Some events may have limited capacity, so early registration is recommended.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="faq-section">
+                <h2><i class="fas fa-gift"></i>Member Benefits</h2>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        What exclusive benefits do members receive?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Members enjoy exclusive discounts and offers from our partner businesses, including EE Auto Group for window tinting, access to member-only events, networking opportunities, and a supportive community of fellow Tesla owners.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        How do I redeem member benefits?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        To redeem benefits, simply show your member QR code to the partner business. Each partner has specific redemption procedures, which are detailed on our member benefits page.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        Are member benefits available immediately after joining?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Yes! Once your membership is approved and you receive your QR code, you can immediately start using all member benefits at our partner locations.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="faq-section">
+                <h2><i class="fas fa-cog"></i>Technical Support</h2>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        I'm having trouble logging into my account
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        If you're experiencing login issues, try resetting your password using the "Forgot Password" link on the login page. If problems persist, contact our support team for assistance.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        My QR code isn't working
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Ensure you're logged into your account and try refreshing the page. If the QR code still doesn't appear, contact our support team and we'll help you resolve the issue.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        How do I update my member information?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        You can update your member information by logging into your dashboard and accessing the profile settings. Make sure to save your changes after updating any information.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="contact-section">
+                <h2>Still Have Questions?</h2>
+                <p>Can't find what you're looking for? Our team is here to help!</p>
+                <a href="contact.html" class="contact-btn">Contact Us</a>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <div class="footer-links">
+                    <a href="index.html">Home</a>
+                    <a href="events.html">Events</a>
+                    <a href="gallery.html">Gallery</a>
+                    <a href="contact.html">Contact</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Member Area</h3>
+                <div class="footer-links">
+                    <a href="sponsors.html">Our Sponsors</a>
+                    <a href="member-benefits.html">Member Benefits</a>
+                    <a href="#" id="footerLogoutBtn">Logout</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Legal</h3>
+                <div class="footer-links">
+                    <a href="privacy.html">Privacy Policy</a>
+                    <a href="terms.html">Terms of Service</a>
+                    <a href="about.html">About Us</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Connect With Us</h3>
+                <div class="footer-social">
+                    <a href="https://x.com/BlitzTClub" target="_blank" aria-label="Follow us on X">
+                        <i class="fa-brands fa-square-x-twitter"></i>
+                    </a>
+                    <a href="https://www.instagram.com/blitztclub/" target="_blank" aria-label="Follow us on Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 Blitz T Club. All rights reserved.</p>
+            <p class="powered-by">
+                Website powered by <a href="http://www.summitpixels.com" target="_blank">SummitPixels</a>
+            </p>
+        </div>
+    </footer>
+    
+    <!-- JotForm Chatbot Widget -->
+    <script src='https://cdn.jotfor.ms/agent/embedjs/0197a4f8c2107841a0d93e4272525cea385d/embed.js?skipWelcome=1&maximizable=1'></script>
+    
+    <script>
+        function toggleFAQ(element) {
+            const answer = element.nextElementSibling;
+            const icon = element.querySelector('i');
+            
+            // Close all other FAQ items
+            const allQuestions = document.querySelectorAll('.faq-question');
+            const allAnswers = document.querySelectorAll('.faq-answer');
+            
+            allQuestions.forEach((question, index) => {
+                if (question !== element) {
+                    question.classList.remove('active');
+                    allAnswers[index].classList.remove('active');
+                }
+            });
+            
+            // Toggle current FAQ item
+            element.classList.toggle('active');
+            answer.classList.toggle('active');
+        }
+    </script>
+</body>
+</html> 

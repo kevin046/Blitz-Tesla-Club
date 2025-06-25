@@ -4190,7 +4190,24 @@
             return;
         }
         
-        const eventHtml = events.map(event => `
+        // Filter events to show only upcoming events (date is in the future)
+        const now = new Date();
+        const upcomingEvents = events.filter(event => {
+            try {
+                const eventDate = new Date(event.date);
+                return eventDate > now;
+            } catch (error) {
+                console.warn('Invalid event date:', event.date, error);
+                return false;
+            }
+        });
+        
+        if (upcomingEvents.length === 0) {
+            container.innerHTML = '<p class="no-events">No upcoming events found</p>';
+            return;
+        }
+        
+        const eventHtml = upcomingEvents.map(event => `
                         <div class="event-item">
                 <div class="event-date">
                     <span class="event-month">${formatEventMonth(event.date)}</span>

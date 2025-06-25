@@ -18,9 +18,21 @@ async function loadEventRegistrations() {
         return;
     }
 
+    // Filter to show only upcoming events (date is in the future)
+    const now = new Date();
+    const upcomingRegistrations = data.filter(reg => {
+        try {
+            const eventDate = new Date(reg.events.date);
+            return eventDate > now;
+        } catch (error) {
+            console.warn('Invalid event date:', reg.events.date, error);
+            return false;
+        }
+    });
+
     const container = document.getElementById('eventRegistrations');
-    container.innerHTML = data.length > 0 
-        ? data.map(reg => `
+    container.innerHTML = upcomingRegistrations.length > 0 
+        ? upcomingRegistrations.map(reg => `
             <div class="registration-item">
                 <div class="registration-info">
                     <h3>${reg.events.name}</h3>

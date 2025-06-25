@@ -547,7 +547,8 @@
                 const { data, error } = await supabaseClient
                     .from('profiles')
                     .select('member_id')
-                    .not('member_id', 'is', null);  // Only select records with a member_id
+                    .not('member_id', 'is', null)  // Only select records with a member_id
+                    .like('member_id', 'BTC%');  // Only BTC member IDs
                 
                 if (error) {
                     console.error('Error fetching Member IDs:', error);
@@ -583,15 +584,24 @@
                 
                 console.log(`Highest existing ID: ${highestId}`);
                 
-                // Now find the first available ID (the first gap in the sequence)
+                // First, look for gaps in the sequence
                 let nextId = 1; // Start from 1
+                let foundGap = false;
                 
-                // Loop up to the highest ID + 1 to find the first available gap
-                for (let i = 1; i <= highestId + 1; i++) {
+                // Loop up to the highest ID to find the first available gap
+                for (let i = 1; i <= highestId; i++) {
                     if (!usedIds.has(i)) {
                         nextId = i;
+                        foundGap = true;
+                        console.log(`Found gap at position ${i}`);
                         break;
                     }
+                }
+                
+                // If no gaps found, use the next consecutive number
+                if (!foundGap) {
+                    nextId = highestId + 1;
+                    console.log(`No gaps found, using next consecutive number: ${nextId}`);
                 }
                 
                 console.log(`Next available ID number: ${nextId}`);

@@ -5848,37 +5848,45 @@ Blitz T Club Team`);
             transform: translateY(-2px);
         }
         
-        /* Admin modal styling */
+        /* Admin modal styling - centered */
         .admin-access-content {
             padding: 20px;
+            text-align: center;
+            max-width: 500px;
+            margin: 0 auto;
         }
         
         .admin-message {
             font-size: 1.1rem;
             margin-bottom: 20px;
             color: #e0e0e0;
+            text-align: center;
         }
         
         .admin-warning {
             background: rgba(220, 53, 69, 0.1);
             border: 1px solid rgba(220, 53, 69, 0.3);
             border-radius: 8px;
-            padding: 15px;
+            padding: 20px;
             margin-bottom: 25px;
-            display: flex;
-            align-items: flex-start;
-            gap: 15px;
+            text-align: center;
+            width: 100%;
+            display: block;
         }
         
         .admin-warning i {
             color: #dc3545;
             font-size: 24px;
+            display: block;
+            margin: 0 auto 10px auto;
         }
         
         .admin-warning p {
             margin: 0;
             color: #e0e0e0;
             font-size: 0.95rem;
+            text-align: center;
+            line-height: 1.4;
         }
         
         .admin-actions {
@@ -5905,6 +5913,38 @@ Blitz T Club Team`);
         
         .secondary-btn:hover {
             background: #374151;
+        }
+        
+        /* Ensure modal content is centered */
+        #adminDashboardModal .modal-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        #adminDashboardModal .modal-header {
+            text-align: center !important;
+            width: 100% !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+        }
+        
+        #adminDashboardModal .modal-body {
+            width: 100% !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            text-align: center !important;
+        }
+        
+        #adminDashboardModal .admin-access-content {
+            width: 100% !important;
+            text-align: center !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
         }
     </style>
 
@@ -6220,35 +6260,138 @@ Blitz T Club Team`);
         if (confirmAdminAccess) {
             confirmAdminAccess.addEventListener('click', () => {
                 window.open('admin-dashboard.html', '_blank');
-                adminDashboardModal.style.display = 'none';
+                adminDashboardModal.classList.remove('show');
             });
         }
         
         if (cancelAdminAccess) {
             cancelAdminAccess.addEventListener('click', () => {
-                adminDashboardModal.style.display = 'none';
+                adminDashboardModal.classList.remove('show');
             });
         }
         
         if (adminModalClose) {
             adminModalClose.addEventListener('click', () => {
-                adminDashboardModal.style.display = 'none';
+                adminDashboardModal.classList.remove('show');
             });
         }
         
         if (adminDashboardBtn) {
             adminDashboardBtn.addEventListener('click', () => {
-                adminDashboardModal.style.display = 'flex';
+                adminDashboardModal.classList.add('show');
             });
         }
         
         // Close modal when clicking outside
         window.addEventListener('click', (event) => {
             if (event.target === adminDashboardModal) {
-                adminDashboardModal.style.display = 'none';
+                adminDashboardModal.classList.remove('show');
             }
         });
     }
     </script>
+
+    <!-- Ensure modal content is centered -->
+    <style>
+        /* Admin button styling */
+        .admin-btn {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-left: 10px;
+        }
+        
+        .admin-btn:hover {
+            background: #5549bd;
+            transform: translateY(-2px);
+        }
+        
+        /* Admin modal styling - centered */
+        .admin-access-content {
+            padding: 20px;
+            text-align: center;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .admin-message {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            color: #e0e0e0;
+            text-align: center;
+        }
+        
+        .admin-warning {
+            background: rgba(220, 53, 69, 0.1);
+            border: 1px solid rgba(220, 53, 69, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+            width: 100%;
+            display: block;
+        }
+        
+        .admin-warning i {
+            color: #dc3545;
+            font-size: 24px;
+            display: block;
+            margin: 0 auto 10px auto;
+        }
+        
+        .admin-warning p {
+            margin: 0;
+            color: #e0e0e0;
+            font-size: 0.95rem;
+            text-align: center;
+            line-height: 1.4;
+        }
+        
+        .admin-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        /* Add this to existing secondary button styles if needed */
+        .secondary-btn {
+            background: #4b5563;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .secondary-btn:hover {
+            background: #374151;
+        }
+        
+        /* Ensure modal content is centered */
+        #adminDashboardModal {
+            display: none !important; /* Hidden by default */
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+        }
+        
+        #adminDashboardModal.show {
+            display: flex !important; /* Only show when .show class is added */
+        }
+    </style>
 </body>
 </html> 

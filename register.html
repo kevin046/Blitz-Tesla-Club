@@ -539,87 +539,96 @@
         }
 
         // Function to generate sequential member ID
-        async function generateSequentialMemberId() {
-            try {
-                console.log('Starting Member ID generation...');
-                
-                // Query to get all Member IDs from profiles
-                const { data, error } = await supabaseClient
-                    .from('profiles')
-                    .select('member_id')
-                    .not('member_id', 'is', null)  // Only select records with a member_id
-                    .like('member_id', 'BTC%');  // Only BTC member IDs
-                
-                if (error) {
-                    console.error('Error fetching Member IDs:', error);
-                    throw error;
-                }
-                
-                console.log('Retrieved profiles count with member_id:', data ? data.length : 0);
-                
-                // Extract all existing numeric IDs into a Set for O(1) lookups
-                const usedIds = new Set();
-                let highestId = 0;
-                
-                if (data && data.length > 0) {
-                    console.log('All member IDs:', data.map(p => p.member_id).join(', '));
-                    
-                    data.forEach(profile => {
-                        if (profile.member_id && profile.member_id.startsWith('BTC')) {
-                            try {
-                                const numberString = profile.member_id.replace('BTC', '');
-                                const numberPart = parseInt(numberString, 10);
-                                
-                                if (!isNaN(numberPart)) {
-                                    usedIds.add(numberPart);
-                                    highestId = Math.max(highestId, numberPart);
-                                    console.log(`Found Member ID: ${profile.member_id}, Number part: ${numberPart}`);
-                                }
-                            } catch (parseError) {
-                                console.error('Error parsing Member ID:', profile.member_id, parseError);
-                            }
-                        }
-                    });
-                }
-                
-                console.log(`Highest existing ID: ${highestId}`);
-                
-                // First, look for gaps in the sequence
-                let nextId = 1; // Start from 1
-                let foundGap = false;
-                
-                // Loop up to the highest ID to find the first available gap
-                for (let i = 1; i <= highestId; i++) {
-                    if (!usedIds.has(i)) {
-                        nextId = i;
-                        foundGap = true;
-                        console.log(`Found gap at position ${i}`);
-                        break;
-                    }
-                }
-                
-                // If no gaps found, use the next consecutive number
-                if (!foundGap) {
-                    nextId = highestId + 1;
-                    console.log(`No gaps found, using next consecutive number: ${nextId}`);
-                }
-                
-                console.log(`Next available ID number: ${nextId}`);
-                
-                // Format with leading zeros (4 digits)
-                const memberId = `BTC${nextId.toString().padStart(4, '0')}`;
-                
-                console.log(`Generated Member ID: ${memberId}`);
-                return memberId;
-            } catch (error) {
-                console.error('Error generating Member ID:', error);
-                // Generate a fallback ID with timestamp to avoid collision
-                const timestamp = Date.now().toString().slice(-4);
-                const fallbackId = `BTC${timestamp}`;
-                console.log('Using fallback ID with timestamp:', fallbackId);
-                return fallbackId;
-            }
-        }
+async function generateSequentialMemberId() {
+ try {
+ console.log('Starting Member ID generation...');
+
+ // Query to get all Member IDs from profiles
+ const { data, error } = await supabaseClient
+ .from('profiles')
+ .select('member_id')
+ .not('member_id', 'is', null)
+ .like('member_id', 'BTC%')
+ .order('member_id', { ascending: true }); // Ensure consistent order
+
+ if (error) {
+ console.error('Error fetching Member IDs:', error);
+ throw error;
+ }
+
+ console.log('Retrieved profiles count with member_id:', data ? data.length : 0);
+
+ // Extract all existing numeric IDs
+ const usedIds = new Set();
+ let highestId = 0;
+
+ if (data && data.length > 0) {
+ console.log('All member IDs:', data.map(p => p.member_id).join(', '));
+
+ for (const profile of data) {
+ if (profile.member_id && profile.member_id.startsWith('BTC')) {
+ const numberString = profile.member_id.replace('BTC', '');
+ const numberPart = parseInt(numberString, 10);
+
+ if (!isNaN(numberPart) && numberPart > 0) {
+ usedIds.add(numberPart);
+ highestId = Math.max(highestId, numberPart);
+ console.log(`Found Member ID: ${profile.member_id}, Number part: ${numberPart}`);
+ } else {
+ console.warn(`Invalid Member ID format: ${profile.member_id}`);
+ }
+ }
+ }
+ }
+
+ console.log('Used IDs:', Array.from(usedIds).sort((a, b) => a - b));
+ console.log(`Highest existing ID: ${highestId}`);
+
+ // Look for gaps in the sequence
+ let nextId = 1;
+ let foundGap = false;
+
+ for (let i = 1; i <= highestId; i++) {
+ if (!usedIds.has(i)) {
+ nextId = i;
+ foundGap = true;
+ console.log(`Found gap at position ${i}`);
+ break;
+ }
+ }
+
+ // If no gaps found, use the next consecutive number
+ if (!foundGap) {
+ nextId = highestId + 1;
+ console.log(`No gaps found, using next consecutive number: ${nextId}`);
+ }
+
+ console.log(`Next available ID number: ${nextId}`);
+
+ // Format with leading zeros (4 digits)
+ const memberId = `BTC${nextId.toString().padStart(4, '0')}`;
+
+ // Verify uniqueness before returning (optional, to handle concurrency)
+ const { data: existing } = await supabaseClient
+ .from('profiles')
+ .select('member_id')
+ .eq('member_id', memberId);
+
+ if (existing && existing.length > 0) {
+ console.warn(`Generated ID ${memberId} already exists, retrying...`);
+ return generateSequentialMemberId(); // Recursive retry
+ }
+
+ console.log(`Generated Member ID: ${memberId}`);
+ return memberId;
+ } catch (error) {
+ console.error('Error generating Member ID:', error);
+ const timestamp = Date.now().toString().slice(-4);
+ const fallbackId = `BTC${timestamp}`;
+ console.log('Using fallback ID with timestamp:', fallbackId);
+ return fallbackId;
+ }
+}
 
         // Initialize Supabase client with public anon key only
         const supabaseClient = supabase.createClient(

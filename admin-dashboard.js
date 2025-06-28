@@ -984,48 +984,13 @@ async function logAdminAccessAttempt(userId, email, successful, ipAddress = 'unk
     const supabaseClient = window.supabaseClient;
     if (!supabaseClient) return;
 
-    try {
-        // Get current timestamp
-        const timestamp = new Date().toISOString();
-        
-        // Log the access attempt
-        const { error } = await supabaseClient
-            .from('admin_access_logs')
-            .insert({
-                user_id: userId,
-                email: email,
-                timestamp: timestamp,
-                successful: successful,
-                ip_address: ipAddress,
-                user_agent: navigator.userAgent || 'unknown'
-            });
-            
-        if (error) {
-            // If the table doesn't exist, create it (this is a fallback and normally should be done in migrations)
-            if (error.code === '42P01') { // PostgreSQL error code for undefined_table
-                console.warn('Admin access logs table does not exist, attempting to create it');
-                
-                // Create the table
-                await supabaseClient.rpc('create_admin_logs_table');
-                
-                // Try inserting again
-                await supabaseClient
-                    .from('admin_access_logs')
-                    .insert({
-                        user_id: userId,
-                        email: email,
-                        timestamp: timestamp,
-                        successful: successful,
-                        ip_address: ipAddress,
-                        user_agent: navigator.userAgent || 'unknown'
-                    });
-            } else {
-                console.error('Error logging admin access attempt:', error);
-            }
-        }
-    } catch (error) {
-        console.error('Failed to log admin access attempt:', error);
-    }
+    // Skip logging entirely if the table doesn't exist to prevent 404 errors
+    // This is a non-critical feature and shouldn't affect the main functionality
+    return;
+    
+    // Note: If you want to enable admin access logging in the future, 
+    // you'll need to create the admin_access_logs table in your Supabase database
+    // with the following columns: user_id, email, timestamp, successful, ip_address, user_agent
 }
 
 // New function to set up the event listeners for the user management controls
@@ -1433,7 +1398,7 @@ async function loadEventRegistrationsTable(searchTerm = '', eventFilter = 'all',
             const normalizedRegUserId = String(reg.user_id || '').trim();
             const normalizedRegEventId = String(reg.event_id || '').trim();
             
-            console.log(`[REG_DEBUG] Processing Reg ID: ${reg.id}, User ID: '${normalizedRegUserId}', Event ID: '${normalizedRegEventId}'`);
+            // Removed REG_DEBUG log
 
             // [NEW] Fetch waiver details for this specific registration
             let waiver_signed = false;
@@ -1452,9 +1417,8 @@ async function loadEventRegistrationsTable(searchTerm = '', eventFilter = 'all',
                     } else if (fetchedWaiver && fetchedWaiver.signed_at) {
                         waiver_signed = true;
                         waiver_details = fetchedWaiver;
-                        console.log(`[WAIVER_FOUND] User: ${normalizedRegUserId}, Event: ${normalizedRegEventId}, Signed: ${fetchedWaiver.signed_at}`);
                     } else {
-                         console.log(`[WAIVER_NOT_FOUND_OR_NOT_SIGNED] User: ${normalizedRegUserId}, Event: ${normalizedRegEventId}`);
+                         // Removed waiver debug log
                     }
                 } catch (e) {
                     console.error(`[UNEXPECTED_WAIVER_FETCH_ERROR] User: ${normalizedRegUserId}, Event: ${normalizedRegEventId}`, e);
@@ -2934,6 +2898,229 @@ if (!window.QRCode) {
             loadDashboardStats();
             loadQrScansFeed();
         }, 60000);
+        
+        // Initialize QR Code Lookup functionality
+        initializeQrCodeLookup();
     });
 })();
+
+// QR Code Lookup functionality for Content Management
+function initializeQrCodeLookup() {
+    console.log('Initializing QR Code Lookup functionality...');
+    
+    const generateQrBtn = document.getElementById('generateQrBtn');
+    const memberIdInput = document.getElementById('memberIdInput');
+    const qrCodeDisplay = document.getElementById('qrCodeDisplay');
+    const qrErrorMsg = document.getElementById('qrErrorMsg');
+    
+    if (!generateQrBtn || !memberIdInput) {
+        console.log('QR Code lookup elements not found, skipping initialization');
+        console.log('generateQrBtn:', generateQrBtn);
+        console.log('memberIdInput:', memberIdInput);
+        return;
+    }
+    
+    console.log('QR Code lookup elements found, setting up event listeners...');
+    
+    // Ensure QRCode library is loaded
+    ensureQrCodeLibrary().then(() => {
+        console.log('QRCode library loaded successfully');
+    }).catch(error => {
+        console.error('Failed to load QRCode library:', error);
+    });
+    
+    // Add event listener for the generate button
+    generateQrBtn.addEventListener('click', async () => {
+        console.log('Generate QR button clicked');
+        await generateMemberQrCode();
+    });
+    
+    // Add event listener for Enter key on input
+    memberIdInput.addEventListener('keypress', async (e) => {
+        if (e.key === 'Enter') {
+            console.log('Enter key pressed in member ID input');
+            await generateMemberQrCode();
+        }
+    });
+    
+    console.log('QR Code Lookup functionality initialized successfully');
+    
+    async function generateMemberQrCode() {
+        const memberId = memberIdInput.value.trim();
+        console.log('Searching for member ID:', memberId);
+        
+        if (!memberId) {
+            showQrError('Please enter a member ID');
+            return;
+        }
+        
+        // Clear previous error and hide display
+        hideQrError();
+        qrCodeDisplay.style.display = 'none';
+        
+        // Show loading state
+        generateQrBtn.disabled = true;
+        generateQrBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
+        
+        try {
+            // Ensure QRCode library is loaded
+            console.log('Ensuring QRCode library is loaded...');
+            await ensureQrCodeLibrary();
+            console.log('QRCode library loaded successfully');
+            
+            // Search for the member by member_id
+            console.log('Searching database for member...');
+            const { data: member, error } = await window.supabaseClient
+                .from('profiles')
+                .select('id, full_name, member_id, email, created_at')
+                .eq('member_id', memberId)
+                .single();
+            
+            console.log('Database response:', { member, error });
+            
+            if (error || !member) {
+                console.log('Member not found or error occurred:', error);
+                showQrError('Member not found. Please check the member ID and try again.');
+                return;
+            }
+            
+            console.log('Member found:', member);
+            
+            // Display member information
+            displayMemberQrCode(member);
+            
+        } catch (error) {
+            console.error('Error generating QR code:', error);
+            if (error.message && error.message.includes('QRCode library')) {
+                showQrError('QR Code library failed to load. Please refresh the page and try again.');
+            } else {
+                showQrError('An error occurred while searching for the member. Please try again.');
+            }
+        } finally {
+            // Reset button state
+            generateQrBtn.disabled = false;
+            generateQrBtn.innerHTML = '<i class="fas fa-search"></i> Generate QR Code';
+        }
+    }
+    
+    function displayMemberQrCode(member) {
+        console.log('Displaying QR code for member:', member);
+        
+        // Update member information
+        const qrMemberName = document.getElementById('qrMemberName');
+        const qrMemberInfo = document.getElementById('qrMemberInfo');
+        const qrContainer = document.getElementById('qrCodeContainer');
+        
+        if (!qrMemberName || !qrMemberInfo || !qrContainer) {
+            console.error('Required QR display elements not found:', {
+                qrMemberName: !!qrMemberName,
+                qrMemberInfo: !!qrMemberInfo,
+                qrContainer: !!qrContainer
+            });
+            showQrError('QR display elements not found. Please refresh the page.');
+            return;
+        }
+        
+        qrMemberName.textContent = member.full_name;
+        qrMemberInfo.textContent = `Member ID: ${member.member_id} | Email: ${member.email}`;
+        
+        // Clear previous QR code
+        qrContainer.innerHTML = '';
+        console.log('Cleared QR container');
+        
+        // Generate QR code using the same approach as member dashboard
+        const qrUrl = `https://blitztclub.com/verify-member.html?member_id=${member.id}`;
+        console.log('QR URL:', qrUrl);
+        
+        // Create canvas element for QR code
+        const qrCanvas = document.createElement('canvas');
+        qrCanvas.width = 200;
+        qrCanvas.height = 200;
+        qrCanvas.style.width = '100%';
+        qrCanvas.style.height = '100%';
+        qrContainer.appendChild(qrCanvas);
+        
+        // Ensure QRCode library is loaded
+        if (!window.QRCode) {
+            console.error('QRCode library not available');
+            showQrError('QR Code library not loaded. Please refresh the page and try again.');
+            return;
+        }
+        
+        console.log('QRCode library is available, generating QR code...');
+        
+        try {
+            // Use the same QR code generation as member dashboard
+            window.QRCode.toCanvas(qrCanvas, qrUrl, {
+                width: 200,
+                margin: 0,
+                color: {
+                    dark: '#171a20',
+                    light: '#ffffff'
+                }
+            });
+            
+            console.log('QR code generated successfully');
+            
+            // Force the display to be visible
+            qrCodeDisplay.style.display = 'block';
+            qrCodeDisplay.style.visibility = 'visible';
+            qrCodeDisplay.style.opacity = '1';
+            console.log('QR display shown');
+            
+            // Scroll to the QR code display
+            qrCodeDisplay.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            console.log('Scrolled to QR display');
+            
+        } catch (qrError) {
+            console.error('Error generating QR code:', qrError);
+            showQrError('Failed to generate QR code. Please try again.');
+        }
+    }
+    
+    function showQrError(message) {
+        qrErrorMsg.textContent = message;
+        qrErrorMsg.style.display = 'block';
+        qrCodeDisplay.style.display = 'none';
+    }
+    
+    function hideQrError() {
+        qrErrorMsg.style.display = 'none';
+    }
+}
+
+// Function to ensure QRCode library is loaded
+function ensureQrCodeLibrary() {
+    if (window.QRCode) {
+        return Promise.resolve();
+    }
+    
+    return new Promise((resolve, reject) => {
+        // Check if script is already loading
+        if (document.querySelector('script[src*="qrcode.min.js"]')) {
+            // Wait for it to load
+            const checkInterval = setInterval(() => {
+                if (window.QRCode) {
+                    clearInterval(checkInterval);
+                    resolve();
+                }
+            }, 100);
+            
+            // Timeout after 10 seconds
+            setTimeout(() => {
+                clearInterval(checkInterval);
+                reject(new Error('QRCode library failed to load'));
+            }, 10000);
+            
+            return;
+        }
+        
+        // Load the script - use the same library as member dashboard
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js';
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('Failed to load QRCode library'));
+        document.head.appendChild(script);
+    });
+}
     

@@ -1001,31 +1001,34 @@
             document.getElementById('tab-view').innerHTML = `<i class="fas fa-table"></i> ${t('view_deals')}`;
             document.getElementById('langSwitchBtn').textContent = lang === 'zh' ? 'EN' : '中文';
             
-            // Update card headers and labels
-            const priceListHeader = document.querySelector('.card-header h3');
-            if (priceListHeader && priceListHeader.textContent.includes('Price List')) {
-                priceListHeader.textContent = t('price_list');
-            }
-            
-            const addCustomHeader = document.querySelectorAll('.card-header h3');
-            addCustomHeader.forEach(header => {
-                if (header.textContent.includes('Add Custom Items')) {
+            // Update all card headers and labels
+            const allHeaders = document.querySelectorAll('.card-header h3');
+            allHeaders.forEach(header => {
+                const text = header.textContent;
+                if (text.includes('Price List') || text.includes('价格表')) {
+                    header.textContent = t('price_list');
+                }
+                if (text.includes('Add Custom Items') || text.includes('添加自定义项目')) {
                     header.textContent = t('add_custom');
+                }
+                if (text.includes('Filter & Export') || text.includes('筛选与导出')) {
+                    header.textContent = t('filter_export');
+                }
+                if (text.includes('All Deals') || text.includes('所有交易')) {
+                    header.textContent = t('all_deals');
+                }
+                if (text.includes('Enter Member Information') || text.includes('输入会员信息')) {
+                    header.textContent = t('enter_member');
+                }
+                if (text.includes('Member Information') || text.includes('会员信息')) {
+                    header.textContent = t('member_info');
+                }
+                if (text.includes('Previous Sales') || text.includes('历史销售')) {
+                    header.textContent = t('previous_sales');
                 }
             });
             
             // Update filter section
-            const filterHeaders = document.querySelectorAll('.card-header h3');
-            filterHeaders.forEach(header => {
-                if (header.textContent.includes('Filter & Export')) {
-                    header.textContent = t('filter_export');
-                }
-                if (header.textContent.includes('All Deals')) {
-                    header.textContent = t('all_deals');
-                }
-            });
-            
-            // Update filter labels and placeholders
             const searchLabel = document.querySelector('label[for="searchInput"]');
             if (searchLabel) searchLabel.textContent = t('search');
             
@@ -1080,10 +1083,70 @@
                 input.placeholder = t('price');
             });
             
+            // Update member info labels
+            document.querySelectorAll('.info-label').forEach(label => {
+                const text = label.textContent;
+                if (text.includes('Name') || text.includes('姓名')) {
+                    label.textContent = t('name');
+                }
+                if (text.includes('Member ID') || text.includes('会员ID')) {
+                    label.textContent = t('member_id');
+                }
+                if (text.includes('Phone') || text.includes('电话')) {
+                    label.textContent = t('phone');
+                }
+                if (text.includes('Email') || text.includes('邮箱')) {
+                    label.textContent = t('email');
+                }
+                if (text.includes('Status') || text.includes('状态')) {
+                    label.textContent = t('status');
+                }
+            });
+            
+            // Update status badges
+            document.querySelectorAll('.status-badge').forEach(badge => {
+                const text = badge.textContent;
+                if (text.includes('Verified') || text.includes('已验证')) {
+                    badge.innerHTML = `<i class="fas fa-check-circle"></i> ${t('verified')}`;
+                }
+                if (text.includes('Not Verified') || text.includes('未验证')) {
+                    badge.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${t('not_verified')}`;
+                }
+            });
+            
+            // Update manual member ID input placeholder
+            const manualMemberId = document.getElementById('manualMemberId');
+            if (manualMemberId) {
+                manualMemberId.placeholder = t('enter_member_id');
+            }
+            
+            // Update load member button
+            const loadMemberBtn = document.querySelector('button[onclick="loadMemberById()"]');
+            if (loadMemberBtn) {
+                loadMemberBtn.innerHTML = `<i class="fas fa-search"></i> ${t('load_member')}`;
+            }
+            
+            // Update member description text
+            const memberDesc = document.querySelector('p[style*="color: var(--text-secondary)"]');
+            if (memberDesc && (memberDesc.textContent.includes('Enter a member ID') || memberDesc.textContent.includes('输入会员ID'))) {
+                memberDesc.textContent = t('enter_member_desc');
+            }
+            
+            // Update no deals message
+            const noDealsMsg = document.querySelector('.no-results');
+            if (noDealsMsg && (noDealsMsg.textContent.includes('No deals found') || noDealsMsg.textContent.includes('没有符合条件的交易'))) {
+                noDealsMsg.textContent = t('no_deals');
+            }
+            
+            // Update no previous sales message
+            const noPrevSales = document.querySelector('div[style*="text-align: center; color: var(--text-muted)"]');
+            if (noPrevSales && (noPrevSales.textContent.includes('No previous sales') || noPrevSales.textContent.includes('该会员暂无历史销售'))) {
+                noPrevSales.textContent = t('no_prev_sales');
+            }
+            
             if (document.getElementById('dealOptions')) {
                 renderDealOptions();
             }
-            // More UI text updates can be added here as needed
         }
         document.addEventListener('DOMContentLoaded', function() {
             applyI18n();
@@ -1157,6 +1220,7 @@
                     </div>
                 `;
                 document.getElementById('previousSalesCard').style.display = 'none';
+                applyI18n();
             }
 
             // Function to load member by manually entered ID
@@ -1254,6 +1318,7 @@
                 `;
 
                 await fetchPreviousSales(memberId);
+                applyI18n();
             }
 
             async function fetchPreviousSales(memberId) {
@@ -1282,6 +1347,7 @@
                             </div>
                         </div>
                     `;
+                    applyI18n();
                     return;
                 }
 
@@ -1321,6 +1387,7 @@
                         </div>
                     </div>
                 `;
+                applyI18n();
             }
 
             // Deal Form Logic

@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, minimal-ui">
     <title>Member Benefits - Blitz T Club</title>
+    <script src="navigation.js"></script>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="mobile-navigation.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
     <link rel="apple-touch-icon" href="https://i.postimg.cc/BvmtNLtB/logo.png">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="navigation.js" defer></script>
+    <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body.benefits-page {
             background: linear-gradient(120deg, #f8f9fa 0%, #e9e6f7 100%);
@@ -327,6 +327,7 @@
               </tbody>
             </table>
             
+           
             
             <div style="background:#e3f2fd; color:#1565c0; border-radius:12px; padding:1.3rem 1.1rem; margin-bottom:1.3rem; font-size:1.08rem; display:flex; align-items:center; gap:1.1rem;">
               <i class="fas fa-shield-alt" style="font-size:2rem;"></i>
@@ -347,13 +348,17 @@
               <i class="fas fa-qrcode" style="font-size:2rem;"></i>
               <span><strong>How to Redeem:</strong> Please have your Blitz T Club member QR code scanned by EE Auto staff to access these exclusive prices.<br><span style="color:#393c41;font-size:0.98em;">No QR, no deal – this offer is for verified members only.</span></span>
             </div>
+            
+            <!-- QR Code Image -->
+            <div style="text-align:center; margin-bottom:1.5rem;">
+              <img src="https://i.ibb.co/nqSSL0FX/eeauto-QR.jpg" alt="EE Auto QR Code" style="width:300px; height:300px; border-radius:12px; box-shadow:0 4px 16px rgba(23,26,32,0.15);">
+              <div style="margin-top:0.5rem; font-size:0.9rem; color:#666;">Scan this QR code for WeChat contact</div>
+            </div>
+            
             <div style="color:#888; font-size:1.01rem; margin-top:1.3rem; text-align:center;">
-              <div style="display:flex; align-items:center; justify-content:center; gap:1rem; margin-bottom:1rem;">
-                <img src="https://static.wixstatic.com/media/fd0f3d_855a3d7ef5fb4fd0b2011973fa0a9e6a~mv2.jpg/v1/fill/w_125,h_125,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20181225133337.jpg" alt="EE Auto Group Logo" style="width:100px; height:100px; border-radius:8px; object-fit:cover;">
-                <div style="text-align:left;">
-                  <div style="font-weight:700; color:#171a20; margin-bottom:0.2rem;">EE Auto Group</div>
-                  <div style="font-size:0.9rem; color:#666;">Professional Window Tinting</div>
-                </div>
+              <div style="text-align:center; margin-bottom:1rem;">
+                <div style="font-weight:700; color:#171a20; margin-bottom:0.2rem;">EE Auto Group</div>
+                <div style="font-size:0.9rem; color:#666;">Professional Window Tinting</div>
               </div>
               
               <div style="background:#f8f9fa; border-radius:10px; padding:1rem; margin-bottom:1rem; text-align:left;">
@@ -382,7 +387,7 @@
                 </div>
                 <div style="font-size:0.9rem; color:#666;">
                   <div style="margin-bottom:0.3rem;">
-                    <a href="tel:905-882-1112" style="color:#764ba2; text-decoration:none; font-weight:600;">Tel: 905-882-1112</a>
+                    <a href="tel:647-772-7072" style="color:#764ba2; text-decoration:none; font-weight:600;">Tel: 647-772-7072</a>
                   </div>
                   <div>
                     <i class="fab fa-weixin" style="color:#07c160; margin-right:0.3rem;"></i>
@@ -399,6 +404,55 @@
             </div>
           </div>
         </div>
+
+         <!-- Gallery Section -->
+         <div style="margin:2rem 0;">
+          <h3 style="font-size:1.4rem; color:#171a20; font-weight:700; margin-bottom:1.5rem; text-align:center;">Before & After Gallery</h3>
+          <p style="color:#393c41; font-size:1rem; margin-bottom:1.5rem; text-align:center;">See the difference professional window tinting makes on various vehicles</p>
+          
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:1.5rem; margin-bottom:1rem;">
+            <!-- Image 1 -->
+            <div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 16px rgba(23,26,32,0.1);">
+              <img src="https://i.ibb.co/MDr6jStW/a4c6cdb2506c34b2813a080676856683.jpg" alt="Window Tinting Before/After 1" style="width:100%; height:250px; object-fit:contain; background-color:#f8f9fa;">
+            </div>
+            
+            <!-- Image 2 -->
+            <div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 16px rgba(23,26,32,0.1);">
+              <img src="https://i.ibb.co/Psx00t9x/b6f5d67218ea0d93a244f675e624ca32.jpg" alt="Window Tinting Before/After 2" style="width:100%; height:250px; object-fit:contain; background-color:#f8f9fa;">
+            </div>
+            
+            <!-- Image 3 -->
+            <div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 16px rgba(23,26,32,0.1);">
+              <img src="https://i.ibb.co/9HB6yW6X/987823029084f848ed8b22fe9c97a2a8.jpg" alt="Window Tinting Before/After 3" style="width:100%; height:250px; object-fit:cover;">
+            </div>
+            
+            <!-- Image 4 -->
+            <div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 16px rgba(23,26,32,0.1);">
+              <img src="https://i.ibb.co/Vcmggt8X/715de9e03cce781757752cd9342b1612.jpg" alt="Window Tinting Before/After 4" style="width:100%; height:250px; object-fit:cover;">
+            </div>
+            
+            <!-- Image 5 -->
+            <div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 16px rgba(23,26,32,0.1);">
+              <img src="https://i.ibb.co/7HSqv52/d589d4c158ea107cebbbfc72ae11b9ba.jpg" alt="Window Tinting Before/After 5" style="width:100%; height:250px; object-fit:cover;">
+            </div>
+            
+            <!-- Image 6 -->
+            <div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 16px rgba(23,26,32,0.1);">
+              <img src="https://i.ibb.co/SD4Xb8RJ/eb536733d90ff1fa28faf2d03e57cb4f.jpg" alt="Window Tinting Before/After 6" style="width:100%; height:250px; object-fit:cover;">
+            </div>
+            
+            <!-- Image 7 -->
+            <div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 16px rgba(23,26,32,0.1);">
+              <img src="https://i.ibb.co/QFYntMD4/7a95e0685f2896344e00eb8ac9573049.jpg" alt="Window Tinting Before/After 7" style="width:100%; height:250px; object-fit:cover;">
+            </div>
+          </div>
+          
+          <div style="background:#f8f6ff; color:#764ba2; border-radius:12px; padding:1rem; text-align:center; font-size:0.95rem;">
+            <i class="fas fa-star" style="margin-right:0.5rem;"></i>
+            <strong>Professional Quality:</strong> All work completed with precision and attention to detail
+          </div>
+        </div>
+        
       </section>
     </main>
     <footer>

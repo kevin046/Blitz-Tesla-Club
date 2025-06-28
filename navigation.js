@@ -14,28 +14,6 @@ window.initializeSupabase = () => {
     return window.supabaseClient;
 };
 
-// Update the auth state listener with error handling
-const setupAuthStateListener = () => {
-    try {
-        const supabase = window.initializeSupabase();
-        if (!supabase) {
-            console.warn('Supabase client not available for auth state listener');
-            return;
-        }
-        
-        supabase.auth.onAuthStateChange((event, session) => {
-            if (event === 'SIGNED_IN') {
-                updateAuthUI(true);
-            } else if (event === 'SIGNED_OUT') {
-                updateAuthUI(false);
-            }
-        });
-        console.log('Auth state listener set up successfully');
-    } catch (error) {
-        console.error('Auth state listener error:', error);
-    }
-};
-
 // Core function to initialize mobile menu - used by both initialization paths
 function setupMobileMenu() {
     console.log('Setting up mobile menu');
@@ -171,153 +149,177 @@ function setupMobileMenu() {
     return true;
 }
 
-// Main init function
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM content loaded, initializing navigation');
-    try {
-        // Initialize Supabase if available
-        window.initializeSupabase();
-        
-        // Set up auth state change listener
-        setupAuthStateListener();
-        
-        // Initialize navigation items if we have Supabase
-        if (window.supabaseClient) {
-            initializeNavigation().catch(err => {
-                console.error('Error in navigation initialization:', err);
-                // If navigation fails, still try to set up mobile menu
-                setupMobileMenu();
-            });
-        } else {
-            console.warn('Supabase client not available, skipping dynamic navigation');
-            // Even without Supabase, we can still set up the mobile menu
-            setupMobileMenu();
-        }
-    } catch (error) {
-        console.error('Error in navigation initialization:', error);
-        // Always try to set up mobile menu even if everything else fails
-        setupMobileMenu();
+// Quick navigation setup - runs immediately
+function setupQuickNavigation() {
+    console.log('Setting up quick navigation');
+    
+    const navLinks = document.querySelector('.nav-links');
+    if (!navLinks) {
+        console.warn('Navigation links element not found');
+        return;
     }
-});
 
-// Function to initialize navigation
-async function initializeNavigation() {
-    console.log('Initializing navigation items');
+    // Get current page path
+    const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+    console.log('Current page:', currentPath);
+
+    // Default navigation items (non-logged in state)
+    const defaultNavigationItems = [
+        { href: 'index.html', icon: 'fas fa-home', text: '', iconOnly: true },
+        { href: 'events.html', icon: 'fas fa-calendar', text: 'Events' },
+        { href: 'gallery.html', icon: 'fas fa-images', text: 'Gallery' },
+        { href: 'member-benefits.html', icon: 'fas fa-gift', text: 'Member Benefits' },
+        { href: 'contact.html', icon: 'fas fa-envelope', text: 'Contact' },
+        { href: 'about.html', icon: 'fas fa-info-circle', text: 'About Us' },
+        { href: 'register.html', icon: 'fas fa-user-plus', text: 'Join Us' },
+        { href: 'login.html', icon: 'fas fa-sign-in-alt', text: 'Login' }
+    ];
+
+    // Clear existing navigation
+    navLinks.innerHTML = '';
+    
+    // Build navigation
+    defaultNavigationItems.forEach(item => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        
+        a.href = item.href;
+        if (item.id) a.id = item.id;
+        
+        // Enhanced active state detection
+        if (currentPath === item.href || 
+            (currentPath === '' && item.href === 'index.html') ||
+            (item.href !== 'index.html' && currentPath.startsWith(item.href.split('.')[0]))) {
+            a.classList.add('active');
+        }
+        
+        // Add iOS-friendly touch target size
+        a.style.minHeight = '44px';
+        a.style.padding = item.iconOnly ? '8px' : '8px 16px';
+        
+        // Add icon-only class if specified
+        if (item.iconOnly) {
+            a.classList.add('icon-only');
+            a.setAttribute('aria-label', 'Home');
+            a.innerHTML = `<i class="${item.icon}"></i>`;
+        } else {
+            a.innerHTML = `<i class="${item.icon}"></i>${item.text}`;
+        }
+        
+        li.appendChild(a);
+        navLinks.appendChild(li);
+    });
+
+    console.log('Quick navigation setup complete');
+}
+
+// Enhanced navigation with auth - runs asynchronously
+async function enhanceNavigationWithAuth() {
+    console.log('Enhancing navigation with auth data');
     
     try {
-        const { data: { session } } = await window.supabaseClient.auth.getSession();
-        
-        // Get navigation element
-        const navLinks = document.querySelector('.nav-links');
-        if (!navLinks) {
-            console.warn('Navigation links element not found');
+        // Initialize Supabase if not already done
+        const supabase = window.initializeSupabase();
+        if (!supabase) {
+            console.warn('Supabase not available for auth enhancement');
             return;
         }
 
-        // Get current page path
-        const currentPath = window.location.pathname.split('/').pop() || 'index.html';
-        console.log('Current page:', currentPath);
-
-        // Define navigation items based on auth status
-        const navigationItems = session ? [
-            // Navigation items for logged-in users
-            { href: 'index.html', icon: 'fas fa-home', text: '', iconOnly: true },
-            { href: 'dashboard.html', icon: 'fas fa-tachometer-alt', text: 'Dashboard' },
-            { href: 'events.html', icon: 'fas fa-calendar', text: 'Events' },
-            { href: 'gallery.html', icon: 'fas fa-images', text: 'Gallery' },
-            { href: 'member-benefits.html', icon: 'fas fa-gift', text: 'Member Benefits' },
-            { href: 'contact.html', icon: 'fas fa-envelope', text: 'Contact' },
-            { href: 'about.html', icon: 'fas fa-info-circle', text: 'About Us' },
-            { href: '#', icon: 'fas fa-sign-out-alt', text: 'Logout', id: 'logoutBtn' }
-        ] : [
-            // Navigation items for non-logged-in users
-            { href: 'index.html', icon: 'fas fa-home', text: '', iconOnly: true },
-            { href: 'events.html', icon: 'fas fa-calendar', text: 'Events' },
-            { href: 'gallery.html', icon: 'fas fa-images', text: 'Gallery' },
-            { href: 'member-benefits.html', icon: 'fas fa-gift', text: 'Member Benefits' },
-            { href: 'contact.html', icon: 'fas fa-envelope', text: 'Contact' },
-            { href: 'about.html', icon: 'fas fa-info-circle', text: 'About Us' },
-            { href: 'register.html', icon: 'fas fa-user-plus', text: 'Join Us' },
-            { href: 'login.html', icon: 'fas fa-sign-in-alt', text: 'Login' }
-        ];
-
-        // Clear existing navigation
-        navLinks.innerHTML = '';
+        const { data: { session } } = await supabase.auth.getSession();
         
-        // Build navigation
-        navigationItems.forEach(item => {
-            const li = document.createElement('li');
-            const a = document.createElement('a');
-            
-            a.href = item.href;
-            if (item.id) a.id = item.id;
-            
-            // Enhanced active state detection
-            if (currentPath === item.href || 
-                (currentPath === '' && item.href === 'index.html') ||
-                (item.href !== 'index.html' && currentPath.startsWith(item.href.split('.')[0]))) {
-                a.classList.add('active');
-            }
-            
-            // Add iOS-friendly touch target size
-            a.style.minHeight = '44px';
-            a.style.padding = item.iconOnly ? '8px' : '8px 16px';
-            
-            // Add icon-only class if specified
-            if (item.iconOnly) {
-                a.classList.add('icon-only');
-                a.setAttribute('aria-label', 'Home');
-                a.innerHTML = `<i class="${item.icon}"></i>`;
-            } else {
-                a.innerHTML = `<i class="${item.icon}"></i>${item.text}`;
-            }
-            
-            li.appendChild(a);
-            navLinks.appendChild(li);
-        });
+        const navLinks = document.querySelector('.nav-links');
+        if (!navLinks) return;
 
-        // Handle logout if user is logged in
+        // Update navigation based on auth status
         if (session) {
+            // User is logged in - update to logged-in navigation
+            const loggedInItems = [
+                { href: 'index.html', icon: 'fas fa-home', text: '', iconOnly: true },
+                { href: 'dashboard.html', icon: 'fas fa-tachometer-alt', text: 'Dashboard' },
+                { href: 'events.html', icon: 'fas fa-calendar', text: 'Events' },
+                { href: 'gallery.html', icon: 'fas fa-images', text: 'Gallery' },
+                { href: 'member-benefits.html', icon: 'fas fa-gift', text: 'Member Benefits' },
+                { href: 'contact.html', icon: 'fas fa-envelope', text: 'Contact' },
+                { href: 'about.html', icon: 'fas fa-info-circle', text: 'About Us' },
+                { href: '#', icon: 'fas fa-sign-out-alt', text: 'Logout', id: 'logoutBtn' }
+            ];
+
+            // Update navigation items
+            navLinks.innerHTML = '';
+            const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+            
+            loggedInItems.forEach(item => {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                
+                a.href = item.href;
+                if (item.id) a.id = item.id;
+                
+                if (currentPath === item.href || 
+                    (currentPath === '' && item.href === 'index.html') ||
+                    (item.href !== 'index.html' && currentPath.startsWith(item.href.split('.')[0]))) {
+                    a.classList.add('active');
+                }
+                
+                a.style.minHeight = '44px';
+                a.style.padding = item.iconOnly ? '8px' : '8px 16px';
+                
+                if (item.iconOnly) {
+                    a.classList.add('icon-only');
+                    a.setAttribute('aria-label', 'Home');
+                    a.innerHTML = `<i class="${item.icon}"></i>`;
+                } else {
+                    a.innerHTML = `<i class="${item.icon}"></i>${item.text}`;
+                }
+                
+                li.appendChild(a);
+                navLinks.appendChild(li);
+            });
+
+            // Handle logout
             const logoutBtn = document.getElementById('logoutBtn');
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', async (e) => {
                     e.preventDefault();
-                    await window.supabaseClient.auth.signOut();
+                    await supabase.auth.signOut();
                     window.location.href = 'login.html';
                 });
             }
         }
 
-        // Set up mobile menu after creating nav items
-        console.log('Navigation items created, setting up mobile menu');
-        setupMobileMenu();
-        
-        // Trigger event for other scripts that might need to know navigation is ready
-        document.dispatchEvent(new CustomEvent('navigation:updated'));
-        console.log('Navigation initialization complete');
+        // Set up auth state listener
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN') {
+                enhanceNavigationWithAuth();
+            } else if (event === 'SIGNED_OUT') {
+                setupQuickNavigation();
+            }
+        });
+
+        console.log('Navigation enhanced with auth data');
     } catch (error) {
-        console.error('Navigation initialization error:', error);
-        // If navigation initialization fails, still set up the mobile menu
-        setupMobileMenu();
+        console.error('Auth enhancement error:', error);
     }
 }
 
-// Update authentication UI
-function updateAuthUI(isLoggedIn) {
-    const loginItem = document.querySelector('a[href="login.html"]')?.parentElement;
-    const logoutItem = document.getElementById('logoutBtn')?.parentElement;
-    const registerItem = document.querySelector('a[href="register.html"]')?.parentElement;
-    const dashboardItem = document.querySelector('a[href="dashboard.html"]')?.parentElement;
+// Main init function - optimized for speed
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM content loaded, initializing navigation');
     
-    if (loginItem) loginItem.style.display = isLoggedIn ? 'none' : 'block';
-    if (registerItem) registerItem.style.display = isLoggedIn ? 'none' : 'block';
-    if (logoutItem) logoutItem.style.display = isLoggedIn ? 'block' : 'none';
-    if (dashboardItem) dashboardItem.style.display = isLoggedIn ? 'block' : 'none';
-}
+    // Set up basic navigation immediately
+    setupQuickNavigation();
+    setupMobileMenu();
+    
+    // Enhance with auth data asynchronously (non-blocking)
+    setTimeout(() => {
+        enhanceNavigationWithAuth();
+    }, 100);
+});
 
 // For legacy compatibility
-const loadNavigation = initializeNavigation;
+const loadNavigation = enhanceNavigationWithAuth;
 
 // Export for global access
-window.initializeNavigation = initializeNavigation;
+window.initializeNavigation = enhanceNavigationWithAuth;
 window.setupMobileMenu = setupMobileMenu;
+window.setupQuickNavigation = setupQuickNavigation;

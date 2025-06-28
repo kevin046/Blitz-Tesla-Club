@@ -1624,14 +1624,67 @@
             }
 
             // Function to load member by manually entered ID
-            window.loadMemberById = function() {
+            window.loadMemberById = async function() {
                 const manualId = document.getElementById('manualMemberId').value.trim();
                 if (!manualId) {
                     alert('Please enter a member ID');
                     return;
                 }
-                currentMemberId = manualId;
-                fetchMemberInfo(currentMemberId);
+                
+                // Try to find the member by member_id (string ID like BTC0001)
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('id, full_name, member_id, phone, email, membership_status')
+                    .eq('member_id', manualId)
+                    .single();
+                
+                if (error || !data) {
+                    alert('Member not found. Please check the member ID and try again.');
+                    return;
+                }
+                
+                // Set currentMemberId to the UUID for database operations
+                currentMemberId = data.id;
+                
+                // Display the member info
+                document.getElementById('memberInfoSection').innerHTML = `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="icon">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <h3>${t('member_info')}</h3>
+                        </div>
+                        <div class="member-info">
+                            <div class="info-item">
+                                <div class="info-label">${t('name')}</div>
+                                <div class="info-value">${data.full_name || '-'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">${t('member_id')}</div>
+                                <div class="info-value">${data.member_id || '-'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">${t('phone')}</div>
+                                <div class="info-value">${data.phone || '-'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">${t('email')}</div>
+                                <div class="info-value">${data.email || '-'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">${t('status')}</div>
+                                <div class="status-badge ${data.membership_status === 'active' ? 'status-verified' : 'status-not-verified'}">
+                                    <i class="fas fa-${data.membership_status === 'active' ? 'check-circle' : 'exclamation-triangle'}"></i>
+                                    ${data.membership_status === 'active' ? t('verified') : t('not_verified')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                await fetchPreviousSales(currentMemberId);
+                applyI18n();
             };
 
             async function fetchMemberInfo(memberId) {
@@ -1726,14 +1779,92 @@
                 card.style.display = 'block';
                 card.innerHTML = '<div class="loading"><div class="spinner"></div>Loading previous sales...</div>';
 
-                const { data, error } = await supabase
-                    .from('vendor_deals')
-                    .select('*')
-                    .eq('member_id', memberId)
-                    .eq('vendor_id', VENDOR_ID)
-                    .order('created_at', { ascending: false });
+                try {
+                    // Query by member_id only
+                    const { data, error } = await supabase
+                        .from('vendor_deals')
+                        .select('*')
+                        .eq('member_id', memberId)
+                        .eq('vendor_id', VENDOR_ID)
+                        .order('created_at', { ascending: false });
 
-                if (error || !data || data.length === 0) {
+                    if (error) {
+                        console.error('Error fetching previous sales:', error);
+                        // Show error message but don't break the UI
+                        card.innerHTML = `
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="icon">
+                                        <i class="fas fa-history"></i>
+                                    </div>
+                                    <h3>${t('previous_sales')}</h3>
+                                </div>
+                                <div style="text-align: center; color: var(--text-muted); padding: 40px;">
+                                    Unable to load previous sales at this time.
+                                </div>
+                            </div>
+                        `;
+                        applyI18n();
+                        return;
+                    }
+
+                    if (!data || data.length === 0) {
+                        card.innerHTML = `
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="icon">
+                                        <i class="fas fa-history"></i>
+                                    </div>
+                                    <h3>${t('previous_sales')}</h3>
+                                </div>
+                                <div style="text-align: center; color: var(--text-muted); padding: 40px;">
+                                    ${t('no_prev_sales')}
+                                </div>
+                            </div>
+                        `;
+                        applyI18n();
+                        return;
+                    }
+
+                    card.innerHTML = `
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="icon">
+                                    <i class="fas fa-history"></i>
+                                </div>
+                                <h3>${t('previous_sales')}</h3>
+                            </div>
+                            <div class="previous-sales">
+                                ${data.map(deal => `
+                                    <div class="sale-item">
+                                        <div class="sale-date">
+                                            <i class="fas fa-calendar"></i>
+                                            ${new Date(deal.created_at).toLocaleString()}
+                                        </div>
+                                        <div class="sale-details">
+                                            <strong>${t('details')}:</strong>
+                                            <ul class="deal-details-list">
+                                                ${(deal.deal_details || []).map(d => `<li>${d.label}: $${d.price}</li>`).join('')}
+                                            </ul>
+                                            ${(deal.custom_items || []).length > 0 ? `
+                                                <strong>${t('custom_items')}:</strong>
+                                                <ul class="custom-items-list">
+                                                    ${deal.custom_items.map(c => `<li>${c.desc}: $${c.price}</li>`).join('')}
+                                                </ul>
+                                            ` : ''}
+                                        </div>
+                                        <div class="sale-total">
+                                            <i class="fas fa-dollar-sign"></i>
+                                            ${t('total')}: $${deal.total_price}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                    applyI18n();
+                } catch (err) {
+                    console.error('Exception in fetchPreviousSales:', err);
                     card.innerHTML = `
                         <div class="card">
                             <div class="card-header">
@@ -1743,51 +1874,12 @@
                                 <h3>${t('previous_sales')}</h3>
                             </div>
                             <div style="text-align: center; color: var(--text-muted); padding: 40px;">
-                                ${t('no_prev_sales')}
+                                Unable to load previous sales at this time.
                             </div>
                         </div>
                     `;
                     applyI18n();
-                    return;
                 }
-
-                card.innerHTML = `
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="icon">
-                                <i class="fas fa-history"></i>
-                            </div>
-                            <h3>${t('previous_sales')}</h3>
-                        </div>
-                        <div class="previous-sales">
-                            ${data.map(deal => `
-                                <div class="sale-item">
-                                    <div class="sale-date">
-                                        <i class="fas fa-calendar"></i>
-                                        ${new Date(deal.created_at).toLocaleString()}
-                                    </div>
-                                    <div class="sale-details">
-                                        <strong>${t('details')}:</strong>
-                                        <ul class="deal-details-list">
-                                            ${(deal.deal_details || []).map(d => `<li>${d.label}: $${d.price}</li>`).join('')}
-                                        </ul>
-                                        ${(deal.custom_items || []).length > 0 ? `
-                                            <strong>${t('custom_items')}:</strong>
-                                            <ul class="custom-items-list">
-                                                ${deal.custom_items.map(c => `<li>${c.desc}: $${c.price}</li>`).join('')}
-                                            </ul>
-                                        ` : ''}
-                                    </div>
-                                    <div class="sale-total">
-                                        <i class="fas fa-dollar-sign"></i>
-                                        ${t('total')}: $${deal.total_price}
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-                applyI18n();
             }
 
             // Deal Form Logic
@@ -1867,7 +1959,11 @@
                 document.getElementById('submitDealBtn').disabled = true;
                 document.getElementById('submitDealBtn').innerHTML = `<div class="spinner"></div> ${t('submitting')}`;
 
-                const dealDetails = selectedDeals.map(d => ({ type: d.type, label: d.label, price: d.price }));
+                const dealDetails = selectedDeals.map(d => ({ 
+                    type: d.type, 
+                    label: d.label[lang] || d.label, 
+                    price: d.price 
+                }));
                 
                 const { error } = await supabase
                     .from('vendor_deals')
@@ -2000,6 +2096,34 @@
             document.getElementById('endDate')?.addEventListener('change', renderDealsTable);
             document.getElementById('dealTypeFilter')?.addEventListener('change', renderDealsTable);
 
+            // Helper function to convert deal details to English for CSV export
+            function convertDealDetailsToEnglish(dealDetails) {
+                if (!dealDetails || !Array.isArray(dealDetails)) return [];
+                
+                return dealDetails.map(detail => {
+                    let englishLabel = detail.label;
+                    
+                    // Convert Chinese labels to English
+                    if (detail.label && typeof detail.label === 'string') {
+                        const labelMap = {
+                            '前排驾驶/副驾（普通膜）': 'Driver & Passenger (Regular)',
+                            '前排驾驶/副驾（陶瓷隔热膜）': 'Driver & Passenger (IR Ceramic)',
+                            '前挡风玻璃（普通膜）': 'Windshield (Regular)',
+                            '除前挡/天窗外全车（普通膜）': 'All Except Windshield/Sunroof (Regular)',
+                            '除前挡/天窗外全车（陶瓷隔热膜）': 'All Except Windshield/Sunroof (IR Ceramic)',
+                            '顶级套餐（陶瓷隔热膜，除天窗外全车）': 'Best Film Package (IR Ceramic, All Except Sunroof)'
+                        };
+                        
+                        englishLabel = labelMap[detail.label] || detail.label;
+                    }
+                    
+                    return {
+                        ...detail,
+                        label: englishLabel
+                    };
+                });
+            }
+
             document.getElementById('exportBtn')?.addEventListener('click', function() {
                 let csv = 'Date,Member Name,Member ID,Deal Details,Custom Items,Total\n';
                 
@@ -2031,7 +2155,11 @@
                     const date = new Date(deal.created_at).toLocaleString();
                     const name = deal.profiles?.full_name || '';
                     const mid = deal.profiles?.member_id || '';
-                    const details = (deal.deal_details || []).map(d => `${d.label}: $${d.price}`).join('; ');
+                    
+                    // Convert deal details to English for CSV export
+                    const englishDealDetails = convertDealDetailsToEnglish(deal.deal_details);
+                    const details = englishDealDetails.map(d => `${d.label}: $${d.price}`).join('; ');
+                    
                     const customs = (deal.custom_items || []).map(c => `${c.desc}: $${c.price}`).join('; ');
                     const total = deal.total_price;
                     csv += `"${date}","${name}","${mid}","${details}","${customs}","${total}"\n`;

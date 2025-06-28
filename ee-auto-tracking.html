@@ -731,6 +731,7 @@
                     <span class="ee">EE</span><span class="auto">AUTO</span>
                 </div>
                 <div class="ee-auto-subtitle">Premium Window Tinting</div>
+                <button id="langSwitchBtn" style="margin-top:10px;padding:6px 16px;border-radius:8px;border:none;background:#007bff;color:#fff;cursor:pointer;font-size:14px;">中文</button>
             </div>
         </div>
         
@@ -859,6 +860,240 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     
     <script>
+        // --- i18n dictionary ---
+        const i18n = {
+            zh: {
+                title: 'EE汽车集团交易追踪',
+                subtitle: 'Blitz T Club 供应商管理系统',
+                eeauto_subtitle: '高端汽车贴膜',
+                log_deal: '记录交易',
+                view_deals: '查看所有交易',
+                price_list: 'EE汽车集团价格表',
+                add_custom: '添加自定义项目',
+                add_custom_btn: '添加自定义项目',
+                total_amount: '总金额',
+                submit_sale: '提交销售',
+                enter_member: '输入会员信息',
+                enter_member_desc: '输入会员ID以记录交易，或扫描会员二维码。',
+                load_member: '加载会员',
+                name: '姓名',
+                member_id: '会员ID',
+                phone: '电话',
+                email: '邮箱',
+                status: '状态',
+                verified: '已验证',
+                not_verified: '未验证',
+                previous_sales: '历史销售',
+                no_prev_sales: '该会员暂无历史销售。',
+                details: '详情',
+                custom_items: '自定义项目',
+                total: '总计',
+                filter_export: '筛选与导出',
+                search: '搜索',
+                search_placeholder: '按会员姓名或ID搜索...',
+                start_date: '开始日期',
+                end_date: '结束日期',
+                deal_type: '交易类型',
+                all_deal_types: '所有交易类型',
+                export_csv: '导出CSV',
+                all_deals: '所有交易',
+                no_deals: '没有符合条件的交易。',
+                sale_logged: '交易已记录！感谢EE Auto。',
+                try_again: '重试',
+                load_member_alert: '请先加载会员再提交交易。',
+                select_deal_alert: '请至少选择一个交易或添加自定义项目。',
+                loading: '加载中...',
+                failed_load: '加载失败。',
+                description: '描述',
+                price: '价格',
+                submitting: '提交中...',
+                member_info: '会员信息',
+                enter_member_id: '输入会员ID',
+                date: '日期',
+                member_name: '会员姓名',
+                deal_details: '交易详情',
+                window_tint: '车窗贴膜',
+            },
+            en: {
+                title: 'EE Auto Group Deal Tracking',
+                subtitle: 'Blitz T Club Vendor Management System',
+                eeauto_subtitle: 'Premium Window Tinting',
+                log_deal: 'Log a Deal',
+                view_deals: 'View All Deals',
+                price_list: 'EE Auto Group Price List',
+                add_custom: 'Add Custom Items',
+                add_custom_btn: 'Add Custom Item',
+                total_amount: 'Total Amount',
+                submit_sale: 'Submit Sale',
+                enter_member: 'Enter Member Information',
+                enter_member_desc: "Enter a member ID to log a deal, or scan a member's QR code.",
+                load_member: 'Load Member',
+                name: 'Name',
+                member_id: 'Member ID',
+                phone: 'Phone',
+                email: 'Email',
+                status: 'Status',
+                verified: 'Verified',
+                not_verified: 'Not Verified',
+                previous_sales: 'Previous Sales',
+                no_prev_sales: 'No previous sales for this member.',
+                details: 'Details',
+                custom_items: 'Custom Items',
+                total: 'Total',
+                filter_export: 'Filter & Export',
+                search: 'Search',
+                search_placeholder: 'Search by member name or ID...',
+                start_date: 'Start Date',
+                end_date: 'End Date',
+                deal_type: 'Deal Type',
+                all_deal_types: 'All Deal Types',
+                export_csv: 'Export CSV',
+                all_deals: 'All Deals',
+                no_deals: 'No deals found for the selected filters.',
+                sale_logged: 'Sale logged for this member! Thank you, EE Auto.',
+                try_again: 'Try Again',
+                load_member_alert: 'Please load a member first before submitting a deal.',
+                select_deal_alert: 'Please select at least one deal or add a custom item.',
+                loading: 'Loading...',
+                failed_load: 'Failed to load deals.',
+                description: 'Description',
+                price: 'Price',
+                submitting: 'Submitting...',
+                member_info: 'Member Information',
+                enter_member_id: 'Enter Member ID',
+                date: 'Date',
+                member_name: 'Member Name',
+                deal_details: 'Deal Details',
+                window_tint: 'Window Tint',
+            }
+        };
+        let lang = localStorage.getItem('eeauto_lang') || 'zh';
+        function t(key) { return i18n[lang][key] || key; }
+
+        // Deal Form Logic - moved to global scope
+        const dealOptionsList = [
+            { type: 'driver_regular', label: { zh: '前排驾驶/副驾（普通膜）', en: 'Driver & Passenger (Regular)' }, desc: { zh: '高端汽车贴膜服务', en: 'Premium window tinting service' }, price: 100 },
+            { type: 'driver_ceramic', label: { zh: '前排驾驶/副驾（陶瓷隔热膜）', en: 'Driver & Passenger (IR Ceramic)' }, desc: { zh: '高端汽车贴膜服务', en: 'Premium window tinting service' }, price: 150 },
+            { type: 'windshield_regular', label: { zh: '前挡风玻璃（普通膜）', en: 'Windshield (Regular)' }, desc: { zh: '高端汽车贴膜服务', en: 'Premium window tinting service' }, price: 130 },
+            { type: 'all_regular', label: { zh: '除前挡/天窗外全车（普通膜）', en: 'All Except Windshield/Sunroof (Regular)' }, desc: { zh: '高端汽车贴膜服务', en: 'Premium window tinting service' }, price: 200 },
+            { type: 'all_ceramic', label: { zh: '除前挡/天窗外全车（陶瓷隔热膜）', en: 'All Except Windshield/Sunroof (IR Ceramic)' }, desc: { zh: '高端汽车贴膜服务', en: 'Premium window tinting service' }, price: 270 },
+            { type: 'best_package', label: { zh: '顶级套餐（陶瓷隔热膜，除天窗外全车）', en: 'Best Film Package (IR Ceramic, All Except Sunroof)' }, desc: { zh: '高端汽车贴膜服务', en: 'Premium window tinting service' }, price: 400 }
+        ];
+
+        function renderDealOptions() {
+            document.getElementById('dealOptions').innerHTML = dealOptionsList.map(opt => `
+                <div class="deal-option" style="font-family: 'Montserrat', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;">
+                    <input type="checkbox" data-type="${opt.type}" data-label="${opt.label[lang]}" data-price="${opt.price}">
+                    <div class="deal-option-content">
+                        <div class="deal-option-title">${opt.label[lang]}</div>
+                        <div class="deal-option-desc">${opt.desc[lang]}</div>
+                    </div>
+                    <div class="deal-option-price">$${opt.price}</div>
+                </div>
+            `).join('');
+        }
+
+        function applyI18n() {
+            document.querySelector('.title-section h1').textContent = t('title');
+            document.querySelector('.title-section p').textContent = t('subtitle');
+            document.querySelector('.ee-auto-subtitle').textContent = t('eeauto_subtitle');
+            document.getElementById('tab-log').innerHTML = `<i class="fas fa-plus-circle"></i> ${t('log_deal')}`;
+            document.getElementById('tab-view').innerHTML = `<i class="fas fa-table"></i> ${t('view_deals')}`;
+            document.getElementById('langSwitchBtn').textContent = lang === 'zh' ? 'EN' : '中文';
+            
+            // Update card headers and labels
+            const priceListHeader = document.querySelector('.card-header h3');
+            if (priceListHeader && priceListHeader.textContent.includes('Price List')) {
+                priceListHeader.textContent = t('price_list');
+            }
+            
+            const addCustomHeader = document.querySelectorAll('.card-header h3');
+            addCustomHeader.forEach(header => {
+                if (header.textContent.includes('Add Custom Items')) {
+                    header.textContent = t('add_custom');
+                }
+            });
+            
+            // Update filter section
+            const filterHeaders = document.querySelectorAll('.card-header h3');
+            filterHeaders.forEach(header => {
+                if (header.textContent.includes('Filter & Export')) {
+                    header.textContent = t('filter_export');
+                }
+                if (header.textContent.includes('All Deals')) {
+                    header.textContent = t('all_deals');
+                }
+            });
+            
+            // Update filter labels and placeholders
+            const searchLabel = document.querySelector('label[for="searchInput"]');
+            if (searchLabel) searchLabel.textContent = t('search');
+            
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) searchInput.placeholder = t('search_placeholder');
+            
+            const startDateLabel = document.querySelector('label[for="startDate"]');
+            if (startDateLabel) startDateLabel.textContent = t('start_date');
+            
+            const endDateLabel = document.querySelector('label[for="endDate"]');
+            if (endDateLabel) endDateLabel.textContent = t('end_date');
+            
+            const dealTypeLabel = document.querySelector('label[for="dealTypeFilter"]');
+            if (dealTypeLabel) dealTypeLabel.textContent = t('deal_type');
+            
+            const dealTypeSelect = document.getElementById('dealTypeFilter');
+            if (dealTypeSelect) {
+                dealTypeSelect.innerHTML = `
+                    <option value="">${t('all_deal_types')}</option>
+                    <option value="window_tint">${t('window_tint')}</option>
+                `;
+            }
+            
+            const exportBtn = document.getElementById('exportBtn');
+            if (exportBtn) {
+                exportBtn.innerHTML = `<i class="fas fa-file-export"></i> ${t('export_csv')}`;
+            }
+            
+            // Update add custom button
+            const addCustomBtn = document.getElementById('addCustomBtn');
+            if (addCustomBtn) {
+                addCustomBtn.innerHTML = `<i class="fas fa-plus"></i> ${t('add_custom_btn')}`;
+            }
+            
+            // Update total amount label
+            const dealSummaryLabel = document.querySelector('.deal-summary-label');
+            if (dealSummaryLabel) {
+                dealSummaryLabel.textContent = t('total_amount');
+            }
+            
+            // Update submit button
+            const submitBtn = document.getElementById('submitDealBtn');
+            if (submitBtn) {
+                submitBtn.innerHTML = `<i class="fas fa-check"></i> ${t('submit_sale')}`;
+            }
+            
+            // Update custom item placeholders
+            document.querySelectorAll('.custom-desc').forEach(input => {
+                input.placeholder = t('description');
+            });
+            document.querySelectorAll('.custom-price').forEach(input => {
+                input.placeholder = t('price');
+            });
+            
+            if (document.getElementById('dealOptions')) {
+                renderDealOptions();
+            }
+            // More UI text updates can be added here as needed
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            applyI18n();
+            document.getElementById('langSwitchBtn').onclick = function() {
+                lang = lang === 'zh' ? 'en' : 'zh';
+                localStorage.setItem('eeauto_lang', lang);
+                applyI18n();
+            };
+        });
+
         document.addEventListener('DOMContentLoaded', function() {
             // Configuration
             const SUPABASE_URL = 'https://qhkcrrphsjpytdfqfamq.supabase.co';
@@ -907,15 +1142,15 @@
                             <div class="icon">
                                 <i class="fas fa-user-plus"></i>
                             </div>
-                            <h3>Enter Member Information</h3>
+                            <h3>${t('enter_member')}</h3>
                         </div>
                         <div style="text-align: center; padding: 20px;">
-                            <p style="color: var(--text-secondary); margin-bottom: 20px;">Enter a member ID to log a deal, or scan a member's QR code.</p>
+                            <p style="color: var(--text-secondary); margin-bottom: 20px;">${t('enter_member_desc')}</p>
                             <div style="display: flex; gap: 15px; max-width: 400px; margin: 0 auto;">
-                                <input type="text" id="manualMemberId" placeholder="Enter Member ID" style="flex: 1; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 10px; background: var(--secondary-bg); color: var(--text-primary); font-size: 14px;">
+                                <input type="text" id="manualMemberId" placeholder="${t('enter_member_id')}" style="flex: 1; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 10px; background: var(--secondary-bg); color: var(--text-primary); font-size: 14px;">
                                 <button class="btn btn-primary" onclick="loadMemberById()" style="padding: 12px 20px;">
                                     <i class="fas fa-search"></i>
-                                    Load Member
+                                    ${t('load_member')}
                                 </button>
                             </div>
                         </div>
@@ -988,30 +1223,30 @@
                             <div class="icon">
                                 <i class="fas fa-user"></i>
                             </div>
-                            <h3>Member Information</h3>
+                            <h3>${t('member_info')}</h3>
                         </div>
                         <div class="member-info">
                             <div class="info-item">
-                                <div class="info-label">Name</div>
+                                <div class="info-label">${t('name')}</div>
                                 <div class="info-value">${data.full_name || '-'}</div>
                             </div>
                             <div class="info-item">
-                                <div class="info-label">Member ID</div>
+                                <div class="info-label">${t('member_id')}</div>
                                 <div class="info-value">${data.member_id || '-'}</div>
                             </div>
                             <div class="info-item">
-                                <div class="info-label">Phone</div>
+                                <div class="info-label">${t('phone')}</div>
                                 <div class="info-value">${data.phone || '-'}</div>
                             </div>
                             <div class="info-item">
-                                <div class="info-label">Email</div>
+                                <div class="info-label">${t('email')}</div>
                                 <div class="info-value">${data.email || '-'}</div>
                             </div>
                             <div class="info-item">
-                                <div class="info-label">Status</div>
+                                <div class="info-label">${t('status')}</div>
                                 <div class="status-badge ${data.membership_status === 'active' ? 'status-verified' : 'status-not-verified'}">
                                     <i class="fas fa-${data.membership_status === 'active' ? 'check-circle' : 'exclamation-triangle'}"></i>
-                                    ${data.membership_status === 'active' ? 'Verified' : 'Not Verified'}
+                                    ${data.membership_status === 'active' ? t('verified') : t('not_verified')}
                                 </div>
                             </div>
                         </div>
@@ -1040,10 +1275,10 @@
                                 <div class="icon">
                                     <i class="fas fa-history"></i>
                                 </div>
-                                <h3>Previous Sales</h3>
+                                <h3>${t('previous_sales')}</h3>
                             </div>
                             <div style="text-align: center; color: var(--text-muted); padding: 40px;">
-                                No previous sales for this member.
+                                ${t('no_prev_sales')}
                             </div>
                         </div>
                     `;
@@ -1056,7 +1291,7 @@
                             <div class="icon">
                                 <i class="fas fa-history"></i>
                             </div>
-                            <h3>Previous Sales</h3>
+                            <h3>${t('previous_sales')}</h3>
                         </div>
                         <div class="previous-sales">
                             ${data.map(deal => `
@@ -1066,12 +1301,12 @@
                                         ${new Date(deal.created_at).toLocaleString()}
                                     </div>
                                     <div class="sale-details">
-                                        <strong>Details:</strong>
+                                        <strong>${t('details')}:</strong>
                                         <ul class="deal-details-list">
                                             ${(deal.deal_details || []).map(d => `<li>${d.label}: $${d.price}</li>`).join('')}
                                         </ul>
                                         ${(deal.custom_items || []).length > 0 ? `
-                                            <strong>Custom Items:</strong>
+                                            <strong>${t('custom_items')}:</strong>
                                             <ul class="custom-items-list">
                                                 ${deal.custom_items.map(c => `<li>${c.desc}: $${c.price}</li>`).join('')}
                                             </ul>
@@ -1079,7 +1314,7 @@
                                     </div>
                                     <div class="sale-total">
                                         <i class="fas fa-dollar-sign"></i>
-                                        Total: $${deal.total_price}
+                                        ${t('total')}: $${deal.total_price}
                                     </div>
                                 </div>
                             `).join('')}
@@ -1089,28 +1324,6 @@
             }
 
             // Deal Form Logic
-            const dealOptionsList = [
-                { type: 'driver_regular', label: 'Driver & Passenger (Regular)', price: 100 },
-                { type: 'driver_ceramic', label: 'Driver & Passenger (IR Ceramic)', price: 150 },
-                { type: 'windshield_regular', label: 'Windshield (Regular)', price: 130 },
-                { type: 'all_regular', label: 'All Except Windshield/Sunroof (Regular)', price: 200 },
-                { type: 'all_ceramic', label: 'All Except Windshield/Sunroof (IR Ceramic)', price: 270 },
-                { type: 'best_package', label: 'Best Film Package (IR Ceramic, All Except Sunroof)', price: 400 }
-            ];
-
-            function renderDealOptions() {
-                document.getElementById('dealOptions').innerHTML = dealOptionsList.map(opt => `
-                    <div class="deal-option">
-                        <input type="checkbox" data-type="${opt.type}" data-label="${opt.label}" data-price="${opt.price}">
-                        <div class="deal-option-content">
-                            <div class="deal-option-title">${opt.label}</div>
-                            <div class="deal-option-desc">Premium window tinting service</div>
-                        </div>
-                        <div class="deal-option-price">$${opt.price}</div>
-                    </div>
-                `).join('');
-            }
-
             renderDealOptions();
 
             let selectedDeals = [];
@@ -1161,8 +1374,8 @@
                 const row = document.createElement('div');
                 row.className = 'custom-item-row';
                 row.innerHTML = `
-                    <input class="custom-desc" placeholder="Description" type="text">
-                    <input class="custom-price" placeholder="Price" type="number" min="0" step="0.01">
+                    <input class="custom-desc" placeholder="${t('description')}" type="text">
+                    <input class="custom-price" placeholder="${t('price')}" type="number" min="0" step="0.01">
                     <button type="button" class="remove-btn">
                         <i class="fas fa-times"></i>
                     </button>
@@ -1185,7 +1398,7 @@
                 }
 
                 document.getElementById('submitDealBtn').disabled = true;
-                document.getElementById('submitDealBtn').innerHTML = '<div class="spinner"></div> Submitting...';
+                document.getElementById('submitDealBtn').innerHTML = `<div class="spinner"></div> ${t('submitting')}`;
 
                 const dealDetails = selectedDeals.map(d => ({ type: d.type, label: d.label, price: d.price }));
                 
@@ -1212,7 +1425,7 @@
 
                 document.getElementById('dealForm').style.display = 'none';
                 document.getElementById('confirmationModal').classList.add('active');
-                document.getElementById('confirmationMsg').textContent = 'Sale logged for this member! Thank you, EE Auto.';
+                document.getElementById('confirmationMsg').textContent = t('sale_logged');
                 
                 await fetchPreviousSales(currentMemberId);
                 fetchDeals(); // Refresh table
@@ -1271,19 +1484,19 @@
 
                 let html = '';
                 if (filtered.length === 0) {
-                    html = '<div class="no-results">No deals found for the selected filters.</div>';
+                    html = `<div class="no-results">${t('no_deals')}</div>`;
                 } else {
                     html = `
                         <div class="table-container">
                             <table class="deals-table">
                                 <thead>
                                     <tr>
-                                        <th>Date</th>
-                                        <th>Member Name</th>
-                                        <th>Member ID</th>
-                                        <th>Deal Details</th>
-                                        <th>Custom Items</th>
-                                        <th>Total</th>
+                                        <th>${t('date')}</th>
+                                        <th>${t('member_name')}</th>
+                                        <th>${t('member_id')}</th>
+                                        <th>${t('deal_details')}</th>
+                                        <th>${t('custom_items')}</th>
+                                        <th>${t('total')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>

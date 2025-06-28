@@ -248,6 +248,71 @@
                 margin: 0 0.5rem !important;
             }
         }
+        
+        /* Mobile gallery optimizations */
+        @media (max-width: 768px) {
+            .gallery-grid {
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+                margin: 0 0.5rem 1rem 0.5rem !important;
+            }
+            
+            .gallery-item img {
+                height: 280px !important;
+            }
+            
+            .gallery-title {
+                font-size: 1.3rem !important;
+                margin-bottom: 1rem !important;
+            }
+            
+            .gallery-description {
+                font-size: 0.95rem !important;
+                margin-bottom: 1rem !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .gallery-grid {
+                grid-template-columns: 1fr !important;
+                gap: 0.8rem !important;
+                margin: 0 0.3rem 0.8rem 0.3rem !important;
+            }
+            
+            .gallery-item img {
+                height: 240px !important;
+            }
+            
+            .gallery-title {
+                font-size: 1.2rem !important;
+                margin-bottom: 1rem !important;
+            }
+            
+            .gallery-description {
+                font-size: 0.9rem !important;
+                margin-bottom: 1rem !important;
+            }
+        }
+        
+        /* Overall mobile container optimization */
+        @media (max-width: 768px) {
+            .section-content {
+                width: 85% !important;
+                margin: 0 auto !important;
+                max-width: 100% !important;
+            }
+            
+            .dashboard-grid {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            
+            .dashboard-card {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+            }
+        }
     </style>
 </head>
 <body class="benefits-page">
@@ -413,37 +478,37 @@
           <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1rem; margin-bottom:1rem;">
             <!-- Image 1 -->
             <div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 16px rgba(23,26,32,0.1);">
-              <img src="https://i.ibb.co/MDr6jStW/a4c6cdb2506c34b2813a080676856683.jpg" alt="Window Tinting Before/After 1" style="width:100%; height:200px; object-fit:contain; background-color:#f8f9fa;">
+              <img src="https://i.ibb.co/MDr6jStW/a4c6cdb2506c34b2813a080676856683.jpg" alt="Window Tinting Before/After 1" style="width:100%; height:280px; object-fit:contain; background-color:#f8f9fa;">
             </div>
             
             <!-- Image 2 -->
             <div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 16px rgba(23,26,32,0.1);">
-              <img src="https://i.ibb.co/Psx00t9x/b6f5d67218ea0d93a244f675e624ca32.jpg" alt="Window Tinting Before/After 2" style="width:100%; height:200px; object-fit:contain; background-color:#f8f9fa;">
+              <img src="https://i.ibb.co/Psx00t9x/b6f5d67218ea0d93a244f675e624ca32.jpg" alt="Window Tinting Before/After 2" style="width:100%; height:280px; object-fit:contain; background-color:#f8f9fa;">
             </div>
             
             <!-- Image 3 -->
             <div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 16px rgba(23,26,32,0.1);">
-              <img src="https://i.ibb.co/9HB6yW6X/987823029084f848ed8b22fe9c97a2a8.jpg" alt="Window Tinting Before/After 3" style="width:100%; height:200px; object-fit:cover;">
+              <img src="https://i.ibb.co/9HB6yW6X/987823029084f848ed8b22fe9c97a2a8.jpg" alt="Window Tinting Before/After 3" style="width:100%; height:280px; object-fit:cover;">
             </div>
             
             <!-- Image 4 -->
             <div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 16px rgba(23,26,32,0.1);">
-              <img src="https://i.ibb.co/Vcmggt8X/715de9e03cce781757752cd9342b1612.jpg" alt="Window Tinting Before/After 4" style="width:100%; height:200px; object-fit:cover;">
+              <img src="https://i.ibb.co/Vcmggt8X/715de9e03cce781757752cd9342b1612.jpg" alt="Window Tinting Before/After 4" style="width:100%; height:280px; object-fit:cover;">
             </div>
             
             <!-- Image 5 -->
             <div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 16px rgba(23,26,32,0.1);">
-              <img src="https://i.ibb.co/7HSqv52/d589d4c158ea107cebbbfc72ae11b9ba.jpg" alt="Window Tinting Before/After 5" style="width:100%; height:200px; object-fit:cover;">
+              <img src="https://i.ibb.co/7HSqv52/d589d4c158ea107cebbbfc72ae11b9ba.jpg" alt="Window Tinting Before/After 5" style="width:100%; height:280px; object-fit:cover;">
             </div>
             
             <!-- Image 6 -->
             <div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 16px rgba(23,26,32,0.1);">
-              <img src="https://i.ibb.co/SD4Xb8RJ/eb536733d90ff1fa28faf2d03e57cb4f.jpg" alt="Window Tinting Before/After 6" style="width:100%; height:200px; object-fit:cover;">
+              <img src="https://i.ibb.co/SD4Xb8RJ/eb536733d90ff1fa28faf2d03e57cb4f.jpg" alt="Window Tinting Before/After 6" style="width:100%; height:280px; object-fit:cover;">
             </div>
             
             <!-- Image 7 -->
             <div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 16px rgba(23,26,32,0.1);">
-              <img src="https://i.ibb.co/QFYntMD4/7a95e0685f2896344e00eb8ac9573049.jpg" alt="Window Tinting Before/After 7" style="width:100%; height:200px; object-fit:cover;">
+              <img src="https://i.ibb.co/QFYntMD4/7a95e0685f2896344e00eb8ac9573049.jpg" alt="Window Tinting Before/After 7" style="width:100%; height:280px; object-fit:cover;">
             </div>
           </div>
           
@@ -504,45 +569,5 @@
     </footer>
     <!-- JotForm Chatbot Widget -->
     <script src='https://cdn.jotfor.ms/agent/embedjs/0197a4f8c2107841a0d93e4272525cea385d/embed.js?skipWelcome=1&maximizable=1'></script>
-    <style>
-    /* Mobile optimizations for gallery */
-    @media (max-width: 768px) {
-      .gallery-grid {
-        grid-template-columns: 1fr !important;
-        gap: 0.8rem !important;
-        margin: 0 0.5rem 1rem 0.5rem !important;
-      }
-      
-      .gallery-item {
-        margin-bottom: 0.5rem !important;
-      }
-      
-      .gallery-item img {
-        height: 180px !important;
-      }
-    }
-    
-    @media (max-width: 480px) {
-      .gallery-grid {
-        grid-template-columns: 1fr !important;
-        gap: 0.6rem !important;
-        margin: 0 0.3rem 0.8rem 0.3rem !important;
-      }
-      
-      .gallery-item img {
-        height: 160px !important;
-      }
-      
-      .gallery-title {
-        font-size: 1.2rem !important;
-        margin-bottom: 1rem !important;
-      }
-      
-      .gallery-description {
-        font-size: 0.9rem !important;
-        margin-bottom: 1rem !important;
-      }
-    }
-    </style>
 </body>
 </html>

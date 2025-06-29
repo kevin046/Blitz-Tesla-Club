@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.3",
+    "@vercel/speed-insights": "^1.2.0",
     "bcryptjs": "^2.4.3",
     "connect-pg-simple": "^9.0.1",
     "dotenv": "^16.4.1",

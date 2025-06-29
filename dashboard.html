@@ -4600,17 +4600,25 @@
     
     // Add global unhandled promise rejection handler
     window.addEventListener('unhandledrejection', (event) => {
-        console.error('Unhandled Promise Rejection:', event.reason);
-        
+        // Enhanced error logging
+        console.error('Unhandled Promise Rejection:', event.reason, event);
+        let errorMsg = 'Unhandled promise rejection occurred';
+        if (event.reason) {
+            if (typeof event.reason === 'object') {
+                errorMsg = event.reason.message || JSON.stringify(event.reason);
+                if (event.reason.stack) {
+                    console.error('Stack trace:', event.reason.stack);
+                }
+            } else {
+                errorMsg = String(event.reason);
+            }
+        }
         const errorDisplay = document.getElementById('errorNotification');
         if (errorDisplay) {
-            errorDisplay.querySelector('.error-message').textContent = 
-                `Error: ${event.reason?.message || 'Unhandled promise rejection occurred'}`;
+            errorDisplay.querySelector('.error-message').textContent = `Error: ${errorMsg}`;
             errorDisplay.style.display = 'flex';
             setTimeout(() => errorDisplay.style.display = 'none', 5000);
         }
-        
-        // Prevent the error from propagating
         event.preventDefault();
         event.stopPropagation();
         return true;
@@ -5645,12 +5653,21 @@ Blitz T Club Team`);
     
     // Replace unhandled promise rejection handler
     window.addEventListener('unhandledrejection', (event) => {
-        const message = event.reason?.message || 'Unhandled promise rejection';
-        
+        // Enhanced error logging
+        console.error('Unhandled Promise Rejection:', event.reason, event);
+        let errorMsg = 'Unhandled promise rejection';
+        if (event.reason) {
+            if (typeof event.reason === 'object') {
+                errorMsg = event.reason.message || JSON.stringify(event.reason);
+                if (event.reason.stack) {
+                    console.error('Stack trace:', event.reason.stack);
+                }
+            } else {
+                errorMsg = String(event.reason);
+            }
+        }
         // Add to our tracking system
-        window.dashboardErrors.addError('promise', message, false);
-        
-        // Prevent from bubbling to default handler
+        window.dashboardErrors.addError('promise', errorMsg, false);
         event.preventDefault();
         return true;
     });

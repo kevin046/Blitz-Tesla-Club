@@ -2436,3 +2436,38 @@ function updateMobileCartCount() {
         mobileCartCount.textContent = totalItems;
     }
 }
+
+// Add this after DOMContentLoaded or at the end of the file
+
+document.addEventListener('click', function(e) {
+    const pill = e.target.closest('.mobile-model-pill');
+    if (pill && pill.closest('#mobile-menu')) {
+        const model = pill.getAttribute('data-model');
+        // Update active state
+        document.querySelectorAll('.mobile-model-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        // Update desktop pills if they exist
+        document.querySelectorAll('.model-pill').forEach(p => {
+            if (p.getAttribute('data-model') === model) {
+                p.classList.add('active');
+            } else {
+                p.classList.remove('active');
+            }
+        });
+        // Filter products
+        if (typeof filterProductsByModel === 'function') {
+            filterProductsByModel(model);
+        }
+        // Close mobile menu
+        if (typeof toggleMobileMenu === 'function') {
+            toggleMobileMenu();
+        }
+    }
+});
+
+// Add this near the top or after displayProducts
+function filterProductsByModel(model) {
+    currentModel = model;
+    displayProducts();
+}
+window.filterProductsByModel = filterProductsByModel;

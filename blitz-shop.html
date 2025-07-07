@@ -2597,11 +2597,14 @@
 </head>
 <body>
     <!-- Navigation will be loaded here -->
-    <div id="navigation-placeholder" style="position: relative; z-index: 1; pointer-events: none; opacity: 0;"></div>
+  <div id="navigation-placeholder" style="position: relative; z-index: 1; pointer-events: none; opacity: 0;"></div>
 
     <header class="shop-header">
         <div class="header-left">
-            <!-- Logo moved to be next to the back button -->
+            <a href="dashboard.html" class="shop-logo" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <img src="https://qhkcrrphsjpytdfqfamq.supabase.co/storage/v1/object/public/avatars//logo.png" alt="Blitz Tesla Club Logo" width="24" height="24" onerror="this.onerror=null; this.src='https://i.ibb.co/fkrdXZK/Logo4-white.png';">
+                <span class="logo-text">BLITZ T CLUB</span>
+            </a>
         </div>
         
         <div class="header-center desktop-nav">
@@ -2621,25 +2624,26 @@
         </div>
         
         <div class="header-right">
-            <div class="cart-icon hide-on-mobile" id="cart-icon" data-action="cart">
-                <i class="fas fa-shopping-cart"></i>
-                <span class="cart-count" id="cart-count">0</span>
+            <button class="back-to-dashboard-btn hide-on-mobile" onclick="window.location.href='dashboard.html'" style="background: #f8f9fa; color: #171a20; border: none; border-radius: 6px; padding: 8px 16px; font-size: 0.875rem; font-weight: 500; cursor: pointer; margin-right: 12px; transition: background 0.2s; font-family: 'Montserrat', Arial, sans-serif; display: inline-flex; align-items: center; gap: 6px;"><i class='fas fa-arrow-left'></i> Dashboard</button>
+        <div class="cart-icon hide-on-mobile" id="cart-icon" data-action="cart">
+            <i class="fas fa-shopping-cart"></i>
+            <span class="cart-count" id="cart-count">0</span>
+        </div>
+    </div>
+    
+    <!-- Mobile Navigation -->
+    <div class="mobile-nav">
+        <div class="mobile-header">
+            <div class="mobile-logo">
+                <img src="https://qhkcrrphsjpytdfqfamq.supabase.co/storage/v1/object/public/avatars//logo.png" alt="Blitz Tesla Club Logo" width="24" height="24" onerror="this.onerror=null; this.src='https://i.ibb.co/fkrdXZK/Logo4-white.png';">
+                <span class="mobile-logo-text">BLITZ T CLUB</span>
             </div>
+            
         </div>
         
-        <!-- Mobile Navigation -->
-        <div class="mobile-nav">
-            <div class="mobile-header">
-                <div class="mobile-logo">
-                    <img src="https://qhkcrrphsjpytdfqfamq.supabase.co/storage/v1/object/public/avatars//logo.png" alt="Blitz Tesla Club Logo" width="24" height="24" onerror="this.onerror=null; this.src='https://i.ibb.co/fkrdXZK/Logo4-white.png';">
-                    <span class="mobile-logo-text">BLITZ T CLUB</span>
-                </div>
-                
-            </div>
-            
-            
-        </div>
-    </header>
+        
+    </div>
+</header>
     
 
     <main>

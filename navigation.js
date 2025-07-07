@@ -309,6 +309,14 @@ async function enhanceNavigationWithAuth() {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM content loaded, initializing navigation');
     
+    // Prevent navigation bar on blitz-shop.html
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    if (currentPage === 'blitz-shop.html') {
+        // Do not inject or initialize navigation on the shop page
+        console.log('Skipping global navigation on blitz-shop.html');
+        return;
+    }
+    
     // Set up basic navigation immediately
     setupQuickNavigation();
     setupMobileMenu();

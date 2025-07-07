@@ -82,24 +82,26 @@ async function initializeShop() {
         // Check if user is authenticated
         const { data: { user }, error } = await supabaseClient.auth.getUser();
         
-        // Handle authentication gracefully
-        if (error) {
-            console.log('No authenticated user or auth error:', error.message);
-            // Continue without authentication - this is normal for public shop pages
-        } else if (user) {
-            currentUser = user;
-            
-            // Check if user is admin by looking at their email or role
-            const isAdmin = await checkAdminStatus(user);
-            if (isAdmin) {
-                setupAdminControls();
-            }
+        // Require authentication for shop browsing
+        if (error || !user) {
+            showNotification('Please log in to access the shop', 'error');
+            setTimeout(() => {
+                window.location.href = 'login.html?redirect=blitz-shop.html';
+            }, 1200);
+            return;
+        }
+        currentUser = user;
+        
+        // Check if user is admin by looking at their email or role
+        const isAdmin = await checkAdminStatus(user);
+        if (isAdmin) {
+            setupAdminControls();
         }
         
         // Setup model selection
         setupModelSelection();
         
-        // Load products and setup event listeners (regardless of auth status)
+        // Load products and setup event listeners (now only if logged in)
         await loadProducts();
         setupEventListeners();
         updateCartDisplay();

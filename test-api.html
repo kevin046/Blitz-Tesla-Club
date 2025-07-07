@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Key Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Supabase API Key Test</h1>
+    <div id="result"></div>
+    
+    <script>
+        async function testAPIKeys() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p>Testing API keys...</p>';
+            
+            const keys = [
+                {
+                    name: 'Short Key (Current)',
+                    key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1Rr'
+                },
+                {
+                    name: 'Long Key (Old)',
+                    key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoa2NycnBoc2pweXRkZnFmYW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzMjQ4NzgsImV4cCI6MjA0OTkwMDg3OH0.S9JT_WmCWYMvSixRq1RrB1UlqXm6fix_riLFYCR3JOI'
+                }
+            ];
+            
+            let results = '';
+            
+            for (const keyInfo of keys) {
+                try {
+                    const supabaseClient = supabase.createClient(
+                        'https://qhkcrrphsjpytdfqfamq.supabase.co',
+                        keyInfo.key
+                    );
+                    
+                    // Test a simple query
+                    const { data, error } = await supabaseClient
+                        .from('shop_products')
+                        .select('id')
+                        .limit(1);
+                    
+                    if (error) {
+                        results += `<p style="color: red;">❌ ${keyInfo.name}: ${error.message}</p>`;
+                    } else {
+                        results += `<p style="color: green;">✅ ${keyInfo.name}: Success! Found ${data.length} products.</p>`;
+                    }
+                    
+                } catch (error) {
+                    results += `<p style="color: red;">❌ ${keyInfo.name}: Exception - ${error.message}</p>`;
+                }
+            }
+            
+            resultDiv.innerHTML = results;
+        }
+        
+        // Run the test when page loads
+        document.addEventListener('DOMContentLoaded', testAPIKeys);
+    </script>
+</body>
+</html> 

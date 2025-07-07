@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png">
-    <link rel="apple-touch-icon" href="https://i.postimg.cc/BvmtNLtB/logo.png">
+    <link rel="icon" type="image/png" href="https://qhkcrrphsjpytdfqfamq.supabase.co/storage/v1/object/public/avatars//logo.png">
+    <link rel="apple-touch-icon" href="https://qhkcrrphsjpytdfqfamq.supabase.co/storage/v1/object/public/avatars//logo.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script src="navigation.js" defer></script>
@@ -397,7 +397,7 @@
         .modal-content.membership-card:hover {
             transform: perspective(1000px) rotateY(5deg);
         }
-        
+
         .modal-content.membership-card::before {
             content: '';
             position: absolute;
@@ -1613,7 +1613,7 @@
             left: 10px;
             width: 40px;
             height: 40px;
-            background-image: url('https://i.postimg.cc/BvmtNLtB/logo.png');
+            background-image: url('https://qhkcrrphsjpytdfqfamq.supabase.co/storage/v1/object/public/avatars//logo.png');
             background-size: cover;
             background-position: center;
             border-radius: 50%;
@@ -1647,7 +1647,7 @@
                      width="40" 
                      height="40" 
                      style="display: block !important; width: 40px !important; height: 40px !important; border-radius: 8px !important; margin-right: 12px !important; max-width: 40px !important; max-height: 40px !important; opacity: 1 !important; visibility: visible !important; object-fit: contain !important; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2)) !important;"
-                     onerror="this.onerror=null; this.src='https://i.postimg.cc/BvmtNLtB/logo.png';">
+                     onerror="this.onerror=null; this.src='https://qhkcrrphsjpytdfqfamq.supabase.co/storage/v1/object/public/avatars//logo.png';">
                 <span style="display: inline-block !important; visibility: visible !important; opacity: 1 !important;">BLITZ T CLUB</span>
             </a>
         </div>
@@ -1685,6 +1685,7 @@
                     <i class="fas fa-user-shield"></i>
                     Admin Dashboard
                 </button>
+
             </div>
         </div>
 
@@ -1741,6 +1742,23 @@
                     </div>
                     
                     <!-- Remove the profile completion status section -->
+                </div>
+            </div>
+
+            <!-- Blitz Shop Card -->
+            <div class="dashboard-card">
+              <div class="card-header">
+                <h2><i class="fas fa-shopping-cart"></i> Blitz Shop</h2>
+              </div>
+              <div class="card-content" style="text-align:center;">
+                <p>Check out exclusive club merchandise and gear!</p>
+                <a href="blitz-shop.html" class="btn primary-btn" style="width: 100%;">
+                  <i class="fas fa-store"></i> Visit Shop
+                </a>
+                <!-- Admin Shop Button - Only visible to admins -->
+                <button class="btn primary-btn" id="adminShopBtn" style="display: none; margin-top: 10px; width: 100%;">
+                  <i class="fas fa-cog"></i> Admin Shop
+                </button>
                 </div>
             </div>
 
@@ -6038,12 +6056,26 @@ Blitz T Club Team`);
             // Initialize admin button visibility
             async function initializeAdminButton() {
                 const isAdmin = await checkAdminStatus();
-                if (isAdmin && adminDashboardBtn) {
-                    adminDashboardBtn.style.display = 'flex';
-                    console.log('Admin button displayed - user has admin privileges');
-                } else if (adminDashboardBtn) {
-                    adminDashboardBtn.style.display = 'none';
-                    console.log('Admin button hidden - user does not have admin privileges');
+                const adminShopBtn = document.getElementById('adminShopBtn');
+                
+                if (isAdmin) {
+            if (adminDashboardBtn) {
+                        adminDashboardBtn.style.display = 'flex';
+                        console.log('Admin dashboard button displayed - user has admin privileges');
+                    }
+                    if (adminShopBtn) {
+                        adminShopBtn.style.display = 'flex';
+                        console.log('Admin shop button displayed - user has admin privileges');
+                    }
+                    } else {
+                    if (adminDashboardBtn) {
+            adminDashboardBtn.style.display = 'none';
+                        console.log('Admin dashboard button hidden - user does not have admin privileges');
+                    }
+                    if (adminShopBtn) {
+                        adminShopBtn.style.display = 'none';
+                        console.log('Admin shop button hidden - user does not have admin privileges');
+                    }
                 }
             }
             
@@ -6064,6 +6096,14 @@ Blitz T Club Team`);
             if (adminDashboardBtn) {
                 adminDashboardBtn.addEventListener('click', function() {
                     adminDashboardModal.style.display = 'block';
+                });
+            }
+            
+            // Handle admin shop button click
+            const adminShopBtn = document.getElementById('adminShopBtn');
+            if (adminShopBtn) {
+                adminShopBtn.addEventListener('click', function() {
+                    window.location.href = 'admin-shop.html';
                 });
             }
             

@@ -11,8 +11,8 @@ export default function Home() {
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <link rel="icon" type="image/png" href="https://i.postimg.cc/BvmtNLtB/logo.png" />
-        <link rel="apple-touch-icon" href="https://i.postimg.cc/BvmtNLtB/logo.png" />
+        <link rel="icon" type="image/png" href="https://qhkcrrphsjpytdfqfamq.supabase.co/storage/v1/object/public/avatars//logo.png" />
+        <link rel="apple-touch-icon" href="https://qhkcrrphsjpytdfqfamq.supabase.co/storage/v1/object/public/avatars//logo.png" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -36,7 +36,7 @@ export default function Home() {
         <main>
           <section className="hero" id="home">
             <div className="hero-logo">
-              <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" width="200" height="200" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://i.ibb.co/fkrdXZK/Logo4-white.png'; }} />
+              <img src="https://qhkcrrphsjpytdfqfamq.supabase.co/storage/v1/object/public/avatars//logo.png" alt="Blitz Tesla Club Logo" width="200" height="200" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://i.ibb.co/fkrdXZK/Logo4-white.png'; }} />
             </div>
             <h1 className="hero-tagline">Experience the <span style={{whiteSpace: 'nowrap'}}>Future</span> of Driving</h1>
             <div className="cta-buttons">

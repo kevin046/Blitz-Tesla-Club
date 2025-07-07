@@ -79,7 +79,7 @@ module.exports = async (req, res) => {
             _replyto: email,
             message: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" style="width: 150px; margin: 20px auto; display: block;">
+                    <img src="https://qhkcrrphsjpytdfqfamq.supabase.co/storage/v1/object/public/avatars//logo.png" alt="Blitz Tesla Club Logo" style="width: 150px; margin: 20px auto; display: block;">
                     <h1 style="color: #171a20; text-align: center;">Welcome to Blitz Tesla Club!</h1>
                     <p style="text-align: center; color: #666;">Thank you for joining Blitz Tesla Club!</p>
                     <p style="text-align: center; margin: 20px 0;">

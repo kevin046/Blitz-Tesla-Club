@@ -162,7 +162,7 @@ app.post('/api/register', async (req, res) => {
             subject: 'Verify Your Blitz Tesla Club Membership',
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" style="width: 150px; margin: 20px auto; display: block;">
+                    <img src="https://qhkcrrphsjpytdfqfamq.supabase.co/storage/v1/object/public/avatars//logo.png" alt="Blitz Tesla Club Logo" style="width: 150px; margin: 20px auto; display: block;">
                     <h1 style="color: #171a20; text-align: center;">Welcome to Blitz Tesla Club!</h1>
                     <p>Hi ${fullName},</p>
                     <p>Thank you for joining Blitz Tesla Club! Please verify your email to activate your membership.</p>
@@ -264,7 +264,7 @@ app.post('/api/admin/upgrade-member', async (req, res) => {
             subject: 'Welcome to Blitz Tesla Club Premium Membership!',
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" style="width: 150px; margin: 20px auto; display: block;">
+                    <img src="https://qhkcrrphsjpytdfqfamq.supabase.co/storage/v1/object/public/avatars//logo.png" alt="Blitz Tesla Club Logo" style="width: 150px; margin: 20px auto; display: block;">
                     <h1 style="color: #171a20; text-align: center;">Welcome to Premium Membership!</h1>
                     <p>Hi ${profile.full_name},</p>
                     <p>Congratulations! Your membership has been upgraded to Premium status.</p>
@@ -307,7 +307,7 @@ app.post('/api/resend-verification', async (req, res) => {
             subject: 'Verify Your Blitz Tesla Club Membership',
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" style="width: 150px; margin: 20px auto; display: block;">
+                    <img src="https://qhkcrrphsjpytdfqfamq.supabase.co/storage/v1/object/public/avatars//logo.png" alt="Blitz Tesla Club Logo" style="width: 150px; margin: 20px auto; display: block;">
                     <h1 style="color: #171a20; text-align: center;">Verify Your Email</h1>
                     <p>Please verify your email to activate your Blitz Tesla Club membership.</p>
                     <div style="text-align: center; margin: 30px 0;">
@@ -400,6 +400,10 @@ app.post('/api/generate-member-id', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+// Add send-email route
+const sendEmailRouter = require('./api/send-email');
+app.use('/api', sendEmailRouter);
 
 const PORT = 3000;
 app.listen(PORT, () => {

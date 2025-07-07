@@ -59,7 +59,7 @@ export default async function handler(req, res) {
                 _url: verificationUrl,
                 message: `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                        <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo" style="width: 150px; margin: 20px auto; display: block;">
+                        <img src="https://qhkcrrphsjpytdfqfamq.supabase.co/storage/v1/object/public/avatars//logo.png" alt="Blitz Tesla Club Logo" style="width: 150px; margin: 20px auto; display: block;">
                         <h1 style="color: #171a20; text-align: center;">Verify Your Email</h1>
                         <p>Please verify your email to activate your Blitz Tesla Club membership.</p>
                         <p style="text-align: center; color: #171a20;">

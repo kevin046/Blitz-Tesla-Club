@@ -14,6 +14,9 @@ window.initializeSupabase = () => {
     return window.supabaseClient;
 };
 
+// Immediately initialize on script load
+window.initializeSupabase();
+
 // Core function to initialize mobile menu - used by both initialization paths
 function setupMobileMenu() {
     console.log('Setting up mobile menu');
@@ -43,7 +46,7 @@ function setupMobileMenu() {
         const brandLogo = document.createElement('div');
         brandLogo.className = 'nav-brand';
         brandLogo.innerHTML = `
-            <img src="https://i.postimg.cc/BvmtNLtB/logo.png" alt="Blitz Tesla Club Logo">
+                            <img src="https://qhkcrrphsjpytdfqfamq.supabase.co/storage/v1/object/public/avatars//logo.png" alt="Blitz Tesla Club Logo">
         `;
         navLinks.prepend(brandLogo);
     }

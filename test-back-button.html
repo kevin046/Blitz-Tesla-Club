@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Back Button Test</title>
+    <style>
+        body {
+            font-family: 'Montserrat', Arial, sans-serif;
+            background: #fafbfc;
+            margin: 0;
+            color: #222;
+        }
+        .shop-header {
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            height: 80px;
+            border-bottom: 1px solid #f0f0f0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            position: relative;
+            z-index: 1001;
+        }
+        .back-to-dashboard-btn {
+            background: transparent;
+            border: none;
+            color: #171a20;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            font-family: 'Montserrat', Arial, sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            user-select: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 36px;
+            position: relative;
+            z-index: 1002;
+            pointer-events: auto;
+            margin-right: 16px;
+        }
+        .back-to-dashboard-btn:hover {
+            background-color: #f8f9fa;
+            color: #171a20;
+            transform: translateY(-1px);
+        }
+        .back-to-dashboard-btn:active {
+            background-color: #e9ecef;
+            transform: translateY(0);
+        }
+        .back-to-dashboard-btn:focus {
+            outline: 2px solid #00e676;
+            outline-offset: 2px;
+        }
+        
+        /* Ensure back button is always clickable on desktop */
+        @media (min-width: 769px) {
+            .back-to-dashboard-btn {
+                pointer-events: auto !important;
+                z-index: 1003 !important;
+                position: relative !important;
+                cursor: pointer !important;
+                display: inline-flex !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+            }
+            
+            .back-to-dashboard-btn span {
+                display: inline !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="shop-header">
+        <div class="header-left">
+            <button class="back-to-dashboard-btn" id="back-to-dashboard-btn" onclick="console.log('Back button clicked via onclick'); window.location.href='dashboard.html';">
+                <i class="fas fa-arrow-left"></i>
+                <span>Back to Dashboard</span>
+            </button>
+            <div class="shop-logo">
+                <span class="logo-text">BLITZ T CLUB</span>
+            </div>
+        </div>
+    </header>
+    
+    <main style="padding: 20px;">
+        <h1>Back Button Test</h1>
+        <p>Click the "Back to Dashboard" button above to test if it works.</p>
+        <p>Check the browser console for click events.</p>
+    </main>
+    
+    <script>
+        // Ensure back button works properly
+        document.addEventListener('DOMContentLoaded', function() {
+            const backButton = document.getElementById('back-to-dashboard-btn');
+            if (backButton) {
+                // Add additional event listener to ensure it works
+                backButton.addEventListener('click', function(e) {
+                    console.log('Back button clicked via addEventListener!');
+                    window.location.href = 'dashboard.html';
+                });
+                
+                // Force the button to be clickable
+                backButton.style.pointerEvents = 'auto';
+                backButton.style.zIndex = '1003';
+                backButton.style.position = 'relative';
+                backButton.style.cursor = 'pointer';
+                
+                console.log('Back button setup complete');
+            } else {
+                console.error('Back button not found!');
+            }
+        });
+    </script>
+</body>
+</html> 

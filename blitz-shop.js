@@ -2455,13 +2455,9 @@ document.addEventListener('click', function(e) {
             }
         });
         // Filter products
-        if (typeof filterProductsByModel === 'function') {
-            filterProductsByModel(model);
-        }
-        // Close mobile menu
-        if (typeof toggleMobileMenu === 'function') {
-            toggleMobileMenu();
-        }
+        filterProductsByModel(model);
+        // Auto-close the mobile menu
+        closeMobileMenu();
     }
 });
 
@@ -2471,3 +2467,20 @@ function filterProductsByModel(model) {
     displayProducts();
 }
 window.filterProductsByModel = filterProductsByModel;
+
+function updateCartCount(count) {
+    const desktopCartCount = document.getElementById('cart-count');
+    const mobileCartCount = document.getElementById('mobile-cart-count');
+    if (desktopCartCount) {
+        desktopCartCount.textContent = count;
+    }
+    if (mobileCartCount) {
+        mobileCartCount.textContent = count;
+        // Hide badge if 0, show if >0
+        if (parseInt(count) > 0) {
+            mobileCartCount.style.display = 'inline-block';
+        } else {
+            mobileCartCount.style.display = 'none';
+        }
+    }
+}
